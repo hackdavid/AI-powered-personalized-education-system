@@ -2,42 +2,207 @@
 {% load static %}
 
 {% block content %}
-<div class="dashboard-container">
-    <!-- Sidebar Navigation -->
-    <aside class="dashboard-sidebar">
-        <div class="sidebar-header">
-            <h2>{% block dashboard_title %}Dashboard{% endblock %}</h2>
-            <p class="user-info">{{ user.get_full_name }}</p>
-            <p class="role-badge">{{ user.role.display_name }}</p>
+<!-- Top Navbar -->
+<nav style="position: fixed; top: 0; left: 0; right: 0; height: 64px; background: white; border-bottom: 1px solid #e5e7eb; z-index: 50;">
+    <div style="height: 100%; width: 100%; display: flex; align-items: center;">
+        <!-- Hamburger Menu Button -->
+        <div style="width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <button
+                id="sidebar-toggle"
+                style="display: block; width: 40px; height: 40px; background: transparent; border: none; cursor: pointer; border-radius: 8px; padding: 8px; transition: background-color 0.2s;"
+                onmouseover="this.style.backgroundColor='#f3f4f6'"
+                onmouseout="this.style.backgroundColor='transparent'"
+                title="Toggle Menu"
+            >
+                <svg id="menu-open-icon" style="width: 24px; height: 24px; display: block;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+                <svg id="menu-close-icon" style="width: 24px; height: 24px; display: none;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
         </div>
 
-        <nav class="sidebar-nav">
-            {% block sidebar_nav %}
-                <!-- Role-specific navigation will be injected here -->
-            {% endblock %}
-        </nav>
-
-        <div class="sidebar-footer">
-            <a href="{% url 'auth:logout' %}" class="logout-link">Logout</a>
-        </div>
-    </aside>
-
-    <!-- Main Dashboard Content -->
-    <div class="dashboard-main">
-        <div class="dashboard-header">
-            <h1>{% block page_title %}Dashboard{% endblock %}</h1>
-            {% block page_actions %}{% endblock %}
+        <!-- Logo/Title -->
+        <div style="flex: 1; text-align: center; padding: 0 10px;">
+            <a href="{% url 'core:dashboard' %}" style="font-size: 18px; font-weight: 600; color: #111827; text-decoration: none;">
+                {% block dashboard_title %}Dashboard{% endblock %}
+            </a>
         </div>
 
-        <div class="dashboard-content">
+        <!-- User Avatar -->
+        <div style="width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <div style="position: relative;">
+                <button id="user-menu-btn" style="width: 40px; height: 40px; border-radius: 50%; background: #4f46e5; color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; cursor: pointer; border: none; font-size: 14px; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#4338ca'" onmouseout="this.style.backgroundColor='#4f46e5'">
+                    {{ user.first_name.0|upper }}{{ user.last_name.0|upper }}
+                </button>
+
+                <!-- User Dropdown -->
+                <div id="user-menu" style="display: none; position: absolute; top: 50px; right: 0; width: 192px; background: white; border: 1px solid #e5e7eb; border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); padding: 8px 0; z-index: 60;">
+                    <div style="padding: 12px 16px; border-bottom: 1px solid #e5e7eb; margin-bottom: 8px;">
+                        <p style="font-weight: 500; font-size: 14px; color: #111827; margin: 0;">{{ user.get_full_name }}</p>
+                        <p style="font-size: 12px; color: #6b7280; margin: 4px 0 0 0;">{{ user.role.display_name }}</p>
+                    </div>
+                    <a href="#" style="display: block; padding: 8px 16px; font-size: 14px; color: #374151; text-decoration: none; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f3f4f6'" onmouseout="this.style.backgroundColor='white'">Profile</a>
+                    <a href="#" style="display: block; padding: 8px 16px; font-size: 14px; color: #374151; text-decoration: none; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#f3f4f6'" onmouseout="this.style.backgroundColor='white'">Settings</a>
+                    <hr style="margin: 8px 0; border: none; border-top: 1px solid #e5e7eb;">
+                    <a href="{% url 'auth:logout' %}" style="display: block; padding: 8px 16px; font-size: 14px; color: #dc2626; text-decoration: none; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#fef2f2'" onmouseout="this.style.backgroundColor='white'">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Sidebar Overlay -->
+<div id="sidebar-overlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 40; display: none;"></div>
+
+<!-- Sidebar -->
+<aside id="sidebar" style="position: fixed; top: 64px; left: 0; bottom: 0; width: 256px; background: white; border-right: 1px solid #e5e7eb; z-index: 40; transform: translateX(-100%); transition: transform 0.3s ease-in-out; overflow-y: auto;">
+    <!-- User Info Section -->
+    <div style="padding: 24px; background: #f9fafb; border-bottom: 1px solid #e5e7eb;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 48px; height: 48px; border-radius: 50%; background: #4f46e5; color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; flex-shrink: 0;">
+                {{ user.first_name.0|upper }}{{ user.last_name.0|upper }}
+            </div>
+            <div style="min-width: 0; flex: 1;">
+                <p style="margin: 0; font-weight: 500; font-size: 14px; color: #111827; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ user.get_full_name }}</p>
+                <p style="margin: 4px 0 0 0; font-size: 12px; color: #6b7280; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ user.role.display_name }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Items -->
+    <nav style="padding: 16px 0;">
+        {% block sidebar_nav %}
+            <!-- Role-specific navigation will be injected here -->
+        {% endblock %}
+    </nav>
+</aside>
+
+<!-- Main Content -->
+<main style="padding-top: 64px; min-height: 100vh;">
+    <style>
+        @media (min-width: 1024px) {
+            main {
+                padding-left: 256px !important;
+            }
+            #sidebar-toggle {
+                display: none !important;
+            }
+            #sidebar {
+                transform: translateX(0) !important;
+            }
+        }
+    </style>
+
+    <div style="padding: 24px;">
+        <!-- Page Header -->
+        <div style="margin-bottom: 24px;">
+            <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px;">
+                <div style="flex: 1;">
+                    <h1 style="font-size: 24px; font-weight: 700; color: #111827; margin: 0 0 4px 0;">{% block page_title %}Dashboard{% endblock %}</h1>
+                    {% block page_subtitle %}{% endblock %}
+                </div>
+                <div style="display: flex; gap: 12px;">
+                    {% block page_actions %}{% endblock %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Content -->
+        <div>
             {% block dashboard_content %}{% endblock %}
         </div>
     </div>
-</div>
+</main>
 
 {% block dashboard_modals %}{% endblock %}
-{% endblock %}
 
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<script>
+(function() {
+    const toggle = document.getElementById('sidebar-toggle');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    const menuOpenIcon = document.getElementById('menu-open-icon');
+    const menuCloseIcon = document.getElementById('menu-close-icon');
+
+    function openSidebar() {
+        sidebar.style.transform = 'translateX(0)';
+        overlay.style.display = 'block';
+        menuOpenIcon.style.display = 'none';
+        menuCloseIcon.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeSidebar() {
+        sidebar.style.transform = 'translateX(-100%)';
+        overlay.style.display = 'none';
+        menuOpenIcon.style.display = 'block';
+        menuCloseIcon.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    if (toggle) {
+        toggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            const isOpen = sidebar.style.transform === 'translateX(0px)' || sidebar.style.transform === 'translateX(0)';
+            if (isOpen) {
+                closeSidebar();
+            } else {
+                openSidebar();
+            }
+        });
+    }
+
+    if (overlay) {
+        overlay.addEventListener('click', closeSidebar);
+    }
+
+    // Close sidebar when clicking nav links on mobile
+    if (sidebar) {
+        const links = sidebar.querySelectorAll('a');
+        links.forEach(link => {
+            link.addEventListener('click', function() {
+                if (window.innerWidth < 1024) {
+                    closeSidebar();
+                }
+            });
+        });
+    }
+
+    // User menu dropdown
+    const userBtn = document.getElementById('user-menu-btn');
+    const userMenu = document.getElementById('user-menu');
+
+    if (userBtn && userMenu) {
+        userBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            userMenu.style.display = userMenu.style.display === 'none' ? 'block' : 'none';
+        });
+
+        document.addEventListener('click', function() {
+            userMenu.style.display = 'none';
+        });
+
+        userMenu.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    }
+
+    // Close sidebar on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const isOpen = sidebar.style.transform === 'translateX(0px)' || sidebar.style.transform === 'translateX(0)';
+            if (isOpen && window.innerWidth < 1024) {
+                closeSidebar();
+            }
+        }
+    });
+
+    // Initialize - ensure sidebar is closed on mobile
+    if (window.innerWidth < 1024) {
+        closeSidebar();
+    }
+})();
+</script>
 {% endblock %}

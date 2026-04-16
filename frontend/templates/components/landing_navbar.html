@@ -1,85 +1,71 @@
 {% load static %}
-<nav class="navbar landing-navbar">
-    <div class="navbar-container">
-        <div class="navbar-brand">
-            <a href="{% url 'core:home' %}">
-                <span class="logo">🎓 EduAI Platform</span>
-            </a>
+
+<nav class="sticky top-0 z-50 bg-white shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+            <!-- Logo -->
+            <div class="flex-shrink-0">
+                <a href="{% url 'core:home' %}" class="text-2xl font-bold text-indigo-600">
+                    EduAI Platform
+                </a>
+            </div>
+
+            <!-- Desktop Menu -->
+            <div class="hidden md:flex space-x-8">
+                <a href="#features" class="text-gray-700 hover:text-indigo-600 transition">Features</a>
+                <a href="#about" class="text-gray-700 hover:text-indigo-600 transition">About</a>
+                <a href="#contact" class="text-gray-700 hover:text-indigo-600 transition">Contact</a>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'core:dashboard' %}" class="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition">
+                        Dashboard
+                    </a>
+                    <a href="{% url 'auth:logout' %}" class="px-4 py-2 rounded-lg border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50 transition">
+                        Logout
+                    </a>
+                {% else %}
+                    <a href="{% url 'auth:login' %}" class="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition">
+                        Login
+                    </a>
+                {% endif %}
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <button id="mobile-menu-btn" class="md:hidden p-2 rounded-md text-gray-700 hover:bg-gray-100 transition">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
         </div>
 
-        <div class="navbar-menu">
-            <a href="#features" class="nav-link">Features</a>
-            <a href="#about" class="nav-link">About</a>
-            <a href="#contact" class="nav-link">Contact</a>
-        </div>
-
-        <div class="navbar-actions">
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden pb-4">
+            <a href="#features" class="block py-2 text-gray-700 hover:text-indigo-600 transition">Features</a>
+            <a href="#about" class="block py-2 text-gray-700 hover:text-indigo-600 transition">About</a>
+            <a href="#contact" class="block py-2 text-gray-700 hover:text-indigo-600 transition">Contact</a>
             {% if user.is_authenticated %}
-                <a href="{% url 'core:dashboard' %}" class="btn btn-primary">Dashboard</a>
-                <a href="{% url 'auth:logout' %}" class="btn btn-secondary">Logout</a>
+                <a href="{% url 'core:dashboard' %}" class="block mt-2 px-4 py-2 rounded-lg bg-indigo-600 text-white text-center hover:bg-indigo-700 transition">
+                    Dashboard
+                </a>
+                <a href="{% url 'auth:logout' %}" class="block mt-2 px-4 py-2 rounded-lg border-2 border-indigo-600 text-indigo-600 text-center hover:bg-indigo-50 transition">
+                    Logout
+                </a>
             {% else %}
-                <a href="{% url 'auth:login' %}" class="btn btn-primary">Login</a>
+                <a href="{% url 'auth:login' %}" class="block mt-2 px-4 py-2 rounded-lg bg-indigo-600 text-white text-center hover:bg-indigo-700 transition">
+                    Login
+                </a>
             {% endif %}
         </div>
     </div>
 </nav>
 
-<style>
-.landing-navbar {
-    background: white;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    padding: 1rem 0;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-}
+<script>
+// Mobile menu toggle
+const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+const mobileMenu = document.getElementById('mobile-menu');
 
-.navbar-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+if (mobileMenuBtn && mobileMenu) {
+    mobileMenuBtn.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+    });
 }
-
-.navbar-brand .logo {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #4F46E5;
-    text-decoration: none;
-}
-
-.navbar-menu {
-    display: flex;
-    gap: 2rem;
-    align-items: center;
-}
-
-.navbar-menu .nav-link {
-    color: #374151;
-    text-decoration: none;
-    font-weight: 500;
-    transition: color 0.2s;
-}
-
-.navbar-menu .nav-link:hover {
-    color: #4F46E5;
-}
-
-.navbar-actions {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-}
-
-@media (max-width: 768px) {
-    .navbar-menu {
-        display: none;
-    }
-
-    .navbar-container {
-        padding: 0 1rem;
-    }
-}
-</style>
+</script>

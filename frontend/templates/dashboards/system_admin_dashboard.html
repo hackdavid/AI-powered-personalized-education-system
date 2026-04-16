@@ -1,111 +1,264 @@
 {% extends 'base/dashboard_base.html' %}
 
-{% block dashboard_title %}System Admin Dashboard{% endblock %}
+{% block dashboard_title %}System Admin{% endblock %}
 {% block page_title %}System Administration{% endblock %}
 
+{% block page_subtitle %}
+<p class="text-gray-600 mt-1">Platform-wide management and monitoring</p>
+{% endblock %}
+
+{% block page_actions %}
+<button class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition flex items-center text-sm md:text-base">
+    <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+    </svg>
+    <span class="hidden sm:inline">Add Tenant</span>
+    <span class="sm:hidden">Add</span>
+</button>
+{% endblock %}
+
 {% block sidebar_nav %}
-<a href="{% url 'core:dashboard' %}" class="active">Dashboard</a>
-<a href="#">Tenants</a>
-<a href="#">System Users</a>
-<a href="#">Platform Reports</a>
-<a href="#">System Logs</a>
-<a href="{% url 'core:health_check' %}">Health Check</a>
-<hr style="border-color: #374151; margin: 1rem 0;">
-<div style="padding: 0.5rem; font-size: 0.75rem; color: #9CA3AF;">
-    <strong>System Administrator</strong>
-    <p style="margin-top: 0.5rem;">You have business-level system access. For technical admin, contact IT.</p>
+<a href="{% url 'core:dashboard' %}" class="flex items-center px-6 py-3 text-gray-700 bg-indigo-50 border-r-4 border-indigo-600 transition">
+    <svg class="h-5 w-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+    </svg>
+    <span class="text-sm">Dashboard</span>
+</a>
+
+<a href="#" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition">
+    <svg class="h-5 w-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+    </svg>
+    <span class="text-sm">Tenants</span>
+</a>
+
+<a href="#" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition">
+    <svg class="h-5 w-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+    </svg>
+    <span class="text-sm">System Users</span>
+</a>
+
+<a href="#" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition">
+    <svg class="h-5 w-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+    </svg>
+    <span class="text-sm">Platform Reports</span>
+</a>
+
+<a href="#" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition">
+    <svg class="h-5 w-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+    </svg>
+    <span class="text-sm">System Logs</span>
+</a>
+
+<a href="{% url 'core:health_check' %}" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition">
+    <svg class="h-5 w-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    </svg>
+    <span class="text-sm">Health Check</span>
+</a>
+
+<!-- Info Box at Bottom -->
+<div class="mx-4 my-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+    <p class="text-xs font-semibold text-blue-900 mb-1">System Admin</p>
+    <p class="text-xs text-blue-700 leading-relaxed">
+        Business-level access. Contact IT for technical admin.
+    </p>
 </div>
 {% endblock %}
 
 {% block dashboard_content %}
-<div class="alert alert-info" style="margin-bottom: 2rem;">
-    <strong>ℹ️ System Administrator Access</strong>
-    <p style="margin-top: 0.5rem;">
-        You are logged in as a System Administrator with business-level access to manage tenants and users.
-        You do <strong>not</strong> have access to Django Admin panel. For technical administration, contact IT.
-    </p>
-</div>
-
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
-    <div class="card">
-        <h3>🏫 Total Tenants</h3>
-        <p style="font-size: 2rem; font-weight: bold; color: #4F46E5;">0</p>
-        <p style="color: #6B7280; font-size: 0.875rem;">Schools on platform</p>
-    </div>
-
-    <div class="card">
-        <h3>👥 Total Users</h3>
-        <p style="font-size: 2rem; font-weight: bold; color: #10B981;">0</p>
-        <p style="color: #6B7280; font-size: 0.875rem;">All platform users</p>
-    </div>
-
-    <div class="card">
-        <h3>✅ Active Tenants</h3>
-        <p style="font-size: 2rem; font-weight: bold; color: #3B82F6;">0</p>
-        <p style="color: #6B7280; font-size: 0.875rem;">Currently active</p>
-    </div>
-
-    <div class="card">
-        <h3>📊 System Health</h3>
-        <p style="font-size: 2rem; font-weight: bold; color: #10B981;">Healthy</p>
-        <a href="{% url 'core:health_check' %}" class="btn btn-success">Check Status</a>
-    </div>
-</div>
-
-<div class="card" style="margin-top: 2rem;">
-    <div class="card-header">
-        <h3 class="card-title">🎯 Quick Actions</h3>
-    </div>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
-        <div>
-            <h4>🏫 Manage Tenants</h4>
-            <p style="color: #6B7280; font-size: 0.875rem;">View and manage all schools</p>
-            <button class="btn btn-primary" style="margin-top: 0.5rem;" disabled>Coming in Phase 2</button>
-        </div>
-        <div>
-            <h4>👥 Manage Users</h4>
-            <p style="color: #6B7280; font-size: 0.875rem;">Manage users across all tenants</p>
-            <button class="btn btn-primary" style="margin-top: 0.5rem;" disabled>Coming in Phase 2</button>
-        </div>
-        <div>
-            <h4>📊 View Reports</h4>
-            <p style="color: #6B7280; font-size: 0.875rem;">Platform usage and statistics</p>
-            <button class="btn btn-primary" style="margin-top: 0.5rem;" disabled>Coming in Phase 2</button>
+<!-- Info Alert -->
+<div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg mb-8" role="alert">
+    <div class="flex items-start">
+        <svg class="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <div class="ml-3">
+            <p class="text-sm font-medium text-blue-800">System Administrator Access</p>
+            <p class="text-sm text-blue-700 mt-1">
+                You are logged in as a System Administrator with business-level access to manage tenants and users.
+                You do <strong>not</strong> have access to Django Admin panel. For technical administration, contact IT.
+            </p>
         </div>
     </div>
 </div>
 
-<div class="card" style="margin-top: 2rem;">
-    <div class="card-header">
-        <h3 class="card-title">ℹ️ Your Access Level</h3>
+<!-- Stats Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Total Tenants Card -->
+    <div class="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition">
+        <div class="flex items-center justify-between mb-4">
+            <div class="p-3 bg-indigo-100 rounded-lg">
+                <svg class="h-8 w-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                </svg>
+            </div>
+        </div>
+        <h3 class="text-gray-600 text-sm font-medium mb-1">Total Tenants</h3>
+        <p class="text-3xl font-bold text-gray-800">0</p>
+        <p class="text-sm text-gray-500 mt-1">Schools on platform</p>
     </div>
-    <table style="width: 100%; border-collapse: collapse;">
-        <tbody>
-            <tr style="border-bottom: 1px solid #E5E7EB;">
-                <td style="padding: 0.75rem; font-weight: 600;">Manage Tenants (Schools)</td>
-                <td style="padding: 0.75rem; text-align: right; color: #10B981;">✅ Yes</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #E5E7EB;">
-                <td style="padding: 0.75rem; font-weight: 600;">Manage All Users</td>
-                <td style="padding: 0.75rem; text-align: right; color: #10B981;">✅ Yes</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #E5E7EB;">
-                <td style="padding: 0.75rem; font-weight: 600;">View Platform Statistics</td>
-                <td style="padding: 0.75rem; text-align: right; color: #10B981;">✅ Yes</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #E5E7EB;">
-                <td style="padding: 0.75rem; font-weight: 600;">System Health Monitoring</td>
-                <td style="padding: 0.75rem; text-align: right; color: #10B981;">✅ Yes</td>
-            </tr>
-            <tr style="border-bottom: 1px solid #E5E7EB;">
-                <td style="padding: 0.75rem; font-weight: 600;">Django Admin Panel</td>
-                <td style="padding: 0.75rem; text-align: right; color: #DC2626;">❌ No</td>
-            </tr>
-            <tr>
-                <td style="padding: 0.75rem; font-weight: 600;">Database Direct Access</td>
-                <td style="padding: 0.75rem; text-align: right; color: #DC2626;">❌ No</td>
-            </tr>
-        </tbody>
-    </table>
+
+    <!-- Total Users Card -->
+    <div class="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition">
+        <div class="flex items-center justify-between mb-4">
+            <div class="p-3 bg-green-100 rounded-lg">
+                <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
+            </div>
+        </div>
+        <h3 class="text-gray-600 text-sm font-medium mb-1">Total Users</h3>
+        <p class="text-3xl font-bold text-gray-800">0</p>
+        <p class="text-sm text-gray-500 mt-1">All platform users</p>
+    </div>
+
+    <!-- Active Tenants Card -->
+    <div class="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition">
+        <div class="flex items-center justify-between mb-4">
+            <div class="p-3 bg-blue-100 rounded-lg">
+                <svg class="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+            </div>
+        </div>
+        <h3 class="text-gray-600 text-sm font-medium mb-1">Active Tenants</h3>
+        <p class="text-3xl font-bold text-gray-800">0</p>
+        <p class="text-sm text-gray-500 mt-1">Currently active</p>
+    </div>
+
+    <!-- System Health Card -->
+    <div class="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition">
+        <div class="flex items-center justify-between mb-4">
+            <div class="p-3 bg-green-100 rounded-lg">
+                <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0121 12c0 .292-.012.581-.035.867M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
+            </div>
+        </div>
+        <h3 class="text-gray-600 text-sm font-medium mb-1">System Health</h3>
+        <p class="text-2xl font-bold text-green-600">Healthy</p>
+        <a href="{% url 'core:health_check' %}" class="inline-flex items-center text-sm font-semibold text-green-600 hover:text-green-700 transition mt-2">
+            Check Status
+            <svg class="h-4 w-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+        </a>
+    </div>
+</div>
+
+<!-- Quick Actions Card -->
+<div class="bg-white rounded-xl shadow-md overflow-hidden mb-8">
+    <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-800">Quick Actions</h3>
+    </div>
+    <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="text-center p-4 border-2 border-dashed border-gray-300 rounded-lg">
+            <div class="text-3xl mb-2">🏫</div>
+            <h4 class="font-semibold text-gray-800 mb-1">Manage Tenants</h4>
+            <p class="text-sm text-gray-600 mb-3">View and manage all schools</p>
+            <button disabled class="px-4 py-2 bg-gray-400 text-white rounded-lg font-semibold cursor-not-allowed text-sm">
+                Coming in Phase 2
+            </button>
+        </div>
+        <div class="text-center p-4 border-2 border-dashed border-gray-300 rounded-lg">
+            <div class="text-3xl mb-2">👥</div>
+            <h4 class="font-semibold text-gray-800 mb-1">Manage Users</h4>
+            <p class="text-sm text-gray-600 mb-3">Manage users across all tenants</p>
+            <button disabled class="px-4 py-2 bg-gray-400 text-white rounded-lg font-semibold cursor-not-allowed text-sm">
+                Coming in Phase 2
+            </button>
+        </div>
+        <div class="text-center p-4 border-2 border-dashed border-gray-300 rounded-lg">
+            <div class="text-3xl mb-2">📊</div>
+            <h4 class="font-semibold text-gray-800 mb-1">View Reports</h4>
+            <p class="text-sm text-gray-600 mb-3">Platform usage and statistics</p>
+            <button disabled class="px-4 py-2 bg-gray-400 text-white rounded-lg font-semibold cursor-not-allowed text-sm">
+                Coming in Phase 2
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Your Access Level Card -->
+<div class="bg-white rounded-xl shadow-md overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-800">Your Access Level</h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <tbody class="divide-y divide-gray-200">
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-6 py-4 text-sm font-medium text-gray-800">Manage Tenants (Schools)</td>
+                    <td class="px-6 py-4 text-right">
+                        <span class="inline-flex items-center text-sm font-semibold text-green-600">
+                            <svg class="h-5 w-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Yes
+                        </span>
+                    </td>
+                </tr>
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-6 py-4 text-sm font-medium text-gray-800">Manage All Users</td>
+                    <td class="px-6 py-4 text-right">
+                        <span class="inline-flex items-center text-sm font-semibold text-green-600">
+                            <svg class="h-5 w-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Yes
+                        </span>
+                    </td>
+                </tr>
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-6 py-4 text-sm font-medium text-gray-800">View Platform Statistics</td>
+                    <td class="px-6 py-4 text-right">
+                        <span class="inline-flex items-center text-sm font-semibold text-green-600">
+                            <svg class="h-5 w-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Yes
+                        </span>
+                    </td>
+                </tr>
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-6 py-4 text-sm font-medium text-gray-800">System Health Monitoring</td>
+                    <td class="px-6 py-4 text-right">
+                        <span class="inline-flex items-center text-sm font-semibold text-green-600">
+                            <svg class="h-5 w-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Yes
+                        </span>
+                    </td>
+                </tr>
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-6 py-4 text-sm font-medium text-gray-800">Django Admin Panel</td>
+                    <td class="px-6 py-4 text-right">
+                        <span class="inline-flex items-center text-sm font-semibold text-red-600">
+                            <svg class="h-5 w-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                            No
+                        </span>
+                    </td>
+                </tr>
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-6 py-4 text-sm font-medium text-gray-800">Database Direct Access</td>
+                    <td class="px-6 py-4 text-right">
+                        <span class="inline-flex items-center text-sm font-semibold text-red-600">
+                            <svg class="h-5 w-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                            No
+                        </span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </div>
 {% endblock %}

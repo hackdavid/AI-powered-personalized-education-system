@@ -11,8 +11,8 @@ from django.db import connection
 
 def home(request):
     """Home page - redirect to dashboard if authenticated."""
-    if request.user.is_authenticated:
-        return redirect('core:dashboard')
+    # if request.user.is_authenticated:
+    #     return redirect('core:dashboard')
     return render(request, 'base/home.html')
 
 

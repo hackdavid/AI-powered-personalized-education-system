@@ -3,137 +3,120 @@
 {% block title %}Login - EduAI Platform{% endblock %}
 
 {% block content %}
-<div class="login-container">
-    <div class="login-card">
-        <div class="login-header">
-            <h2>Welcome Back!</h2>
-            <p>Login to access your dashboard</p>
-        </div>
-
-        <form method="POST" action="{% url 'auth:login' %}" class="login-form">
-            {% csrf_token %}
-
-            <div class="form-group">
-                <label for="email">Email Address</label>
-                <input type="email" id="email" name="email" placeholder="student@example.com" required autofocus>
+<div class="min-h-screen bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center p-4" style="min-height: calc(100vh - 64px);">
+    <div class="w-full max-w-md">
+        <!-- Card -->
+        <div class="bg-white rounded-2xl shadow-2xl p-8">
+            <!-- Logo -->
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-gray-800">Welcome Back</h1>
+                <p class="text-gray-600 mt-2">Sign in to your account</p>
             </div>
 
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" placeholder="Enter your password" required>
-            </div>
+            <!-- Form -->
+            <form method="POST" action="{% url 'auth:login' %}" class="space-y-6">
+                {% csrf_token %}
 
-            <div class="form-group">
-                <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal;">
-                    <input type="checkbox" name="remember_me" style="width: auto;">
-                    Remember me for 2 weeks
-                </label>
-            </div>
-
-            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.875rem;">
-                Login to Dashboard
-            </button>
-
-            <div class="login-footer">
-                <a href="{% url 'auth:password_reset' %}">Forgot your password?</a>
-            </div>
-        </form>
-
-        <div class="login-demo">
-            <p style="text-align: center; color: #6B7280; margin: 2rem 0 1rem;">
-                <strong>Demo Accounts</strong> (Create these in Django Admin)
-            </p>
-            <div class="demo-accounts">
-                <div class="demo-account">
-                    <strong>Student:</strong> student@test.com
+                <!-- Email -->
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+                        Email Address
+                    </label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        required
+                        autofocus
+                        class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition"
+                        placeholder="you@example.com"
+                    >
                 </div>
-                <div class="demo-account">
-                    <strong>Teacher:</strong> teacher@test.com
+
+                <!-- Password -->
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+                        Password
+                    </label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        required
+                        class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition"
+                        placeholder="••••••••"
+                    >
                 </div>
-                <div class="demo-account">
-                    <strong>Admin:</strong> admin@test.com
+
+                <!-- Remember & Forgot -->
+                <div class="flex items-center justify-between">
+                    <label class="flex items-center">
+                        <input
+                            type="checkbox"
+                            name="remember_me"
+                            class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                        >
+                        <span class="ml-2 text-sm text-gray-600">Remember me for 2 weeks</span>
+                    </label>
+                    <a href="{% url 'auth:password_reset' %}" class="text-sm text-indigo-600 hover:text-indigo-700">
+                        Forgot password?
+                    </a>
+                </div>
+
+                <!-- Submit Button -->
+                <button
+                    type="submit"
+                    class="w-full bg-indigo-600 text-white py-3 rounded-lg font-semibold hover:bg-indigo-700 transition duration-200 shadow-sm hover:shadow-md"
+                >
+                    Sign In
+                </button>
+            </form>
+
+            <!-- Demo Accounts -->
+            <div class="mt-8 pt-8 border-t border-gray-200">
+                <p class="text-center text-sm font-semibold text-gray-700 mb-4">
+                    Demo Accounts (Password: testpass123)
+                </p>
+                <div class="space-y-2">
+                    <div class="bg-gray-50 p-3 rounded-lg flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-800">Student</p>
+                            <p class="text-xs text-gray-600">student@test.com</p>
+                        </div>
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                            Student
+                        </span>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded-lg flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-800">Teacher</p>
+                            <p class="text-xs text-gray-600">teacher@test.com</p>
+                        </div>
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                            Teacher
+                        </span>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded-lg flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-800">School Admin</p>
+                            <p class="text-xs text-gray-600">schooladmin@test.com</p>
+                        </div>
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">
+                            Admin
+                        </span>
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded-lg flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-800">System Admin</p>
+                            <p class="text-xs text-gray-600">sysadmin@test.com</p>
+                        </div>
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                            SysAdmin
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-<style>
-.login-container {
-    min-height: calc(100vh - 80px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.login-card {
-    background: white;
-    border-radius: 1rem;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    max-width: 450px;
-    width: 100%;
-    padding: 3rem;
-}
-
-.login-header {
-    text-align: center;
-    margin-bottom: 2rem;
-}
-
-.login-header h2 {
-    color: #111827;
-    margin-bottom: 0.5rem;
-    font-size: 2rem;
-}
-
-.login-header p {
-    color: #6B7280;
-    font-size: 1rem;
-}
-
-.login-form .form-group {
-    margin-bottom: 1.5rem;
-}
-
-.login-footer {
-    text-align: center;
-    margin-top: 1.5rem;
-}
-
-.login-footer a {
-    color: #4F46E5;
-    text-decoration: none;
-    font-size: 0.875rem;
-}
-
-.login-footer a:hover {
-    text-decoration: underline;
-}
-
-.login-demo {
-    margin-top: 2rem;
-    padding-top: 2rem;
-    border-top: 1px solid #E5E7EB;
-}
-
-.demo-accounts {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.demo-account {
-    background: #F3F4F6;
-    padding: 0.75rem 1rem;
-    border-radius: 0.5rem;
-    font-size: 0.875rem;
-    color: #374151;
-}
-
-.demo-account strong {
-    color: #4F46E5;
-}
-</style>
 {% endblock %}

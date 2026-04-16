@@ -10,11 +10,12 @@
     <!-- CSRF Token for JavaScript -->
     <meta name="csrf-token" content="{{ csrf_token }}">
 
-    <!-- Core CSS -->
-    <link rel="stylesheet" href="{% static 'css/core.css' %}">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
     {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body class="font-sans antialiased bg-gray-50">
     <!-- Toast Container for notifications -->
     <div id="toast-container"></div>
 
@@ -24,13 +25,19 @@
     {% endif %}
 
     <!-- Main Content -->
-    <main class="main-content">
+    <main class="min-h-screen">
         <!-- Messages -->
         {% if messages %}
-            <div class="messages-container">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                 {% for message in messages %}
-                    <div class="alert alert-{{ message.tags }}">
-                        {{ message }}
+                    <div class="{% if message.tags == 'error' %}bg-red-50 border-l-4 border-red-500{% elif message.tags == 'success' %}bg-green-50 border-l-4 border-green-500{% elif message.tags == 'warning' %}bg-yellow-50 border-l-4 border-yellow-500{% else %}bg-blue-50 border-l-4 border-blue-500{% endif %} p-4 rounded-r-lg mb-4" role="alert">
+                        <div class="flex items-start">
+                            <div class="ml-3">
+                                <p class="text-sm {% if message.tags == 'error' %}text-red-800{% elif message.tags == 'success' %}text-green-800{% elif message.tags == 'warning' %}text-yellow-800{% else %}text-blue-800{% endif %}">
+                                    {{ message }}
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 {% endfor %}
             </div>

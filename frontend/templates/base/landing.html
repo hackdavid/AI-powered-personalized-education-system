@@ -10,12 +10,12 @@
     <!-- CSRF Token for JavaScript -->
     <meta name="csrf-token" content="{{ csrf_token }}">
 
-    <!-- Core CSS -->
-    <link rel="stylesheet" href="{% static 'css/core.css' %}">
-    <link rel="stylesheet" href="{% static 'css/landing.css' %}">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
     {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body class="font-sans antialiased">
     <!-- Toast Container for notifications -->
     <div id="toast-container"></div>
 

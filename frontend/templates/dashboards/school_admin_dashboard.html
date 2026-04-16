@@ -3,45 +3,190 @@
 {% block dashboard_title %}School Admin Dashboard{% endblock %}
 {% block page_title %}{{ tenant.name }} Administration{% endblock %}
 
+{% block page_subtitle %}
+<p class="text-gray-600 mt-1">Manage your school's users, classes, and settings</p>
+{% endblock %}
+
+{% block page_actions %}
+<button class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition flex items-center">
+    <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+    </svg>
+    Add User
+</button>
+{% endblock %}
+
 {% block sidebar_nav %}
-<a href="{% url 'core:dashboard' %}" class="active">Dashboard</a>
-<a href="#">Users Management</a>
-<a href="#">Classes</a>
-<a href="#">Subjects</a>
-<a href="#">Document Ingestion</a>
-<a href="#">Reports</a>
-<a href="#">Settings</a>
+<a href="{% url 'core:dashboard' %}" class="flex items-center px-6 py-3 text-gray-700 bg-indigo-50 border-r-4 border-indigo-600 transition">
+    <svg class="h-5 w-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+    </svg>
+    Dashboard
+</a>
+
+<a href="#" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition">
+    <svg class="h-5 w-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+    </svg>
+    Users Management
+</a>
+
+<a href="#" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition">
+    <svg class="h-5 w-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+    </svg>
+    Classes
+</a>
+
+<a href="#" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition">
+    <svg class="h-5 w-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+    </svg>
+    Subjects
+</a>
+
+<a href="#" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition">
+    <svg class="h-5 w-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+    </svg>
+    Document Ingestion
+</a>
+
+<a href="#" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition">
+    <svg class="h-5 w-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+    </svg>
+    Reports
+</a>
+
+<a href="#" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition">
+    <svg class="h-5 w-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+    </svg>
+    Settings
+</a>
 {% endblock %}
 
 {% block dashboard_content %}
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
-    <div class="card">
-        <h3>👥 Total Users</h3>
-        <p style="font-size: 2rem; font-weight: bold; color: #4F46E5;">0</p>
+<!-- Stats Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Total Users Card -->
+    <div class="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition">
+        <div class="flex items-center justify-between mb-4">
+            <div class="p-3 bg-indigo-100 rounded-lg">
+                <svg class="h-8 w-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                </svg>
+            </div>
+        </div>
+        <h3 class="text-gray-600 text-sm font-medium mb-1">Total Users</h3>
+        <p class="text-3xl font-bold text-gray-800">0</p>
     </div>
 
-    <div class="card">
-        <h3>👨‍🎓 Students</h3>
-        <p style="font-size: 2rem; font-weight: bold; color: #10B981;">0</p>
+    <!-- Students Card -->
+    <div class="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition">
+        <div class="flex items-center justify-between mb-4">
+            <div class="p-3 bg-green-100 rounded-lg">
+                <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+            </div>
+        </div>
+        <h3 class="text-gray-600 text-sm font-medium mb-1">Students</h3>
+        <p class="text-3xl font-bold text-gray-800">0</p>
     </div>
 
-    <div class="card">
-        <h3>👨‍🏫 Teachers</h3>
-        <p style="font-size: 2rem; font-weight: bold; color: #3B82F6;">0</p>
+    <!-- Teachers Card -->
+    <div class="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition">
+        <div class="flex items-center justify-between mb-4">
+            <div class="p-3 bg-blue-100 rounded-lg">
+                <svg class="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+            </div>
+        </div>
+        <h3 class="text-gray-600 text-sm font-medium mb-1">Teachers</h3>
+        <p class="text-3xl font-bold text-gray-800">0</p>
     </div>
 
-    <div class="card">
-        <h3>📚 Classes</h3>
-        <p style="font-size: 2rem; font-weight: bold; color: #F59E0B;">0</p>
+    <!-- Classes Card -->
+    <div class="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition">
+        <div class="flex items-center justify-between mb-4">
+            <div class="p-3 bg-yellow-100 rounded-lg">
+                <svg class="h-8 w-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+            </div>
+        </div>
+        <h3 class="text-gray-600 text-sm font-medium mb-1">Classes</h3>
+        <p class="text-3xl font-bold text-gray-800">0</p>
     </div>
 </div>
 
-<div class="card" style="margin-top: 2rem;">
-    <div class="card-header">
-        <h3 class="card-title">School Information</h3>
+<!-- School Information Card -->
+<div class="bg-white rounded-xl shadow-md overflow-hidden mb-8">
+    <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-800">School Information</h3>
     </div>
-    <p><strong>School:</strong> {{ tenant.name }}</p>
-    <p><strong>Subscription:</strong> {{ tenant.get_subscription_tier_display }}</p>
-    <p><strong>Status:</strong> {% if tenant.is_active %}Active{% else %}Inactive{% endif %}</p>
+    <div class="p-6">
+        <dl class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <dt class="text-sm font-medium text-gray-600 mb-1">School Name</dt>
+                <dd class="text-lg font-semibold text-gray-800">{{ tenant.name }}</dd>
+            </div>
+            <div>
+                <dt class="text-sm font-medium text-gray-600 mb-1">Subscription Tier</dt>
+                <dd class="text-lg font-semibold text-gray-800">{{ tenant.get_subscription_tier_display }}</dd>
+            </div>
+            <div>
+                <dt class="text-sm font-medium text-gray-600 mb-1">Status</dt>
+                <dd>
+                    {% if tenant.is_active %}
+                        <span class="px-3 py-1 text-sm font-semibold rounded-full bg-green-100 text-green-800">Active</span>
+                    {% else %}
+                        <span class="px-3 py-1 text-sm font-semibold rounded-full bg-red-100 text-red-800">Inactive</span>
+                    {% endif %}
+                </dd>
+            </div>
+            <div>
+                <dt class="text-sm font-medium text-gray-600 mb-1">School Slug</dt>
+                <dd class="text-lg font-semibold text-gray-800">{{ tenant.slug }}</dd>
+            </div>
+        </dl>
+    </div>
+</div>
+
+<!-- Quick Actions Card -->
+<div class="bg-white rounded-xl shadow-md overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-800">Quick Actions</h3>
+    </div>
+    <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="text-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-indigo-500 transition">
+            <div class="text-3xl mb-2">👥</div>
+            <h4 class="font-semibold text-gray-800 mb-1">Manage Users</h4>
+            <p class="text-sm text-gray-600 mb-3">Add, edit, or remove users</p>
+            <button class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition text-sm">
+                Manage
+            </button>
+        </div>
+        <div class="text-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-green-500 transition">
+            <div class="text-3xl mb-2">📚</div>
+            <h4 class="font-semibold text-gray-800 mb-1">Manage Classes</h4>
+            <p class="text-sm text-gray-600 mb-3">Create and organize classes</p>
+            <button class="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition text-sm">
+                Manage
+            </button>
+        </div>
+        <div class="text-center p-4 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 transition">
+            <div class="text-3xl mb-2">📊</div>
+            <h4 class="font-semibold text-gray-800 mb-1">View Reports</h4>
+            <p class="text-sm text-gray-600 mb-3">Analytics and insights</p>
+            <button class="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition text-sm">
+                View
+            </button>
+        </div>
+    </div>
 </div>
 {% endblock %}
