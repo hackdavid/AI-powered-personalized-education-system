@@ -1,0 +1,40 @@
+{% extends 'base/dashboard_base.html' %}
+
+{% block dashboard_title %}Teacher Dashboard{% endblock %}
+{% block page_title %}Welcome, {{ user.first_name }}!{% endblock %}
+
+{% block sidebar_nav %}
+<a href="{% url 'core:dashboard' %}" class="active">Dashboard</a>
+<a href="#">My Classes</a>
+<a href="#">Assignments</a>
+<a href="#">Student Analytics</a>
+<a href="#">Create Assignment</a>
+{% endblock %}
+
+{% block dashboard_content %}
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+    <div class="card">
+        <h3>👥 Total Students</h3>
+        <p style="font-size: 2rem; font-weight: bold; color: #4F46E5;">0</p>
+    </div>
+
+    <div class="card">
+        <h3>📚 Active Assignments</h3>
+        <p style="font-size: 2rem; font-weight: bold; color: #10B981;">0</p>
+        <a href="#" class="btn btn-primary">Create New</a>
+    </div>
+
+    <div class="card">
+        <h3>📊 Pending Reviews</h3>
+        <p style="font-size: 2rem; font-weight: bold; color: #F59E0B;">0</p>
+        <a href="#" class="btn btn-warning">Review</a>
+    </div>
+</div>
+
+<div class="card" style="margin-top: 2rem;">
+    <div class="card-header">
+        <h3 class="card-title">My Classes</h3>
+    </div>
+    <p style="color: #6B7280; text-align: center; padding: 2rem;">No classes assigned yet</p>
+</div>
+{% endblock %}

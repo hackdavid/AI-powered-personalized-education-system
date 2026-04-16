@@ -1,0 +1,42 @@
+# Core Django
+Django
+django-environ
+psycopg2-binary
+python-decouple
+
+# REST API
+djangorestframework
+django-cors-headers
+django-filter
+
+# Task Queue (for future use)
+# celery[redis]==5.3.4
+# django-celery-beat==2.5.0
+# redis==5.0.1
+
+# AI/ML
+openai
+anthropic
+langchain
+chromadb
+#sentence-transformers
+
+# Document Processing
+PyPDF2
+python-docx
+unstructured
+
+# Utilities
+Pillow
+python-dateutil
+pytz
+python-json-logger
+
+# Security
+django-cryptography
+
+# Development
+black
+flake8
+pytest
+pytest-django

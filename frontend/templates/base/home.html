@@ -1,0 +1,140 @@
+{% extends 'base/landing.html' %}
+{% load static %}
+
+{% block title %}Welcome to EduAI Platform - AI-Powered Education{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-content">
+        <h1 class="hero-title">Welcome to EduAI Platform</h1>
+        <p class="hero-subtitle">
+            AI-Powered Personalized Education for Students, Teachers, and Schools
+        </p>
+        <div class="hero-actions">
+            <a href="{% url 'auth:login' %}" class="btn btn-primary btn-large">Get Started</a>
+            <a href="#features" class="btn btn-secondary btn-large">Learn More</a>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section id="features" class="features">
+    <div class="container">
+        <h2 class="section-title">Powerful Features for Everyone</h2>
+        <div class="features-grid">
+            <!-- Student Features -->
+            <div class="feature-card">
+                <div class="feature-icon">🎓</div>
+                <h3>For Students</h3>
+                <ul class="feature-list">
+                    <li>✓ AI-Powered Personalized Tutoring</li>
+                    <li>✓ Interactive Assignments</li>
+                    <li>✓ Progress Tracking & Analytics</li>
+                    <li>✓ Gamified Learning Goals</li>
+                    <li>✓ 24/7 Access to Learning Materials</li>
+                </ul>
+                <a href="{% url 'auth:login' %}" class="feature-link">Start Learning →</a>
+            </div>
+
+            <!-- Teacher Features -->
+            <div class="feature-card">
+                <div class="feature-icon">👨‍🏫</div>
+                <h3>For Teachers</h3>
+                <ul class="feature-list">
+                    <li>✓ AI Question Generation</li>
+                    <li>✓ Automated Grading Support</li>
+                    <li>✓ Student Performance Heatmaps</li>
+                    <li>✓ Real-time Analytics Dashboard</li>
+                    <li>✓ Easy Assignment Management</li>
+                </ul>
+                <a href="{% url 'auth:login' %}" class="feature-link">Teach Better →</a>
+            </div>
+
+            <!-- School Admin Features -->
+            <div class="feature-card">
+                <div class="feature-icon">🏫</div>
+                <h3>For Schools</h3>
+                <ul class="feature-list">
+                    <li>✓ Multi-Tenant Architecture</li>
+                    <li>✓ Comprehensive User Management</li>
+                    <li>✓ Document Ingestion Pipeline</li>
+                    <li>✓ School-wide Analytics</li>
+                    <li>✓ Custom Branding & Settings</li>
+                </ul>
+                <a href="{% url 'auth:login' %}" class="feature-link">Manage School →</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Technology Section -->
+<section class="technology">
+    <div class="container">
+        <h2 class="section-title">Powered by Advanced AI Technology</h2>
+        <div class="tech-grid">
+            <div class="tech-item">
+                <div class="tech-icon">🤖</div>
+                <h4>AI Tutoring</h4>
+                <p>RAG-based tutoring with curriculum grounding for accurate, personalized learning</p>
+            </div>
+            <div class="tech-item">
+                <div class="tech-icon">📚</div>
+                <h4>Smart Content</h4>
+                <p>Intelligent document processing and knowledge extraction from textbooks</p>
+            </div>
+            <div class="tech-item">
+                <div class="tech-icon">📊</div>
+                <h4>Analytics</h4>
+                <p>Real-time insights into student performance and learning patterns</p>
+            </div>
+            <div class="tech-item">
+                <div class="tech-icon">🎯</div>
+                <h4>Adaptive Learning</h4>
+                <p>Personalized learning paths based on student progress and goals</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta">
+    <div class="container">
+        <h2>Ready to Transform Education?</h2>
+        <p>Join thousands of students and teachers already using EduAI Platform</p>
+        <a href="{% url 'auth:login' %}" class="btn btn-primary btn-large">Get Started Today</a>
+    </div>
+</section>
+
+<!-- About Section -->
+<section id="about" class="about">
+    <div class="container">
+        <h2 class="section-title">About EduAI Platform</h2>
+        <div class="about-content">
+            <p>
+                EduAI Platform is a cutting-edge education technology solution that combines
+                artificial intelligence with proven pedagogical methods to deliver personalized
+                learning experiences at scale.
+            </p>
+            <p>
+                Our platform supports students, teachers, and school administrators with tools
+                that enhance learning outcomes, streamline administrative tasks, and provide
+                actionable insights into educational progress.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- Contact Section -->
+<section id="contact" class="contact">
+    <div class="container">
+        <h2 class="section-title">Get in Touch</h2>
+        <p>Have questions? We'd love to hear from you.</p>
+        <div class="contact-info">
+            <p>📧 Email: contact@eduai.com</p>
+            <p>📞 Phone: +1 (555) 123-4567</p>
+            <p>📍 Address: 123 Education Street, Learning City, ED 12345</p>
+        </div>
+    </div>
+</section>
+{% endblock %}

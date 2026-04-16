@@ -1,0 +1,43 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Sidebar Navigation -->
+    <aside class="dashboard-sidebar">
+        <div class="sidebar-header">
+            <h2>{% block dashboard_title %}Dashboard{% endblock %}</h2>
+            <p class="user-info">{{ user.get_full_name }}</p>
+            <p class="role-badge">{{ user.role.display_name }}</p>
+        </div>
+
+        <nav class="sidebar-nav">
+            {% block sidebar_nav %}
+                <!-- Role-specific navigation will be injected here -->
+            {% endblock %}
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="{% url 'auth:logout' %}" class="logout-link">Logout</a>
+        </div>
+    </aside>
+
+    <!-- Main Dashboard Content -->
+    <div class="dashboard-main">
+        <div class="dashboard-header">
+            <h1>{% block page_title %}Dashboard{% endblock %}</h1>
+            {% block page_actions %}{% endblock %}
+        </div>
+
+        <div class="dashboard-content">
+            {% block dashboard_content %}{% endblock %}
+        </div>
+    </div>
+</div>
+
+{% block dashboard_modals %}{% endblock %}
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}

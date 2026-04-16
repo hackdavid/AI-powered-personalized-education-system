@@ -1,0 +1,153 @@
+/**
+ * Dashboard CSS - Styles for dashboard layouts
+ */
+
+.dashboard-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* ============================================================================
+   Sidebar
+   ========================================================================= */
+.dashboard-sidebar {
+    width: 260px;
+    background: var(--gray-900);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    height: 100vh;
+    left: 0;
+    top: 0;
+}
+
+.sidebar-header {
+    padding: var(--spacing-xl);
+    border-bottom: 1px solid var(--gray-800);
+}
+
+.sidebar-header h2 {
+    color: white;
+    margin-bottom: var(--spacing-sm);
+}
+
+.user-info {
+    font-size: 0.875rem;
+    color: var(--gray-400);
+    margin-bottom: var(--spacing-xs);
+}
+
+.role-badge {
+    display: inline-block;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background: var(--primary-color);
+    color: white;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.sidebar-nav {
+    flex: 1;
+    padding: var(--spacing-md);
+}
+
+.sidebar-nav a {
+    display: block;
+    padding: var(--spacing-sm) var(--spacing-md);
+    color: var(--gray-300);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-xs);
+    transition: all var(--transition-fast);
+}
+
+.sidebar-nav a:hover {
+    background: var(--gray-800);
+    color: white;
+}
+
+.sidebar-nav a.active {
+    background: var(--primary-color);
+    color: white;
+}
+
+.sidebar-footer {
+    padding: var(--spacing-xl);
+    border-top: 1px solid var(--gray-800);
+}
+
+.logout-link {
+    display: block;
+    text-align: center;
+    padding: var(--spacing-sm);
+    color: var(--danger-color);
+    border-radius: var(--radius-md);
+    transition: background var(--transition-fast);
+}
+
+.logout-link:hover {
+    background: var(--gray-800);
+}
+
+/* ============================================================================
+   Main Dashboard
+   ========================================================================= */
+.dashboard-main {
+    margin-left: 260px;
+    flex: 1;
+    padding: var(--spacing-xl);
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-xl);
+}
+
+.dashboard-header h1 {
+    margin: 0;
+}
+
+.dashboard-content {
+    /* Styles for dashboard content area */
+}
+
+/* ============================================================================
+   Cards
+   ========================================================================= */
+.card {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+}
+
+.card-header {
+    border-bottom: 1px solid var(--gray-200);
+    padding-bottom: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+}
+
+.card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+/* ============================================================================
+   Responsive
+   ========================================================================= */
+@media (max-width: 768px) {
+    .dashboard-sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+    }
+
+    .dashboard-main {
+        margin-left: 0;
+    }
+}

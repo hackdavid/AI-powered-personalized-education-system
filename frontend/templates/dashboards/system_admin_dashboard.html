@@ -1,0 +1,111 @@
+{% extends 'base/dashboard_base.html' %}
+
+{% block dashboard_title %}System Admin Dashboard{% endblock %}
+{% block page_title %}System Administration{% endblock %}
+
+{% block sidebar_nav %}
+<a href="{% url 'core:dashboard' %}" class="active">Dashboard</a>
+<a href="#">Tenants</a>
+<a href="#">System Users</a>
+<a href="#">Platform Reports</a>
+<a href="#">System Logs</a>
+<a href="{% url 'core:health_check' %}">Health Check</a>
+<hr style="border-color: #374151; margin: 1rem 0;">
+<div style="padding: 0.5rem; font-size: 0.75rem; color: #9CA3AF;">
+    <strong>System Administrator</strong>
+    <p style="margin-top: 0.5rem;">You have business-level system access. For technical admin, contact IT.</p>
+</div>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="alert alert-info" style="margin-bottom: 2rem;">
+    <strong>ℹ️ System Administrator Access</strong>
+    <p style="margin-top: 0.5rem;">
+        You are logged in as a System Administrator with business-level access to manage tenants and users.
+        You do <strong>not</strong> have access to Django Admin panel. For technical administration, contact IT.
+    </p>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+    <div class="card">
+        <h3>🏫 Total Tenants</h3>
+        <p style="font-size: 2rem; font-weight: bold; color: #4F46E5;">0</p>
+        <p style="color: #6B7280; font-size: 0.875rem;">Schools on platform</p>
+    </div>
+
+    <div class="card">
+        <h3>👥 Total Users</h3>
+        <p style="font-size: 2rem; font-weight: bold; color: #10B981;">0</p>
+        <p style="color: #6B7280; font-size: 0.875rem;">All platform users</p>
+    </div>
+
+    <div class="card">
+        <h3>✅ Active Tenants</h3>
+        <p style="font-size: 2rem; font-weight: bold; color: #3B82F6;">0</p>
+        <p style="color: #6B7280; font-size: 0.875rem;">Currently active</p>
+    </div>
+
+    <div class="card">
+        <h3>📊 System Health</h3>
+        <p style="font-size: 2rem; font-weight: bold; color: #10B981;">Healthy</p>
+        <a href="{% url 'core:health_check' %}" class="btn btn-success">Check Status</a>
+    </div>
+</div>
+
+<div class="card" style="margin-top: 2rem;">
+    <div class="card-header">
+        <h3 class="card-title">🎯 Quick Actions</h3>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+        <div>
+            <h4>🏫 Manage Tenants</h4>
+            <p style="color: #6B7280; font-size: 0.875rem;">View and manage all schools</p>
+            <button class="btn btn-primary" style="margin-top: 0.5rem;" disabled>Coming in Phase 2</button>
+        </div>
+        <div>
+            <h4>👥 Manage Users</h4>
+            <p style="color: #6B7280; font-size: 0.875rem;">Manage users across all tenants</p>
+            <button class="btn btn-primary" style="margin-top: 0.5rem;" disabled>Coming in Phase 2</button>
+        </div>
+        <div>
+            <h4>📊 View Reports</h4>
+            <p style="color: #6B7280; font-size: 0.875rem;">Platform usage and statistics</p>
+            <button class="btn btn-primary" style="margin-top: 0.5rem;" disabled>Coming in Phase 2</button>
+        </div>
+    </div>
+</div>
+
+<div class="card" style="margin-top: 2rem;">
+    <div class="card-header">
+        <h3 class="card-title">ℹ️ Your Access Level</h3>
+    </div>
+    <table style="width: 100%; border-collapse: collapse;">
+        <tbody>
+            <tr style="border-bottom: 1px solid #E5E7EB;">
+                <td style="padding: 0.75rem; font-weight: 600;">Manage Tenants (Schools)</td>
+                <td style="padding: 0.75rem; text-align: right; color: #10B981;">✅ Yes</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #E5E7EB;">
+                <td style="padding: 0.75rem; font-weight: 600;">Manage All Users</td>
+                <td style="padding: 0.75rem; text-align: right; color: #10B981;">✅ Yes</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #E5E7EB;">
+                <td style="padding: 0.75rem; font-weight: 600;">View Platform Statistics</td>
+                <td style="padding: 0.75rem; text-align: right; color: #10B981;">✅ Yes</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #E5E7EB;">
+                <td style="padding: 0.75rem; font-weight: 600;">System Health Monitoring</td>
+                <td style="padding: 0.75rem; text-align: right; color: #10B981;">✅ Yes</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #E5E7EB;">
+                <td style="padding: 0.75rem; font-weight: 600;">Django Admin Panel</td>
+                <td style="padding: 0.75rem; text-align: right; color: #DC2626;">❌ No</td>
+            </tr>
+            <tr>
+                <td style="padding: 0.75rem; font-weight: 600;">Database Direct Access</td>
+                <td style="padding: 0.75rem; text-align: right; color: #DC2626;">❌ No</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+{% endblock %}

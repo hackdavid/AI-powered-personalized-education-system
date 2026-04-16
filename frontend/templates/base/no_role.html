@@ -1,0 +1,13 @@
+{% extends 'base/base.html' %}
+
+{% block title %}No Role Assigned{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 600px; margin: 4rem auto; text-align: center;">
+    <div class="card">
+        <h2 style="color: #F59E0B;">⚠️ No Role Assigned</h2>
+        <p style="margin: 2rem 0;">{{ message }}</p>
+        <a href="{% url 'auth:logout' %}" class="btn btn-primary">Logout</a>
+    </div>
+</div>
+{% endblock %}

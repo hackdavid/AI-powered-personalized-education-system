@@ -1,0 +1,159 @@
+{% extends 'base/dashboard_base.html' %}
+
+{% block dashboard_title %}Super Administrator{% endblock %}
+{% block page_title %}Django Superuser Dashboard{% endblock %}
+
+{% block sidebar_nav %}
+<a href="{% url 'core:dashboard' %}" class="active">Dashboard</a>
+<a href="/admin/">🔧 Django Admin Panel</a>
+<a href="{% url 'core:health_check' %}">❤️ System Health</a>
+<hr style="border-color: #374151; margin: 1rem 0;">
+<div style="padding: 0.5rem; font-size: 0.75rem; color: #9CA3AF;">
+    <strong>Super Admin Access</strong>
+    <p style="margin-top: 0.5rem;">You have full technical access to the platform including Django Admin.</p>
+</div>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="alert alert-info" style="margin-bottom: 2rem;">
+    <strong>🔒 Django Superuser Access</strong>
+    <p style="margin-top: 0.5rem;">
+        You are logged in as a Django Superuser with full technical administrative privileges.
+        This account has access to the Django Admin panel and all system features.
+    </p>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+    <div class="card">
+        <h3>🔧 Django Admin</h3>
+        <p style="font-size: 2rem; font-weight: bold; color: #4F46E5;">Full Access</p>
+        <a href="/admin/" class="btn btn-primary">Open Django Admin</a>
+    </div>
+
+    <div class="card">
+        <h3>❤️ System Health</h3>
+        <p style="font-size: 2rem; font-weight: bold; color: #10B981;">Healthy</p>
+        <a href="{% url 'core:health_check' %}" class="btn btn-success">Check Status</a>
+    </div>
+
+    <div class="card">
+        <h3>👥 Create System Admin</h3>
+        <p style="color: #6B7280;">Create business-level system administrators</p>
+        <button onclick="showCreateSystemAdminModal()" class="btn btn-secondary">Create Admin</button>
+    </div>
+
+    <div class="card">
+        <h3>📊 Platform Overview</h3>
+        <p style="color: #6B7280;">View system-wide statistics</p>
+        <a href="/admin/" class="btn btn-secondary">View Stats</a>
+    </div>
+</div>
+
+<div class="card" style="margin-top: 2rem;">
+    <div class="card-header">
+        <h3 class="card-title">⚙️ Technical Administration</h3>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">
+        <div>
+            <h4>🏫 Tenant Management</h4>
+            <p style="color: #6B7280; font-size: 0.875rem;">Manage all schools/tenants in the system</p>
+            <a href="/admin/tenants/tenant/" class="btn btn-primary" style="margin-top: 0.5rem;">Manage Tenants</a>
+        </div>
+        <div>
+            <h4>👥 User Management</h4>
+            <p style="color: #6B7280; font-size: 0.875rem;">Manage all users across all tenants</p>
+            <a href="/admin/accounts/user/" class="btn btn-primary" style="margin-top: 0.5rem;">Manage Users</a>
+        </div>
+        <div>
+            <h4>🔐 Roles & Permissions</h4>
+            <p style="color: #6B7280; font-size: 0.875rem;">Configure roles and permissions</p>
+            <a href="/admin/accounts/role/" class="btn btn-primary" style="margin-top: 0.5rem;">Manage Roles</a>
+        </div>
+    </div>
+</div>
+
+<div class="card" style="margin-top: 2rem;">
+    <div class="card-header">
+        <h3 class="card-title">ℹ️ Super Admin vs System Admin</h3>
+    </div>
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="border-bottom: 2px solid #E5E7EB;">
+                <th style="padding: 0.75rem; text-align: left;">Feature</th>
+                <th style="padding: 0.75rem; text-align: center;">Django Superuser (You)</th>
+                <th style="padding: 0.75rem; text-align: center;">System Admin</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr style="border-bottom: 1px solid #E5E7EB;">
+                <td style="padding: 0.75rem;">Django Admin Access</td>
+                <td style="padding: 0.75rem; text-align: center;">✅ Yes</td>
+                <td style="padding: 0.75rem; text-align: center;">❌ No</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #E5E7EB;">
+                <td style="padding: 0.75rem;">Manage Tenants</td>
+                <td style="padding: 0.75rem; text-align: center;">✅ Yes</td>
+                <td style="padding: 0.75rem; text-align: center;">✅ Yes (via UI)</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #E5E7EB;">
+                <td style="padding: 0.75rem;">Manage All Users</td>
+                <td style="padding: 0.75rem; text-align: center;">✅ Yes</td>
+                <td style="padding: 0.75rem; text-align: center;">✅ Yes (via UI)</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #E5E7EB;">
+                <td style="padding: 0.75rem;">Database Access</td>
+                <td style="padding: 0.75rem; text-align: center;">✅ Direct</td>
+                <td style="padding: 0.75rem; text-align: center;">❌ No</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #E5E7EB;">
+                <td style="padding: 0.75rem;">System Configuration</td>
+                <td style="padding: 0.75rem; text-align: center;">✅ Full</td>
+                <td style="padding: 0.75rem; text-align: center;">⚠️ Limited</td>
+            </tr>
+            <tr>
+                <td style="padding: 0.75rem;">Purpose</td>
+                <td style="padding: 0.75rem; text-align: center;">Technical Admin</td>
+                <td style="padding: 0.75rem; text-align: center;">Business Admin</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block dashboard_modals %}
+<!-- Create System Admin Modal -->
+<div id="create-system-admin-modal" class="modal">
+    <div class="modal-overlay"></div>
+    <div class="modal-dialog">
+        <div class="modal-header">
+            <h3>Create System Administrator</h3>
+        </div>
+        <div class="modal-body">
+            <p style="color: #6B7280; margin-bottom: 1rem;">
+                Create a business-level system administrator. They will have access to manage tenants and users
+                but <strong>will NOT</strong> have access to Django Admin panel.
+            </p>
+            <div class="alert alert-info" style="margin-bottom: 1rem;">
+                <strong>Note:</strong> System Admins should be created via Django Admin.
+                Go to: <a href="/admin/accounts/user/add/">Django Admin → Users → Add User</a>
+            </div>
+            <ol style="padding-left: 1.5rem; color: #4B5563;">
+                <li>Set Role to: <strong>System Administrator</strong></li>
+                <li>Leave Tenant field <strong>blank</strong></li>
+                <li>Do NOT check <strong>"Superuser status"</strong></li>
+                <li>Do NOT check <strong>"Staff status"</strong> (unless you want admin access)</li>
+            </ol>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" data-modal-hide="create-system-admin-modal">Close</button>
+            <a href="/admin/accounts/user/add/" class="btn btn-primary">Go to Django Admin</a>
+        </div>
+    </div>
+</div>
+
+<script>
+function showCreateSystemAdminModal() {
+    Modal.show('create-system-admin-modal');
+}
+</script>
+{% endblock %}

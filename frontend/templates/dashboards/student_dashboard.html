@@ -1,0 +1,42 @@
+{% extends 'base/dashboard_base.html' %}
+
+{% block dashboard_title %}Student Dashboard{% endblock %}
+{% block page_title %}Welcome, {{ user.first_name }}!{% endblock %}
+
+{% block sidebar_nav %}
+<a href="{% url 'core:dashboard' %}" class="active">Dashboard</a>
+<a href="#">My Assignments</a>
+<a href="#">AI Tutor</a>
+<a href="#">My Progress</a>
+<a href="#">Goals</a>
+<a href="#">My Classes</a>
+{% endblock %}
+
+{% block dashboard_content %}
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+    <div class="card">
+        <h3>📝 Pending Assignments</h3>
+        <p style="font-size: 2rem; font-weight: bold; color: #4F46E5;">0</p>
+        <a href="#" class="btn btn-primary">View Assignments</a>
+    </div>
+
+    <div class="card">
+        <h3>🎯 Active Goals</h3>
+        <p style="font-size: 2rem; font-weight: bold; color: #10B981;">0</p>
+        <a href="#" class="btn btn-success">View Goals</a>
+    </div>
+
+    <div class="card">
+        <h3>⭐ Total XP</h3>
+        <p style="font-size: 2rem; font-weight: bold; color: #F59E0B;">0</p>
+        <p style="color: #6B7280;">Level 1</p>
+    </div>
+</div>
+
+<div class="card" style="margin-top: 2rem;">
+    <div class="card-header">
+        <h3 class="card-title">Recent Activity</h3>
+    </div>
+    <p style="color: #6B7280; text-align: center; padding: 2rem;">No recent activity</p>
+</div>
+{% endblock %}

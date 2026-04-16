@@ -1,0 +1,47 @@
+{% extends 'base/dashboard_base.html' %}
+
+{% block dashboard_title %}School Admin Dashboard{% endblock %}
+{% block page_title %}{{ tenant.name }} Administration{% endblock %}
+
+{% block sidebar_nav %}
+<a href="{% url 'core:dashboard' %}" class="active">Dashboard</a>
+<a href="#">Users Management</a>
+<a href="#">Classes</a>
+<a href="#">Subjects</a>
+<a href="#">Document Ingestion</a>
+<a href="#">Reports</a>
+<a href="#">Settings</a>
+{% endblock %}
+
+{% block dashboard_content %}
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+    <div class="card">
+        <h3>👥 Total Users</h3>
+        <p style="font-size: 2rem; font-weight: bold; color: #4F46E5;">0</p>
+    </div>
+
+    <div class="card">
+        <h3>👨‍🎓 Students</h3>
+        <p style="font-size: 2rem; font-weight: bold; color: #10B981;">0</p>
+    </div>
+
+    <div class="card">
+        <h3>👨‍🏫 Teachers</h3>
+        <p style="font-size: 2rem; font-weight: bold; color: #3B82F6;">0</p>
+    </div>
+
+    <div class="card">
+        <h3>📚 Classes</h3>
+        <p style="font-size: 2rem; font-weight: bold; color: #F59E0B;">0</p>
+    </div>
+</div>
+
+<div class="card" style="margin-top: 2rem;">
+    <div class="card-header">
+        <h3 class="card-title">School Information</h3>
+    </div>
+    <p><strong>School:</strong> {{ tenant.name }}</p>
+    <p><strong>Subscription:</strong> {{ tenant.get_subscription_tier_display }}</p>
+    <p><strong>Status:</strong> {% if tenant.is_active %}Active{% else %}Inactive{% endif %}</p>
+</div>
+{% endblock %}

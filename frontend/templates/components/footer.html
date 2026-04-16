@@ -1,0 +1,106 @@
+<footer class="footer">
+    <div class="footer-container">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>🎓 EduAI Platform</h4>
+                <p>AI-Powered Personalized Education</p>
+            </div>
+            <div class="footer-section">
+                <h4>Platform</h4>
+                <a href="#features">Features</a>
+                <a href="#about">About</a>
+                <a href="{% url 'core:health_check' %}">System Status</a>
+            </div>
+            <div class="footer-section">
+                <h4>Support</h4>
+                <a href="#contact">Contact</a>
+                <a href="#">Documentation</a>
+                <a href="#">Help Center</a>
+            </div>
+            <div class="footer-section">
+                <h4>Legal</h4>
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="#">Cookie Policy</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 EduAI Platform. All rights reserved.</p>
+            <p>Built with Django & AI ❤️</p>
+        </div>
+    </div>
+</footer>
+
+<style>
+.footer {
+    background: #1F2937;
+    color: #D1D5DB;
+    padding: 3rem 2rem 1rem;
+    margin-top: auto;
+}
+
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.footer-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.footer-section h4 {
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.footer-section p {
+    color: #9CA3AF;
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+.footer-section a {
+    display: block;
+    color: #9CA3AF;
+    text-decoration: none;
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+    transition: color 0.2s;
+}
+
+.footer-section a:hover {
+    color: white;
+}
+
+.footer-bottom {
+    border-top: 1px solid #374151;
+    padding-top: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.footer-bottom p {
+    color: #6B7280;
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .footer-content {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .footer-bottom {
+        flex-direction: column;
+        text-align: center;
+    }
+}
+</style>
