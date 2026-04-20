@@ -1,0 +1,149 @@
+/* Slide-in Panel */
+.slide-panel-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 100;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+.slide-panel-overlay.open { display: block; opacity: 1; }
+
+.slide-panel {
+    position: fixed; top: 0; right: 0; bottom: 0;
+    width: 480px; max-width: 90vw;
+    background: white;
+    z-index: 101;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    display: flex; flex-direction: column;
+    box-shadow: -4px 0 24px rgba(0,0,0,0.12);
+    min-height: 0;
+}
+.slide-panel.open { transform: translateX(0); }
+
+.slide-panel form {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+}
+
+.slide-panel-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink: 0;
+}
+.slide-panel-header h2 { font-size: 18px; font-weight: 600; margin: 0; }
+.slide-panel-close {
+    width: 36px; height: 36px; border-radius: 8px;
+    border: none; background: #f3f4f6; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; color: #6b7280;
+    transition: background 0.15s;
+}
+.slide-panel-close:hover { background: #e5e7eb; }
+
+.slide-panel-body {
+    padding: 24px;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+    -webkit-overflow-scrolling: touch;
+}
+
+.slide-panel-footer {
+    padding: 16px 24px;
+    border-top: 1px solid #e5e7eb;
+    display: flex; gap: 12px; justify-content: flex-end;
+    flex-shrink: 0;
+}
+
+/* Form inputs */
+.form-input {
+    width: 100%; padding: 10px 12px;
+    border: 1px solid #d1d5db; border-radius: 8px;
+    font-size: 14px; color: #111827;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    background: white;
+}
+.form-input:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+}
+select.form-input { appearance: auto; }
+
+.form-group { margin-bottom: 16px; }
+.form-group label {
+    display: block; font-size: 13px; font-weight: 500;
+    color: #374151; margin-bottom: 6px;
+}
+.form-group .form-error {
+    font-size: 12px; color: #dc2626; margin-top: 4px;
+}
+
+/* Data table */
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table thead th {
+    padding: 12px 16px; text-align: left;
+    font-size: 12px; font-weight: 600; color: #6b7280;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    border-bottom: 2px solid #e5e7eb;
+    background: #f9fafb;
+}
+.data-table tbody td {
+    padding: 14px 16px; font-size: 14px; color: #374151;
+    border-bottom: 1px solid #f3f4f6;
+}
+.data-table tbody tr:hover { background: #f9fafb; }
+.data-table tbody tr { transition: background 0.1s; }
+
+/* Action buttons in table */
+.btn-action {
+    padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 500;
+    border: none; cursor: pointer; transition: background 0.15s;
+    display: inline-flex; align-items: center; gap: 4px;
+}
+.btn-action-edit { background: #eef2ff; color: #4f46e5; }
+.btn-action-edit:hover { background: #e0e7ff; }
+.btn-action-delete { background: #fef2f2; color: #dc2626; }
+.btn-action-delete:hover { background: #fee2e2; }
+
+/* Badge */
+.badge {
+    display: inline-block; padding: 2px 10px; border-radius: 9999px;
+    font-size: 12px; font-weight: 600;
+}
+.badge-green { background: #dcfce7; color: #166534; }
+.badge-red { background: #fee2e2; color: #991b1b; }
+.badge-yellow { background: #fef9c3; color: #854d0e; }
+.badge-blue { background: #dbeafe; color: #1e40af; }
+.badge-gray { background: #f3f4f6; color: #374151; }
+
+/* Empty state */
+.empty-state {
+    text-align: center; padding: 48px 24px; color: #9ca3af;
+}
+.empty-state svg { width: 48px; height: 48px; margin: 0 auto 16px; }
+.empty-state h3 { font-size: 16px; font-weight: 600; color: #6b7280; margin: 0 0 8px; }
+.empty-state p { font-size: 14px; margin: 0 0 20px; }
+
+/* Credential card (shown after invite) */
+.credential-card {
+    background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px;
+    padding: 20px; margin-top: 16px;
+}
+.credential-card h4 { font-size: 14px; font-weight: 600; color: #166534; margin: 0 0 12px; }
+.credential-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 0; border-bottom: 1px solid #dcfce7;
+}
+.credential-item:last-child { border-bottom: none; }
+.credential-label { font-size: 13px; color: #374151; }
+.credential-value {
+    font-family: monospace; font-size: 14px; font-weight: 600;
+    background: white; padding: 4px 10px; border-radius: 6px;
+    border: 1px solid #d1d5db;
+}

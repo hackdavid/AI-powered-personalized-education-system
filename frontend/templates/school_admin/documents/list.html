@@ -1,0 +1,87 @@
+{% extends 'base/dashboard_base.html' %}
+{% load static %}
+
+{% block dashboard_title %}Books{% endblock %}
+{% block page_title %}Manage Books & Documents{% endblock %}
+{% block page_subtitle %}<p class="text-gray-600 mt-1">Upload curriculum materials and textbooks</p>{% endblock %}
+
+{% block page_actions %}
+<button onclick="openPanel('upload-doc')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition flex items-center">
+    <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+    Upload Book
+</button>
+{% endblock %}
+
+{% block sidebar_nav %}{% include 'school_admin/includes/sidebar_nav.html' %}{% endblock %}
+
+{% block dashboard_content %}
+<link rel="stylesheet" href="{% static 'css/school_admin.css' %}">
+
+{% if documents %}
+<div class="bg-white rounded-xl shadow-md overflow-hidden">
+    <table class="data-table">
+        <thead><tr><th>Title</th><th>Type</th><th>Subject</th><th>Class</th><th>Size</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody>
+            {% for doc in documents %}
+            <tr>
+                <td class="font-medium">{{ doc.title }}</td>
+                <td><span class="badge badge-gray">{{ doc.file_type|upper }}</span></td>
+                <td>{{ doc.subject|default:"—" }}</td>
+                <td>{{ doc.class_obj|default:"—" }}</td>
+                <td class="text-gray-500 text-sm">
+                    {% if doc.file_size < 1048576 %}{{ doc.file_size|floatformat:0 }} KB
+                    {% else %}{{ doc.file_size|divisibleby:1048576 }} MB{% endif %}
+                </td>
+                <td>
+                    {% if doc.status == 'completed' %}<span class="badge badge-green">Ready</span>
+                    {% elif doc.status == 'processing' %}<span class="badge badge-yellow">Processing</span>
+                    {% elif doc.status == 'failed' %}<span class="badge badge-red">Failed</span>
+                    {% else %}<span class="badge badge-gray">Pending</span>{% endif %}
+                </td>
+                <td>
+                    <form method="post" action="{% url 'school_admin:document_delete' doc.pk %}" style="display:inline" onsubmit="return confirm('Delete {{ doc.title|escapejs }}?')">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-action btn-action-delete">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="empty-state">
+    <svg class="mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+    <h3>No documents yet</h3>
+    <p>Upload your first book or curriculum document.</p>
+    <button onclick="openPanel('upload-doc')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition">Upload Book</button>
+</div>
+{% endif %}
+
+<!-- Upload Document Panel -->
+<div class="slide-panel-overlay" id="upload-doc-overlay" onclick="closePanel('upload-doc')"></div>
+<div class="slide-panel" id="upload-doc-panel">
+    <div class="slide-panel-header"><h2>Upload Book</h2><button class="slide-panel-close" onclick="closePanel('upload-doc')">&times;</button></div>
+    <form method="post" action="{% url 'school_admin:document_upload' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="slide-panel-body">
+            <div class="form-group"><label>Title</label>{{ form.title }}</div>
+            <div class="form-group"><label>File (PDF, DOCX)</label><input type="file" name="file" class="form-input" accept=".pdf,.docx,.doc,.txt,.epub" required></div>
+            <div class="form-group"><label>Subject</label>{{ form.subject }}</div>
+            <div class="form-group"><label>Class</label>{{ form.class_obj }}</div>
+            <div class="form-group"><label>Description</label>{{ form.description }}</div>
+        </div>
+        <div class="slide-panel-footer">
+            <button type="button" onclick="closePanel('upload-doc')" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition">Cancel</button>
+            <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition">Upload</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block dashboard_modals %}
+<script>
+function openPanel(id){document.getElementById(id+'-panel').classList.add('open');document.getElementById(id+'-overlay').classList.add('open');document.body.style.overflow='hidden';}
+function closePanel(id){document.getElementById(id+'-panel').classList.remove('open');document.getElementById(id+'-overlay').classList.remove('open');document.body.style.overflow='';}
+</script>
+{% endblock %}

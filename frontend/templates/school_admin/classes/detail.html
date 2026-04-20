@@ -1,0 +1,102 @@
+{% extends 'base/dashboard_base.html' %}
+{% load static %}
+
+{% block dashboard_title %}Class Detail{% endblock %}
+{% block page_title %}{{ class.name }}{% endblock %}
+{% block page_subtitle %}<p class="text-gray-600 mt-1">Grade {{ class.grade_level }} &middot; Section {{ class.section }} &middot; {{ class.academic_year }}</p>{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'school_admin:class_list' %}" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition">Back to Classes</a>
+<button onclick="openPanel('assign-subject')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition flex items-center">
+    <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+    Assign Subject
+</button>
+{% endblock %}
+
+{% block sidebar_nav %}{% include 'school_admin/includes/sidebar_nav.html' %}{% endblock %}
+
+{% block dashboard_content %}
+<link rel="stylesheet" href="{% static 'css/school_admin.css' %}">
+
+<!-- Class Info -->
+<div class="bg-white rounded-xl shadow-md p-6 mb-6">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div><span class="text-sm text-gray-500">Class Teacher</span><p class="font-semibold">{{ class.class_teacher.get_full_name|default:"Not assigned" }}</p></div>
+        <div><span class="text-sm text-gray-500">Max Students</span><p class="font-semibold">{{ class.max_students }}</p></div>
+        <div><span class="text-sm text-gray-500">Subjects</span><p class="font-semibold">{{ assignments|length }}</p></div>
+        <div><span class="text-sm text-gray-500">Status</span><p><span class="badge badge-green">Active</span></p></div>
+    </div>
+</div>
+
+<!-- Assigned Subjects -->
+<div class="bg-white rounded-xl shadow-md overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-semibold">Assigned Subjects</h3>
+    </div>
+    {% if assignments %}
+    <table class="data-table">
+        <thead>
+            <tr><th>Subject</th><th>Teacher</th><th>Status</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+            {% for cs in assignments %}
+            <tr>
+                <td>
+                    <span class="inline-block w-3 h-3 rounded-full mr-2" style="background:{{ cs.subject.color }}"></span>
+                    {{ cs.subject.name }}
+                </td>
+                <td>{{ cs.teacher.get_full_name|default:"Not assigned" }}</td>
+                <td><span class="badge badge-green">Active</span></td>
+                <td>
+                    <form method="post" action="{% url 'school_admin:remove_subject' class.pk cs.pk %}" style="display:inline" onsubmit="return confirm('Remove {{ cs.subject.name|escapejs }}?')">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-action btn-action-delete">Remove</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+        <h3>No subjects assigned</h3>
+        <p>Assign subjects to this class.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Assign Subject Panel -->
+<div class="slide-panel-overlay" id="assign-subject-overlay" onclick="closePanel('assign-subject')"></div>
+<div class="slide-panel" id="assign-subject-panel">
+    <div class="slide-panel-header">
+        <h2>Assign Subject</h2>
+        <button class="slide-panel-close" onclick="closePanel('assign-subject')">&times;</button>
+    </div>
+    <form method="post" action="{% url 'school_admin:assign_subject' class.pk %}">
+        {% csrf_token %}
+        <div class="slide-panel-body">
+            <div class="form-group"><label>Subject</label>{{ class_subject_form.subject }}</div>
+            <div class="form-group"><label>Teacher</label>{{ class_subject_form.teacher }}</div>
+        </div>
+        <div class="slide-panel-footer">
+            <button type="button" onclick="closePanel('assign-subject')" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition">Cancel</button>
+            <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition">Assign</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block dashboard_modals %}
+<script>
+function openPanel(id) {
+    document.getElementById(id + '-panel').classList.add('open');
+    document.getElementById(id + '-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+function closePanel(id) {
+    document.getElementById(id + '-panel').classList.remove('open');
+    document.getElementById(id + '-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+}
+</script>
+{% endblock %}

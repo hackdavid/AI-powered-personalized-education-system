@@ -19,7 +19,7 @@ openai
 anthropic
 langchain
 chromadb
-#sentence-transformers
+sentence-transformers
 
 # Document Processing
 PyPDF2

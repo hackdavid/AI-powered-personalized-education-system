@@ -50,9 +50,16 @@ def dashboard_router(request):
             'tenant': request.tenant
         })
     elif role_name == 'school_admin':
+        from apps.accounts.models import User
+        from apps.common.models.academic import Class
+        tenant = request.tenant
         return render(request, 'dashboards/school_admin_dashboard.html', {
             'user': request.user,
-            'tenant': request.tenant
+            'tenant': tenant,
+            'total_users': User.objects.filter(tenant=tenant).count() if tenant else 0,
+            'total_students': User.objects.filter(tenant=tenant, role__name='student').count() if tenant else 0,
+            'total_teachers': User.objects.filter(tenant=tenant, role__name='teacher').count() if tenant else 0,
+            'total_classes': Class.objects.filter(tenant=tenant, is_active=True).count() if tenant else 0,
         })
     elif role_name == 'system_admin':
         return render(request, 'dashboards/system_admin_dashboard.html', {

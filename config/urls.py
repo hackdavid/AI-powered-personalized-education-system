@@ -15,9 +15,9 @@ urlpatterns = [
     path('', include('apps.core.urls', namespace='core')),
 
     # Feature app routes (to be added as features are implemented)
+    path('school-admin/', include('apps.school_admin.urls', namespace='school_admin')),
     # path('student/', include('apps.student_portal.urls', namespace='student')),
     # path('teacher/', include('apps.teacher_portal.urls', namespace='teacher')),
-    # path('school-admin/', include('apps.school_admin.urls', namespace='school_admin')),
     # path('api/v1/', include('apps.api.urls', namespace='api')),
 ]
 

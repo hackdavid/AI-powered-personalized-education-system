@@ -38,6 +38,12 @@ INSTALLED_APPS = [
     'apps.tenants',
     'apps.common',
 
+    # Service layer
+    'services',
+
+    # Local apps - School admin
+    'apps.school_admin',
+
     # Local apps - Features (to be implemented)
     # 'apps.ingestion',
     # 'apps.tutoring',
@@ -169,13 +175,18 @@ CORS_ALLOW_CREDENTIALS = True
 
 # AI Service Configuration
 OPENAI_API_KEY = config('OPENAI_API_KEY', default='')
+OPENAI_BASE_URL = config('OPENAI_BASE_URL', default='https://api.openai.com/v1')
+OPENAI_MODEL_NAME = config('OPENAI_MODEL_NAME', default='gpt-4')
 ANTHROPIC_API_KEY = config('ANTHROPIC_API_KEY', default='')
-LLM_PROVIDER = config('LLM_PROVIDER', default='openai')  # 'openai' or 'anthropic'
+LLM_PROVIDER = config('LLM_PROVIDER', default='openai')
+
+# Embedding Configuration
+EMBEDDING_MODEL_NAME = config('EMBEDDING_MODEL_NAME', default='all-MiniLM-L6-v2')
+EMBEDDING_MODEL_PRELOAD = config('EMBEDDING_MODEL_PRELOAD', default=False, cast=bool)
 
 # Vector Store Configuration
-VECTOR_STORE_TYPE = config('VECTOR_STORE_TYPE', default='chromadb')  # 'chromadb', 'pinecone', 'weaviate'
-CHROMADB_HOST = config('CHROMADB_HOST', default='localhost')
-CHROMADB_PORT = config('CHROMADB_PORT', default='8000')
+VECTOR_STORE_TYPE = config('VECTOR_STORE_TYPE', default='chromadb')
+CHROMADB_PERSIST_DIR = config('CHROMADB_PERSIST_DIR', default=str(BASE_DIR / 'chroma_data'))
 
 # Logging Configuration
 LOGGING = {

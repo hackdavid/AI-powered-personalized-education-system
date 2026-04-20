@@ -1,0 +1,107 @@
+{% extends 'base/dashboard_base.html' %}
+{% load static %}
+
+{% block dashboard_title %}Subjects{% endblock %}
+{% block page_title %}Manage Subjects{% endblock %}
+{% block page_subtitle %}<p class="text-gray-600 mt-1">Create and manage academic subjects</p>{% endblock %}
+
+{% block page_actions %}
+<button onclick="openPanel('add-subject')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition flex items-center">
+    <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+    Add Subject
+</button>
+{% endblock %}
+
+{% block sidebar_nav %}{% include 'school_admin/includes/sidebar_nav.html' %}{% endblock %}
+
+{% block dashboard_content %}
+<link rel="stylesheet" href="{% static 'css/school_admin.css' %}">
+
+{% if subjects %}
+<div class="bg-white rounded-xl shadow-md overflow-hidden">
+    <table class="data-table">
+        <thead>
+            <tr><th>Color</th><th>Name</th><th>Code</th><th>Description</th><th>Classes</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+            {% for subject in subjects %}
+            <tr>
+                <td><span class="inline-block w-4 h-4 rounded-full" style="background:{{ subject.color }}"></span></td>
+                <td class="font-medium">{{ subject.name }}</td>
+                <td><span class="badge badge-gray">{{ subject.code }}</span></td>
+                <td class="text-gray-500 text-sm">{{ subject.description|default:"—"|truncatewords:8 }}</td>
+                <td><span class="badge badge-blue">{{ subject.class_subjects.count }}</span></td>
+                <td class="flex gap-2">
+                    <button onclick='openEditSubject({{ subject.pk }}, "{{ subject.name|escapejs }}", "{{ subject.code|escapejs }}", "{{ subject.description|escapejs }}", "{{ subject.color }}")' class="btn-action btn-action-edit">Edit</button>
+                    <form method="post" action="{% url 'school_admin:subject_delete' subject.pk %}" style="display:inline" onsubmit="return confirm('Delete {{ subject.name|escapejs }}?')">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-action btn-action-delete">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="empty-state">
+    <svg class="mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+    <h3>No subjects yet</h3>
+    <p>Create your first subject.</p>
+    <button onclick="openPanel('add-subject')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition">Add Subject</button>
+</div>
+{% endif %}
+
+<!-- Add Subject Panel -->
+<div class="slide-panel-overlay" id="add-subject-overlay" onclick="closePanel('add-subject')"></div>
+<div class="slide-panel" id="add-subject-panel">
+    <div class="slide-panel-header"><h2>Add Subject</h2><button class="slide-panel-close" onclick="closePanel('add-subject')">&times;</button></div>
+    <form method="post" action="{% url 'school_admin:subject_create' %}">
+        {% csrf_token %}
+        <div class="slide-panel-body">
+            <div class="form-group"><label>Name</label>{{ form.name }}</div>
+            <div class="form-group"><label>Code</label>{{ form.code }}</div>
+            <div class="form-group"><label>Description</label>{{ form.description }}</div>
+            <div class="form-group"><label>Color</label>{{ form.color }}</div>
+        </div>
+        <div class="slide-panel-footer">
+            <button type="button" onclick="closePanel('add-subject')" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition">Cancel</button>
+            <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition">Create</button>
+        </div>
+    </form>
+</div>
+
+<!-- Edit Subject Panel -->
+<div class="slide-panel-overlay" id="edit-subject-overlay" onclick="closePanel('edit-subject')"></div>
+<div class="slide-panel" id="edit-subject-panel">
+    <div class="slide-panel-header"><h2>Edit Subject</h2><button class="slide-panel-close" onclick="closePanel('edit-subject')">&times;</button></div>
+    <form id="edit-subject-form" method="post" action="">
+        {% csrf_token %}
+        <div class="slide-panel-body">
+            <div class="form-group"><label>Name</label><input type="text" name="name" id="esubj-name" class="form-input" required></div>
+            <div class="form-group"><label>Code</label><input type="text" name="code" id="esubj-code" class="form-input" required></div>
+            <div class="form-group"><label>Description</label><textarea name="description" id="esubj-desc" class="form-input" rows="3"></textarea></div>
+            <div class="form-group"><label>Color</label><input type="color" name="color" id="esubj-color" class="form-input"></div>
+        </div>
+        <div class="slide-panel-footer">
+            <button type="button" onclick="closePanel('edit-subject')" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition">Cancel</button>
+            <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition">Save</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block dashboard_modals %}
+<script>
+function openPanel(id){document.getElementById(id+'-panel').classList.add('open');document.getElementById(id+'-overlay').classList.add('open');document.body.style.overflow='hidden';}
+function closePanel(id){document.getElementById(id+'-panel').classList.remove('open');document.getElementById(id+'-overlay').classList.remove('open');document.body.style.overflow='';}
+function openEditSubject(pk,name,code,desc,color){
+    document.getElementById('edit-subject-form').action='/school-admin/subjects/'+pk+'/edit/';
+    document.getElementById('esubj-name').value=name;
+    document.getElementById('esubj-code').value=code;
+    document.getElementById('esubj-desc').value=desc;
+    document.getElementById('esubj-color').value=color;
+    openPanel('edit-subject');
+}
+</script>
+{% endblock %}
