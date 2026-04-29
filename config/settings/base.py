@@ -32,25 +32,11 @@ INSTALLED_APPS = [
     'corsheaders',
     'django_filters',
 
-    # Local apps - Core infrastructure
-    'apps.core',
-    'apps.accounts',
-    'apps.tenants',
-    'apps.common',
-
-    # Service layer
-    'services',
-
-    # Local apps - School admin
-    'apps.school_admin',
-
-    # Local apps - Features (to be implemented)
-    # 'apps.ingestion',
-    # 'apps.tutoring',
-    # 'apps.assessments',
-    # 'apps.analytics',
-    # 'apps.goals',
-    # 'apps.monitoring',
+    # First-party apps (4-app layout)
+    'apps.core',         # infrastructure: base models, middleware, decorators
+    'apps.accounts',     # identity: User, Role, Permission, Tenant + auth services
+    'apps.service',      # domain: models + business services + REST APIs
+    'apps.web',          # presentation: HTML views, dashboards, forms
 ]
 
 MIDDLEWARE = [

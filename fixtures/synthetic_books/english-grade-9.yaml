@@ -1,0 +1,124 @@
+slug: english-grade-9
+title: "English — Grade 9"
+subject_code: ENG
+subject_name: English
+grade_level: 9
+summary: >
+  Literary devices and the structure of an effective essay.
+difficulty: intermediate
+
+chapters:
+  - title: "Chapter 1 — Literary Devices"
+    difficulty: intermediate
+    sections:
+      - title: "1.1 Figurative Language"
+        topics:
+          - title: "Common figurative devices"
+            difficulty: intermediate
+            content: |
+              **Figurative language** uses words in non-literal ways to
+              make writing vivid and memorable. Below are six of the
+              most common devices.
+
+              | Device         | Definition                                              | Example                                |
+              |----------------|---------------------------------------------------------|----------------------------------------|
+              | Simile         | Comparison using *like* or *as*                          | Her smile was like sunshine.           |
+              | Metaphor       | Direct comparison without *like* or *as*                 | Time is a thief.                       |
+              | Personification| Giving human traits to non-human things                  | The wind whispered through the trees.  |
+              | Hyperbole      | Deliberate exaggeration                                  | I've told you a million times.         |
+              | Onomatopoeia   | Words that imitate sounds                                | The bees buzzed.                       |
+              | Alliteration   | Repetition of initial consonant sounds                   | She sells seashells by the seashore.   |
+            leaves:
+              - type: definition
+                title: "Metaphor"
+                content: |
+                  A figure of speech that directly equates one thing
+                  with another, without using *like* or *as*.
+              - type: example
+                title: "Spot the device"
+                content: |
+                  *The classroom was a zoo.* — metaphor (the classroom
+                  is being equated with a zoo).
+              - type: exercise
+                title: "Practice 1"
+                content: |
+                  Identify the device:
+                  "The leaves danced in the breeze."
+
+      - title: "1.2 Tone and Mood"
+        topics:
+          - title: "Tone vs. mood"
+            difficulty: intermediate
+            content: |
+              **Tone** is the writer's attitude toward the subject —
+              for example, sarcastic, hopeful, or formal. **Mood** is
+              the feeling the writing creates in the reader — for
+              example, eerie, joyful, or tense.
+
+              The same setting can produce different tones and moods
+              depending on word choice (*diction*) and sentence
+              rhythm.
+            leaves:
+              - type: key_point
+                title: "Same scene, different tone"
+                content: |
+                  A rainy day described as "the soft drumming of rain"
+                  has a calm tone; described as "the relentless,
+                  hammering rain" has an oppressive tone.
+              - type: exercise
+                title: "Practice 2"
+                content: |
+                  Write two short descriptions of an empty hallway —
+                  one with an eerie mood, one with a peaceful mood.
+
+  - title: "Chapter 2 — Essay Writing"
+    difficulty: intermediate
+    sections:
+      - title: "2.1 Essay Structure"
+        topics:
+          - title: "The five-paragraph essay"
+            difficulty: intermediate
+            content: |
+              A standard short essay has **five paragraphs**: an
+              introduction, three body paragraphs, and a conclusion.
+
+              1. **Introduction** — hook the reader and present the
+                 *thesis statement* (the central claim).
+              2. **Body paragraph 1** — first supporting point with
+                 evidence.
+              3. **Body paragraph 2** — second supporting point with
+                 evidence.
+              4. **Body paragraph 3** — third supporting point with
+                 evidence.
+              5. **Conclusion** — restate the thesis and summarize the
+                 supporting points.
+
+              Every body paragraph should follow the **PEEL** pattern:
+              **P**oint, **E**vidence, **E**xplanation, **L**ink.
+            leaves:
+              - type: definition
+                title: "Thesis statement"
+                content: |
+                  A single sentence that states the main argument of an
+                  essay, usually placed at the end of the introduction.
+              - type: key_point
+                title: "PEEL"
+                content: |
+                  Each body paragraph should make a **P**oint, give
+                  **E**vidence, **E**xplain it, and **L**ink back to the
+                  thesis.
+              - type: exercise
+                title: "Practice 3"
+                content: |
+                  Write a thesis statement for an essay about whether
+                  schools should require uniforms.
+
+cross_refs:
+  - source_path: "ch1.s2.t1"
+    target_path: "ch1.s1.t1"
+    ref_type: related
+    description: "Tone is often built using figurative language."
+  - source_path: "ch2.s1.t1"
+    target_path: "ch1.s2.t1"
+    ref_type: applies
+    description: "Good essay writing applies awareness of tone and mood."

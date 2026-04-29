@@ -11,13 +11,13 @@ echo [*] Exporting roles and permissions...
 python manage.py dumpdata accounts.Role accounts.Permission --indent 2 --output fixtures/roles_permissions.json
 
 echo [*] Exporting tenants...
-python manage.py dumpdata tenants.Tenant --indent 2 --output fixtures/tenants.json
+python manage.py dumpdata accounts.Tenant --indent 2 --output fixtures/tenants.json
 
 echo [*] Exporting users...
 python manage.py dumpdata accounts.User --indent 2 --output fixtures/users.json
 
 echo [*] Exporting subjects and classes...
-python manage.py dumpdata common.Subject common.Class common.ClassSubject --indent 2 --output fixtures/academic.json
+python manage.py dumpdata service.Subject service.Class service.ClassSubject --indent 2 --output fixtures/academic.json
 
 echo.
 echo ========================================

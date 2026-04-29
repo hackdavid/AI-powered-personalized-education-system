@@ -147,3 +147,183 @@ select.form-input { appearance: auto; }
     background: white; padding: 4px 10px; border-radius: 6px;
     border: 1px solid #d1d5db;
 }
+
+/* ── Assignment cards (Class detail page) ───────────────── */
+.assignment-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    padding: 24px;
+}
+.assignment-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+.assignment-card:hover {
+    border-color: #c7d2fe;
+    box-shadow: 0 4px 12px rgba(99,102,241,0.08);
+}
+.assignment-card-color {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+}
+.assignment-card-header {
+    display: flex; align-items: center; gap: 10px;
+    margin-top: 4px;
+}
+.assignment-card-header .subject-dot {
+    width: 12px; height: 12px; border-radius: 9999px;
+    flex-shrink: 0;
+}
+.assignment-card-title {
+    font-size: 15px; font-weight: 600; color: #111827;
+    margin: 0; flex: 1;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.assignment-card-code {
+    font-size: 11px; color: #6b7280; font-weight: 500;
+    background: #f3f4f6; padding: 2px 8px; border-radius: 9999px;
+    flex-shrink: 0;
+}
+.assignment-card-meta {
+    font-size: 12px; color: #6b7280;
+    text-transform: uppercase; letter-spacing: 0.04em;
+    font-weight: 600;
+}
+.assignment-card-teacher {
+    display: flex; align-items: center; gap: 8px;
+}
+.assignment-card-teacher select {
+    flex: 1;
+    padding: 8px 10px;
+    border: 1px solid #d1d5db; border-radius: 8px;
+    font-size: 13px; background: white;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+.assignment-card-teacher select:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+}
+.assignment-card-actions {
+    display: flex; justify-content: flex-end;
+    gap: 8px; padding-top: 8px;
+    border-top: 1px solid #f3f4f6;
+}
+
+/* ── Repeatable assignment rows (in Create-Class form) ──── */
+.assignment-rows {
+    display: flex; flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+}
+.assignment-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 36px;
+    gap: 8px;
+    align-items: stretch;
+}
+.assignment-row select {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid #d1d5db; border-radius: 8px;
+    background: white;
+    font-size: 13px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+.assignment-row select:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+}
+.assignment-row .row-remove {
+    width: 36px; height: auto;
+    background: #fef2f2; color: #dc2626;
+    border: none; border-radius: 8px;
+    cursor: pointer; font-size: 18px; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+}
+.assignment-row .row-remove:hover { background: #fee2e2; }
+.btn-add-row {
+    margin-top: 8px;
+    padding: 10px 12px;
+    border: 1px dashed #c7d2fe;
+    background: #eef2ff;
+    color: #4f46e5;
+    border-radius: 8px;
+    font-size: 13px; font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+    display: inline-flex; align-items: center; gap: 6px;
+}
+.btn-add-row:hover { background: #e0e7ff; border-color: #6366f1; }
+
+/* Section divider inside slide-panel form */
+.form-section-title {
+    font-size: 12px; font-weight: 600;
+    color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;
+    margin: 24px 0 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e5e7eb;
+}
+.form-section-title:first-child { margin-top: 0; }
+.form-section-help {
+    font-size: 12px; color: #6b7280; margin: -4px 0 8px;
+}
+
+/* ── Inline add-assignment form (detail page) ───────────── */
+.inline-add-assignment {
+    background: #fafafa;
+    border-top: 1px solid #e5e7eb;
+    padding: 16px 24px;
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 12px;
+    align-items: end;
+}
+.inline-add-assignment .form-group { margin-bottom: 0; }
+.inline-add-assignment label {
+    font-size: 11px; font-weight: 600;
+    color: #6b7280; text-transform: uppercase; letter-spacing: 0.04em;
+    margin-bottom: 4px;
+}
+.inline-add-assignment .btn-add {
+    padding: 10px 16px;
+    background: #4f46e5; color: white;
+    border: none; border-radius: 8px;
+    font-weight: 600; font-size: 14px; cursor: pointer;
+    transition: background 0.15s;
+    align-self: stretch;
+    display: inline-flex; align-items: center; gap: 6px;
+}
+.inline-add-assignment .btn-add:hover { background: #4338ca; }
+
+/* Workload chip used in teacher list */
+.workload-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 9999px;
+    background: #eef2ff; color: #4338ca;
+    font-size: 12px; font-weight: 600;
+}
+.workload-chip.empty { background: #f3f4f6; color: #6b7280; }
+
+@media (max-width: 640px) {
+    .inline-add-assignment {
+        grid-template-columns: 1fr;
+    }
+    .assignment-row {
+        grid-template-columns: 1fr 36px;
+    }
+    .assignment-row select:first-of-type { grid-column: 1 / -1; }
+    .assignment-row .row-remove { grid-column: 2; grid-row: 1; }
+}

@@ -180,3 +180,15 @@ class PermissionAdmin(admin.ModelAdmin):
         return obj.roles.count()
 
     role_count.short_description = 'Roles'
+
+
+# Tenant admin (formerly apps/tenants/admin.py)
+from apps.accounts.models import Tenant
+
+
+@admin.register(Tenant)
+class TenantAdmin(admin.ModelAdmin):
+    list_display = ('name', 'slug', 'is_active', 'subscription_tier', 'created_at')
+    list_filter = ('is_active', 'subscription_tier')
+    search_fields = ('name', 'slug', 'domain')
+    prepopulated_fields = {'slug': ('name',)}

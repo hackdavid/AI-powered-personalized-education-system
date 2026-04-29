@@ -24,7 +24,7 @@ class TenantAwareModel(models.Model):
     All tenant-specific data should inherit from this model.
     """
     tenant = models.ForeignKey(
-        'tenants.Tenant',
+        'accounts.Tenant',
         on_delete=models.CASCADE,
         related_name='%(class)s_set',
         db_index=True

@@ -3,7 +3,7 @@
 
 {% block dashboard_title %}Classes{% endblock %}
 {% block page_title %}Manage Classes{% endblock %}
-{% block page_subtitle %}<p class="text-gray-600 mt-1">Create and organize your school classes</p>{% endblock %}
+{% block page_subtitle %}<p class="text-gray-600 mt-1">Create classes and assign subjects with teachers in one go</p>{% endblock %}
 
 {% block page_actions %}
 <button onclick="openPanel('add-class-panel')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition flex items-center">
@@ -24,9 +24,8 @@
             <tr>
                 <th>Name</th>
                 <th>Grade</th>
-                <th>Section</th>
                 <th>Year</th>
-                <th>Teacher</th>
+                <th>Class Teacher</th>
                 <th>Subjects</th>
                 <th>Actions</th>
             </tr>
@@ -37,12 +36,27 @@
                 <td>
                     <a href="{% url 'school_admin:class_detail' cls.pk %}" class="text-indigo-600 font-medium hover:underline">{{ cls.name }}</a>
                 </td>
-                <td>{{ cls.grade_level }}</td>
-                <td>{{ cls.section }}</td>
+                <td>{{ cls.grade_level }} – {{ cls.section }}</td>
                 <td>{{ cls.academic_year }}</td>
                 <td>{{ cls.class_teacher.get_full_name|default:"—" }}</td>
-                <td><span class="badge badge-blue">{{ cls.class_subjects.count }}</span></td>
+                <td>
+                    {% if cls.class_subjects.all %}
+                        <div class="flex flex-wrap gap-1">
+                        {% for cs in cls.class_subjects.all|slice:":4" %}
+                            <span class="badge" style="background: {{ cs.subject.color }}20; color: {{ cs.subject.color }}; border: 1px solid {{ cs.subject.color }}40;" title="{{ cs.subject.name }}{% if cs.teacher %} — {{ cs.teacher.get_full_name }}{% endif %}">
+                                {{ cs.subject.code }}
+                            </span>
+                        {% endfor %}
+                        {% if cls.class_subjects.count > 4 %}
+                            <span class="badge badge-gray">+{{ cls.class_subjects.count|add:"-4" }}</span>
+                        {% endif %}
+                        </div>
+                    {% else %}
+                        <span class="text-gray-400 text-sm italic">none</span>
+                    {% endif %}
+                </td>
                 <td class="flex gap-2">
+                    <a href="{% url 'school_admin:class_detail' cls.pk %}" class="btn-action btn-action-edit" title="Manage subjects & teachers">Manage</a>
                     <button onclick='openEditClass({{ cls.pk }}, "{{ cls.name|escapejs }}", {{ cls.grade_level }}, "{{ cls.section|escapejs }}", "{{ cls.academic_year|escapejs }}", {% if cls.class_teacher_id %}{{ cls.class_teacher_id }}{% else %}null{% endif %}, {{ cls.max_students }})' class="btn-action btn-action-edit">Edit</button>
                     <form method="post" action="{% url 'school_admin:class_delete' cls.pk %}" style="display:inline" onsubmit="return confirm('Delete {{ cls.name|escapejs }}?')">
                         {% csrf_token %}
@@ -67,18 +81,33 @@
 <div class="slide-panel-overlay" id="add-class-overlay" onclick="closePanel('add-class')"></div>
 <div class="slide-panel" id="add-class-panel">
     <div class="slide-panel-header">
-        <h2>Add New Class</h2>
+        <h2>New class</h2>
         <button class="slide-panel-close" onclick="closePanel('add-class')">&times;</button>
     </div>
     <form method="post" action="{% url 'school_admin:class_create' %}">
         {% csrf_token %}
         <div class="slide-panel-body">
+            <div class="form-section-title">Class details</div>
+
             <div class="form-group"><label>Class Name</label>{{ form.name }}</div>
-            <div class="form-group"><label>Grade Level</label>{{ form.grade_level }}</div>
-            <div class="form-group"><label>Section</label>{{ form.section }}</div>
+            <div class="grid grid-cols-2 gap-3">
+                <div class="form-group"><label>Grade Level</label>{{ form.grade_level }}</div>
+                <div class="form-group"><label>Section</label>{{ form.section }}</div>
+            </div>
             <div class="form-group"><label>Academic Year</label>{{ form.academic_year }}</div>
-            <div class="form-group"><label>Class Teacher</label>{{ form.class_teacher }}</div>
-            <div class="form-group"><label>Max Students</label>{{ form.max_students }}</div>
+            <div class="grid grid-cols-2 gap-3">
+                <div class="form-group"><label>Class Teacher</label>{{ form.class_teacher }}</div>
+                <div class="form-group"><label>Max Students</label>{{ form.max_students }}</div>
+            </div>
+
+            <div class="form-section-title">Subjects &amp; teachers</div>
+            <p class="form-section-help">Optional. Add one row per subject you want this class to study. The same teacher can be picked for multiple subjects in the same class.</p>
+
+            <div class="assignment-rows" id="create-assignment-rows"></div>
+            <button type="button" class="btn-add-row" onclick="addAssignmentRow('create-assignment-rows')">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                Add subject
+            </button>
         </div>
         <div class="slide-panel-footer">
             <button type="button" onclick="closePanel('add-class')" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition">Cancel</button>
@@ -91,18 +120,31 @@
 <div class="slide-panel-overlay" id="edit-class-overlay" onclick="closePanel('edit-class')"></div>
 <div class="slide-panel" id="edit-class-panel">
     <div class="slide-panel-header">
-        <h2>Edit Class</h2>
+        <h2>Edit class</h2>
         <button class="slide-panel-close" onclick="closePanel('edit-class')">&times;</button>
     </div>
     <form id="edit-class-form" method="post" action="">
         {% csrf_token %}
         <div class="slide-panel-body">
             <div class="form-group"><label>Class Name</label><input type="text" name="name" id="edit-name" class="form-input" required></div>
-            <div class="form-group"><label>Grade Level</label><input type="number" name="grade_level" id="edit-grade" class="form-input" min="1" max="12" required></div>
-            <div class="form-group"><label>Section</label><input type="text" name="section" id="edit-section" class="form-input" required></div>
+            <div class="grid grid-cols-2 gap-3">
+                <div class="form-group"><label>Grade Level</label><input type="number" name="grade_level" id="edit-grade" class="form-input" min="1" max="12" required></div>
+                <div class="form-group"><label>Section</label><input type="text" name="section" id="edit-section" class="form-input" required></div>
+            </div>
             <div class="form-group"><label>Academic Year</label><input type="text" name="academic_year" id="edit-year" class="form-input" required></div>
-            <div class="form-group"><label>Class Teacher</label>{{ form.class_teacher }}</div>
-            <div class="form-group"><label>Max Students</label><input type="number" name="max_students" id="edit-max" class="form-input" min="1" required></div>
+            <div class="grid grid-cols-2 gap-3">
+                <div class="form-group">
+                    <label>Class Teacher</label>
+                    <select name="class_teacher" id="edit-teacher" class="form-input">
+                        <option value="">— None —</option>
+                        {% for t in teachers %}
+                            <option value="{{ t.id }}">{{ t.get_full_name }}{% if t.specialization %} · {{ t.specialization }}{% endif %}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group"><label>Max Students</label><input type="number" name="max_students" id="edit-max" class="form-input" min="1" required></div>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">Subjects and per-subject teachers are managed from the class detail page.</p>
         </div>
         <div class="slide-panel-footer">
             <button type="button" onclick="closePanel('edit-class')" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition">Cancel</button>
@@ -114,46 +156,87 @@
 
 {% block dashboard_modals %}
 <script>
-function resolvePanelIds(id) {
-    if (id.endsWith('-panel')) {
-        return { panelId: id, overlayId: id.replace(/-panel$/, '-overlay') };
-    }
-    if (id.endsWith('-overlay')) {
-        return { panelId: id.replace(/-overlay$/, '-panel'), overlayId: id };
-    }
-    return { panelId: id + '-panel', overlayId: id + '-overlay' };
+const SUBJECT_OPTIONS = [
+    {% for s in subjects %}{value: "{{ s.id }}", label: "{{ s.name|escapejs }} ({{ s.code|escapejs }})"}{% if not forloop.last %},{% endif %}{% endfor %}
+];
+const TEACHER_OPTIONS = [
+    {% for t in teachers %}{value: "{{ t.id }}", label: "{{ t.get_full_name|escapejs }}{% if t.specialization %} · {{ t.specialization|escapejs }}{% endif %}"}{% if not forloop.last %},{% endif %}{% endfor %}
+];
+
+function buildSelect(name, options, placeholder) {
+    const sel = document.createElement('select');
+    sel.name = name;
+    const def = document.createElement('option');
+    def.value = '';
+    def.textContent = placeholder;
+    sel.appendChild(def);
+    options.forEach(o => {
+        const op = document.createElement('option');
+        op.value = o.value;
+        op.textContent = o.label;
+        sel.appendChild(op);
+    });
+    return sel;
 }
 
+function addAssignmentRow(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    const row = document.createElement('div');
+    row.className = 'assignment-row';
+
+    const subjectSel = buildSelect('assignment_subject', SUBJECT_OPTIONS, 'Pick a subject…');
+    subjectSel.required = false;
+    const teacherSel = buildSelect('assignment_teacher', TEACHER_OPTIONS, 'Pick a teacher…');
+    teacherSel.required = false;
+
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'row-remove';
+    removeBtn.title = 'Remove';
+    removeBtn.innerHTML = '&times;';
+    removeBtn.onclick = () => row.remove();
+
+    row.appendChild(subjectSel);
+    row.appendChild(teacherSel);
+    row.appendChild(removeBtn);
+    container.appendChild(row);
+    subjectSel.focus();
+}
+
+function resolvePanelIds(id) {
+    if (id.endsWith('-panel')) return { panelId: id, overlayId: id.replace(/-panel$/, '-overlay') };
+    if (id.endsWith('-overlay')) return { panelId: id.replace(/-overlay$/, '-panel'), overlayId: id };
+    return { panelId: id + '-panel', overlayId: id + '-overlay' };
+}
 function openPanel(id) {
     const ids = resolvePanelIds(id);
     const panel = document.getElementById(ids.panelId);
     const overlay = document.getElementById(ids.overlayId);
-    if (!panel || !overlay) {
-        return;
-    }
+    if (!panel || !overlay) return;
     panel.classList.add('open');
     overlay.classList.add('open');
     document.body.style.overflow = 'hidden';
 }
-
 function closePanel(id) {
     const ids = resolvePanelIds(id);
     const panel = document.getElementById(ids.panelId);
     const overlay = document.getElementById(ids.overlayId);
-    if (!panel || !overlay) {
-        return;
-    }
+    if (!panel || !overlay) return;
     panel.classList.remove('open');
     overlay.classList.remove('open');
     document.body.style.overflow = '';
 }
 function openEditClass(pk, name, grade, section, year, teacherId, maxStudents) {
-    document.getElementById('edit-class-form').action = '/school-admin/classes/' + pk + '/edit/';
+    const form = document.getElementById('edit-class-form');
+    form.action = '/school-admin/classes/' + pk + '/edit/';
     document.getElementById('edit-name').value = name;
     document.getElementById('edit-grade').value = grade;
     document.getElementById('edit-section').value = section;
     document.getElementById('edit-year').value = year;
     document.getElementById('edit-max').value = maxStudents;
+    const teacherSel = document.getElementById('edit-teacher');
+    teacherSel.value = (teacherId === null || teacherId === undefined) ? '' : String(teacherId);
     openPanel('edit-class');
 }
 </script>

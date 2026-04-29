@@ -51,7 +51,7 @@ class User(AbstractUser, TimestampedModel):
 
     # Multi-tenant support
     tenant = models.ForeignKey(
-        'tenants.Tenant',
+        'accounts.Tenant',
         on_delete=models.CASCADE,
         null=True,
         blank=True,

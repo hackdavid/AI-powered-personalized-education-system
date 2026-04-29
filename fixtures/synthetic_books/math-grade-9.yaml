@@ -1,0 +1,126 @@
+slug: math-grade-9
+title: "Mathematics — Grade 9"
+subject_code: MATH
+subject_name: Mathematics
+grade_level: 9
+summary: >
+  Quadratic equations and an introduction to trigonometry, building on
+  Grade 8 algebra.
+difficulty: intermediate
+
+chapters:
+  - title: "Chapter 1 — Quadratic Equations"
+    difficulty: intermediate
+    sections:
+      - title: "1.1 The Quadratic Form"
+        topics:
+          - title: "Standard form of a quadratic"
+            difficulty: intermediate
+            content: |
+              A **quadratic equation** in one variable has the form
+              `ax^2 + bx + c = 0`, with `a` non-zero.
+
+              The values of `a`, `b`, `c` are called the
+              **coefficients** of the quadratic. They determine the
+              shape and roots of the equation.
+            leaves:
+              - type: definition
+                title: "Quadratic equation"
+                content: |
+                  An equation that can be written in the form
+                  `ax^2 + bx + c = 0`, where `a != 0`.
+              - type: example
+                title: "Identify a, b, c"
+                content: |
+                  In `2x^2 - 5x + 3 = 0`, we have `a = 2`, `b = -5`,
+                  `c = 3`.
+
+      - title: "1.2 The Quadratic Formula"
+        topics:
+          - title: "Solving with the quadratic formula"
+            difficulty: intermediate
+            content: |
+              Every quadratic `ax^2 + bx + c = 0` can be solved using
+              the **quadratic formula**:
+
+              `x = (-b ± sqrt(b^2 - 4ac)) / (2a)`
+
+              The expression `b^2 - 4ac` under the square root is called
+              the **discriminant**, written `D`. It tells you how many
+              real solutions the equation has:
+
+              | Discriminant `D`    | Real roots        | Description           |
+              |---------------------|-------------------|-----------------------|
+              | `D > 0`             | 2 distinct        | Two real solutions    |
+              | `D = 0`             | 1 repeated        | One real solution     |
+              | `D < 0`             | 0                 | No real solutions     |
+            leaves:
+              - type: formula
+                title: "Quadratic formula"
+                content: |
+                  `x = (-b ± sqrt(b^2 - 4ac)) / (2a)`
+              - type: formula
+                title: "Discriminant"
+                content: |
+                  `D = b^2 - 4ac`
+              - type: example
+                title: "Solve x^2 - 5x + 6 = 0"
+                content: |
+                  Here `a=1`, `b=-5`, `c=6`. So
+                  `D = 25 - 24 = 1`, and
+                  `x = (5 ± 1) / 2`. So `x = 3` or `x = 2`.
+              - type: exercise
+                title: "Practice 1"
+                content: |
+                  Use the quadratic formula to solve `x^2 + 2x - 8 = 0`.
+
+  - title: "Chapter 2 — Introduction to Trigonometry"
+    difficulty: intermediate
+    sections:
+      - title: "2.1 Right-Triangle Trigonometry"
+        topics:
+          - title: "The three basic trig ratios"
+            difficulty: intermediate
+            content: |
+              In a right triangle with one acute angle `θ`, label the
+              sides as **opposite** (across from `θ`), **adjacent**
+              (next to `θ` and not the hypotenuse), and **hypotenuse**
+              (the longest side, opposite the right angle).
+
+              The three primary trig ratios are:
+
+              | Ratio name | Abbreviation | Definition           |
+              |------------|--------------|----------------------|
+              | sine       | `sin θ`      | opposite / hypotenuse|
+              | cosine     | `cos θ`      | adjacent / hypotenuse|
+              | tangent    | `tan θ`      | opposite / adjacent  |
+
+              A common mnemonic is **SOH-CAH-TOA**:
+              Sin = Opp/Hyp, Cos = Adj/Hyp, Tan = Opp/Adj.
+            leaves:
+              - type: formula
+                title: "Sine, cosine, tangent"
+                content: |
+                  `sin θ = opp / hyp`,
+                  `cos θ = adj / hyp`,
+                  `tan θ = opp / adj`.
+              - type: example
+                title: "Compute sin(30°)"
+                content: |
+                  In a 30-60-90 triangle the side opposite 30° is half
+                  the hypotenuse, so `sin 30° = 1/2`.
+              - type: exercise
+                title: "Practice 2"
+                content: |
+                  In a right triangle, the side opposite an angle is 5
+                  and the hypotenuse is 13. Find `sin θ`.
+
+cross_refs:
+  - source_path: "ch1.s2.t1"
+    target_path: "ch1.s1.t1"
+    ref_type: prerequisite
+    description: "You must know the standard form before applying the formula."
+  - source_path: "ch2.s1.t1"
+    target_path: "ch1.s1.t1"
+    ref_type: related
+    description: "Both topics rely on algebraic manipulation."

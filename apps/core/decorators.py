@@ -42,7 +42,7 @@ def role_required(allowed_roles):
                     return APIResponse.forbidden("You don't have permission to access this resource.")
                 else:
                     messages.error(request, "You don't have permission to access this page.")
-                    return redirect('core:dashboard')
+                    return redirect('web:dashboard')
 
             return view_func(request, *args, **kwargs)
         return wrapper
@@ -67,7 +67,7 @@ def tenant_required(view_func):
                 return APIResponse.error("Tenant context required", status=400)
             else:
                 messages.error(request, "School/tenant context is required for this action.")
-                return redirect('core:dashboard')
+                return redirect('web:dashboard')
 
         return view_func(request, *args, **kwargs)
     return wrapper

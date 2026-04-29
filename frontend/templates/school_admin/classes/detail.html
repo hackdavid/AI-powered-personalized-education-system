@@ -1,16 +1,15 @@
 {% extends 'base/dashboard_base.html' %}
 {% load static %}
 
-{% block dashboard_title %}Class Detail{% endblock %}
+{% block dashboard_title %}{{ class.name }}{% endblock %}
 {% block page_title %}{{ class.name }}{% endblock %}
 {% block page_subtitle %}<p class="text-gray-600 mt-1">Grade {{ class.grade_level }} &middot; Section {{ class.section }} &middot; {{ class.academic_year }}</p>{% endblock %}
 
 {% block page_actions %}
-<a href="{% url 'school_admin:class_list' %}" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition">Back to Classes</a>
-<button onclick="openPanel('assign-subject')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition flex items-center">
-    <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-    Assign Subject
-</button>
+<a href="{% url 'school_admin:class_list' %}" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition flex items-center gap-2">
+    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+    Back to Classes
+</a>
 {% endblock %}
 
 {% block sidebar_nav %}{% include 'school_admin/includes/sidebar_nav.html' %}{% endblock %}
@@ -18,85 +17,121 @@
 {% block dashboard_content %}
 <link rel="stylesheet" href="{% static 'css/school_admin.css' %}">
 
-<!-- Class Info -->
+<!-- Class info summary -->
 <div class="bg-white rounded-xl shadow-md p-6 mb-6">
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div><span class="text-sm text-gray-500">Class Teacher</span><p class="font-semibold">{{ class.class_teacher.get_full_name|default:"Not assigned" }}</p></div>
-        <div><span class="text-sm text-gray-500">Max Students</span><p class="font-semibold">{{ class.max_students }}</p></div>
-        <div><span class="text-sm text-gray-500">Subjects</span><p class="font-semibold">{{ assignments|length }}</p></div>
-        <div><span class="text-sm text-gray-500">Status</span><p><span class="badge badge-green">Active</span></p></div>
+        <div>
+            <span class="text-xs text-gray-500 uppercase tracking-wide font-semibold">Class Teacher</span>
+            <p class="font-semibold mt-1">{{ class.class_teacher.get_full_name|default:"Not assigned" }}</p>
+        </div>
+        <div>
+            <span class="text-xs text-gray-500 uppercase tracking-wide font-semibold">Capacity</span>
+            <p class="font-semibold mt-1">{{ class.max_students }} students</p>
+        </div>
+        <div>
+            <span class="text-xs text-gray-500 uppercase tracking-wide font-semibold">Subjects</span>
+            <p class="font-semibold mt-1">{{ assignments|length }}</p>
+        </div>
+        <div>
+            <span class="text-xs text-gray-500 uppercase tracking-wide font-semibold">Status</span>
+            <p class="mt-1">
+                {% if class.is_active %}<span class="badge badge-green">Active</span>
+                {% else %}<span class="badge badge-red">Inactive</span>{% endif %}
+            </p>
+        </div>
     </div>
 </div>
 
-<!-- Assigned Subjects -->
+<!-- Subjects + teachers card -->
 <div class="bg-white rounded-xl shadow-md overflow-hidden">
-    <div class="px-6 py-4 border-b border-gray-200">
-        <h3 class="text-lg font-semibold">Assigned Subjects</h3>
+    <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+        <div>
+            <h3 class="text-lg font-semibold">Subjects &amp; teachers</h3>
+            <p class="text-sm text-gray-500 mt-0.5">Change a teacher inline. Same teacher can teach multiple subjects in this class.</p>
+        </div>
+        <span class="badge badge-blue">{{ assignments|length }} assigned</span>
     </div>
+
     {% if assignments %}
-    <table class="data-table">
-        <thead>
-            <tr><th>Subject</th><th>Teacher</th><th>Status</th><th>Actions</th></tr>
-        </thead>
-        <tbody>
-            {% for cs in assignments %}
-            <tr>
-                <td>
-                    <span class="inline-block w-3 h-3 rounded-full mr-2" style="background:{{ cs.subject.color }}"></span>
-                    {{ cs.subject.name }}
-                </td>
-                <td>{{ cs.teacher.get_full_name|default:"Not assigned" }}</td>
-                <td><span class="badge badge-green">Active</span></td>
-                <td>
-                    <form method="post" action="{% url 'school_admin:remove_subject' class.pk cs.pk %}" style="display:inline" onsubmit="return confirm('Remove {{ cs.subject.name|escapejs }}?')">
-                        {% csrf_token %}
-                        <button type="submit" class="btn-action btn-action-delete">Remove</button>
-                    </form>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="assignment-grid">
+        {% for cs in assignments %}
+        <div class="assignment-card">
+            <span class="assignment-card-color" style="background: {{ cs.subject.color }};"></span>
+
+            <div class="assignment-card-header">
+                <span class="subject-dot" style="background: {{ cs.subject.color }};"></span>
+                <h4 class="assignment-card-title">{{ cs.subject.name }}</h4>
+                <span class="assignment-card-code">{{ cs.subject.code }}</span>
+            </div>
+
+            <div>
+                <div class="assignment-card-meta mb-1">Teacher</div>
+                <form method="post" action="{% url 'school_admin:assignment_update' class.pk cs.pk %}" class="assignment-card-teacher" id="assignment-form-{{ cs.pk }}">
+                    {% csrf_token %}
+                    <select name="teacher" onchange="document.getElementById('assignment-form-{{ cs.pk }}').submit();" aria-label="Teacher for {{ cs.subject.name }}">
+                        <option value="" {% if not cs.teacher_id %}selected{% endif %}>— Unassigned —</option>
+                        {% for t in teachers %}
+                            <option value="{{ t.id }}" {% if cs.teacher_id == t.id %}selected{% endif %}>
+                                {{ t.get_full_name }}{% if t.specialization %} · {{ t.specialization }}{% endif %}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </form>
+            </div>
+
+            <div class="assignment-card-actions">
+                <form method="post" action="{% url 'school_admin:remove_subject' class.pk cs.pk %}" onsubmit="return confirm('Remove {{ cs.subject.name|escapejs }} from this class?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-action btn-action-delete" title="Remove this subject from the class">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"/></svg>
+                        Remove
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
     {% else %}
     <div class="empty-state">
-        <h3>No subjects assigned</h3>
-        <p>Assign subjects to this class.</p>
+        <svg class="mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <h3>No subjects yet</h3>
+        <p>Pick a subject and a teacher below to assign your first one.</p>
+    </div>
+    {% endif %}
+
+    <!-- Inline add-assignment form (always visible) -->
+    {% if subjects %}
+    <form method="post" action="{% url 'school_admin:assign_subject' class.pk %}" class="inline-add-assignment">
+        {% csrf_token %}
+        <div class="form-group">
+            <label>Add subject</label>
+            <select name="subject" class="form-input" required>
+                <option value="">Pick a subject…</option>
+                {% for s in subjects %}
+                    {% if s.id not in assigned_subject_ids %}
+                        <option value="{{ s.id }}">{{ s.name }} ({{ s.code }})</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Teacher (optional)</label>
+            <select name="teacher" class="form-input">
+                <option value="">— Unassigned —</option>
+                {% for t in teachers %}
+                    <option value="{{ t.id }}">{{ t.get_full_name }}{% if t.specialization %} · {{ t.specialization }}{% endif %}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn-add">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            Add
+        </button>
+    </form>
+    {% else %}
+    <div class="px-6 py-4 border-t border-gray-200 text-sm text-gray-500 bg-gray-50">
+        No subjects defined yet for this school. <a href="{% url 'school_admin:subject_list' %}" class="text-indigo-600 font-medium hover:underline">Create one →</a>
     </div>
     {% endif %}
 </div>
-
-<!-- Assign Subject Panel -->
-<div class="slide-panel-overlay" id="assign-subject-overlay" onclick="closePanel('assign-subject')"></div>
-<div class="slide-panel" id="assign-subject-panel">
-    <div class="slide-panel-header">
-        <h2>Assign Subject</h2>
-        <button class="slide-panel-close" onclick="closePanel('assign-subject')">&times;</button>
-    </div>
-    <form method="post" action="{% url 'school_admin:assign_subject' class.pk %}">
-        {% csrf_token %}
-        <div class="slide-panel-body">
-            <div class="form-group"><label>Subject</label>{{ class_subject_form.subject }}</div>
-            <div class="form-group"><label>Teacher</label>{{ class_subject_form.teacher }}</div>
-        </div>
-        <div class="slide-panel-footer">
-            <button type="button" onclick="closePanel('assign-subject')" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition">Cancel</button>
-            <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition">Assign</button>
-        </div>
-    </form>
-</div>
-{% endblock %}
-
-{% block dashboard_modals %}
-<script>
-function openPanel(id) {
-    document.getElementById(id + '-panel').classList.add('open');
-    document.getElementById(id + '-overlay').classList.add('open');
-    document.body.style.overflow = 'hidden';
-}
-function closePanel(id) {
-    document.getElementById(id + '-panel').classList.remove('open');
-    document.getElementById(id + '-overlay').classList.remove('open');
-    document.body.style.overflow = '';
-}
-</script>
 {% endblock %}

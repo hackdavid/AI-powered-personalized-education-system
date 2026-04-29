@@ -2,13 +2,13 @@
 <nav class="navbar app-navbar">
     <div class="navbar-container">
         <div class="navbar-brand">
-            <a href="{% url 'core:dashboard' %}">
+            <a href="{% url 'web:dashboard' %}">
                 <span class="logo">🎓 EduAI</span>
             </a>
         </div>
 
         <div class="navbar-menu">
-            <a href="{% url 'core:dashboard' %}" class="nav-link">Dashboard</a>
+            <a href="{% url 'web:dashboard' %}" class="nav-link">Dashboard</a>
 
             {% if user.is_teacher or user.is_school_admin %}
                 <a href="#" class="nav-link">Analytics</a>

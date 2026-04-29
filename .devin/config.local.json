@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Exec(find)",
+      "Exec(xargs ls)",
+      "Exec(cat)",
+      "Exec(grep)",
+      "Exec(ls)",
+      "Exec(python)",
+      "Exec(rm)",
+      "Exec(curl)",
+      "Exec(git status)",
+      "Exec(git diff)",
+      "Exec(pip install)",
+      "Exec(mkdir)",
+      "Exec(touch)"
+    ]
+  }
+}

@@ -1,39 +1,25 @@
-"""
-EduAI Platform URL Configuration
-"""
+"""Project URL configuration."""
 
 from django.contrib import admin
-from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.urls import include, path
+
+from apps.web.urls import (
+    auth_patterns,
+    school_admin_patterns,
+    public_patterns,
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('auth/', include('apps.accounts.urls', namespace='auth')),
-
-    # Role-based dashboard routes
-    path('', include('apps.core.urls', namespace='core')),
-
-    # Feature app routes (to be added as features are implemented)
-    path('school-admin/', include('apps.school_admin.urls', namespace='school_admin')),
-    # path('student/', include('apps.student_portal.urls', namespace='student')),
-    # path('teacher/', include('apps.teacher_portal.urls', namespace='teacher')),
-    # path('api/v1/', include('apps.api.urls', namespace='api')),
+    path('auth/', include((auth_patterns, 'auth'))),
+    path('school-admin/', include((school_admin_patterns, 'school_admin'))),
+    path('health/', include('apps.core.urls')),
+    path('', include((public_patterns, 'web'))),
+    # path('api/v1/', include('apps.service.api.urls', namespace='service_api')),
 ]
 
-# Serve media files in development
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-
-    # Debug toolbar (commented out)
-    # if 'debug_toolbar' in settings.INSTALLED_APPS:
-    #     import debug_toolbar
-    #     urlpatterns += [
-    #         path('__debug__/', include(debug_toolbar.urls)),
-    #     ]
-
-# Customize admin site
-admin.site.site_header = "EduAI Platform Administration"
-admin.site.site_title = "EduAI Admin"
-admin.site.index_title = "Welcome to EduAI Platform Administration"
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,0 +1,169 @@
+slug: math-grade-8
+title: "Mathematics — Grade 8"
+subject_code: MATH
+subject_name: Mathematics
+grade_level: 8
+summary: >
+  Foundation algebra and geometry for Grade 8: variables, linear equations,
+  triangles, and the Pythagorean theorem.
+difficulty: basic
+
+chapters:
+  - title: "Chapter 1 — Algebra Basics"
+    difficulty: basic
+    sections:
+      - title: "1.1 Variables and Expressions"
+        topics:
+          - title: "What is a variable?"
+            difficulty: basic
+            content: |
+              A **variable** is a symbol — usually a single letter such as
+              `x`, `y`, or `n` — that stands in for an unknown or
+              changeable number. Variables let us write rules and
+              relationships that work for any value.
+
+              Common operations you can do with variables:
+
+              | Symbol | Meaning            | Example       |
+              |--------|--------------------|---------------|
+              | `+`    | Addition           | `x + 3`       |
+              | `-`    | Subtraction        | `x - 5`       |
+              | `*`    | Multiplication     | `2 * x`       |
+              | `/`    | Division           | `x / 4`       |
+              | `^`    | Power / exponent   | `x ^ 2`       |
+
+              When we write `2x` (no symbol between the `2` and the `x`)
+              it means the same as `2 * x`.
+            leaves:
+              - type: definition
+                title: "Variable"
+                content: |
+                  A *variable* is a letter or symbol that represents a
+                  number whose value can change.
+              - type: example
+                title: "Substituting a value"
+                content: |
+                  If `x = 4`, then `2x + 1 = 2*4 + 1 = 9`.
+              - type: exercise
+                title: "Practice 1"
+                difficulty: basic
+                content: |
+                  Evaluate `3y - 5` when `y = 6`.
+
+          - title: "Algebraic expressions"
+            difficulty: basic
+            content: |
+              An **algebraic expression** combines numbers, variables,
+              and operators. Unlike an *equation*, an expression has no
+              equals sign — it just describes a value.
+
+              Examples: `2x + 3`, `4(a - b)`, `x^2 - 1`.
+            leaves:
+              - type: key_point
+                title: "Expression vs. equation"
+                content: |
+                  An expression has no `=`. An equation does. Don't
+                  confuse them.
+              - type: exercise
+                title: "Practice 2"
+                content: |
+                  Write an algebraic expression for "five more than
+                  twice a number".
+
+      - title: "1.2 Linear Equations"
+        topics:
+          - title: "Solving simple linear equations"
+            difficulty: intermediate
+            content: |
+              A **linear equation** in one variable looks like
+              `ax + b = c`, where `a`, `b`, `c` are numbers. To solve
+              it, isolate the variable using inverse operations.
+
+              Steps:
+
+              1. Move all constants to one side.
+              2. Move all variable terms to the other side.
+              3. Divide by the coefficient of the variable.
+            leaves:
+              - type: formula
+                title: "General linear equation"
+                content: |
+                  `ax + b = c  =>  x = (c - b) / a` (when `a` is non-zero).
+              - type: example
+                title: "Solve 2x + 3 = 7"
+                content: |
+                  Step 1. Subtract 3 from both sides: `2x = 4`.
+                  Step 2. Divide both sides by 2: `x = 2`.
+              - type: exercise
+                title: "Practice 3"
+                content: |
+                  Solve `5x - 2 = 13`.
+
+  - title: "Chapter 2 — Geometry"
+    difficulty: intermediate
+    sections:
+      - title: "2.1 Triangles"
+        topics:
+          - title: "Classifying triangles"
+            difficulty: basic
+            content: |
+              Triangles can be classified by their **sides** and by
+              their **angles**.
+
+              | Type           | Defining property                  |
+              |----------------|------------------------------------|
+              | Equilateral    | All three sides equal              |
+              | Isosceles      | Exactly two sides equal            |
+              | Scalene        | All three sides different          |
+              | Right          | One angle equals 90°               |
+              | Acute          | All three angles less than 90°     |
+              | Obtuse         | One angle greater than 90°         |
+
+              The interior angles of any triangle always sum to **180°**.
+            leaves:
+              - type: definition
+                title: "Equilateral triangle"
+                content: |
+                  A triangle whose three sides are of equal length. Its
+                  three interior angles are also equal — each is 60°.
+              - type: key_point
+                title: "Angle sum"
+                content: |
+                  In every triangle, the three interior angles add up to
+                  exactly 180°.
+
+      - title: "2.2 The Pythagorean Theorem"
+        topics:
+          - title: "Pythagoras' rule for right triangles"
+            difficulty: intermediate
+            content: |
+              In a **right triangle**, the square of the hypotenuse is
+              equal to the sum of the squares of the other two sides.
+
+              If `a` and `b` are the legs and `c` is the hypotenuse,
+              then `a^2 + b^2 = c^2`.
+            leaves:
+              - type: formula
+                title: "Pythagorean theorem"
+                content: |
+                  `a^2 + b^2 = c^2`
+              - type: example
+                title: "3-4-5 triangle"
+                content: |
+                  If `a = 3` and `b = 4`, then
+                  `c = sqrt(9 + 16) = sqrt(25) = 5`.
+              - type: exercise
+                title: "Practice 4"
+                content: |
+                  A right triangle has legs of length 6 and 8. Find the
+                  length of the hypotenuse.
+
+cross_refs:
+  - source_path: "ch2.s2.t1"
+    target_path: "ch2.s1.t1"
+    ref_type: prerequisite
+    description: "You need to know what a right triangle is before applying Pythagoras."
+  - source_path: "ch1.s2.t1"
+    target_path: "ch1.s1.t1"
+    ref_type: prerequisite
+    description: "Linear equations build on understanding variables."

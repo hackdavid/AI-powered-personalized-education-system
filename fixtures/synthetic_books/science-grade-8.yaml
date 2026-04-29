@@ -1,0 +1,115 @@
+slug: science-grade-8
+title: "Science — Grade 8"
+subject_code: SCI
+subject_name: Science
+grade_level: 8
+summary: >
+  Cell biology and basic mechanics for Grade 8: cell structure,
+  tissue types, Newton's laws.
+difficulty: basic
+
+chapters:
+  - title: "Chapter 1 — Cells and Living Systems"
+    difficulty: basic
+    sections:
+      - title: "1.1 Cell Structure"
+        topics:
+          - title: "Parts of a typical cell"
+            difficulty: basic
+            content: |
+              A **cell** is the smallest functional unit of life. Most
+              cells have a nucleus, cytoplasm, and a membrane that
+              separates them from their surroundings.
+
+              Inside the cytoplasm sit small specialized structures
+              called **organelles**, each with a job:
+
+              | Organelle      | Primary function                                |
+              |----------------|-------------------------------------------------|
+              | Nucleus        | Stores DNA; controls cell activity              |
+              | Mitochondrion  | Releases energy from food (respiration)         |
+              | Ribosome       | Builds proteins                                 |
+              | Chloroplast    | Photosynthesis (plant cells only)               |
+              | Cell membrane  | Controls what enters and leaves the cell        |
+              | Cell wall      | Rigid support (plant + bacterial cells only)    |
+            leaves:
+              - type: definition
+                title: "Organelle"
+                content: |
+                  A specialized structure inside a cell that performs a
+                  particular function.
+              - type: key_point
+                title: "Plant vs. animal cells"
+                content: |
+                  Plant cells additionally have chloroplasts and a cell
+                  wall. Animal cells do not.
+              - type: exercise
+                title: "Practice 1"
+                content: |
+                  Which organelle is responsible for releasing energy
+                  from food?
+
+      - title: "1.2 Tissue Types"
+        topics:
+          - title: "From cells to tissues"
+            difficulty: basic
+            content: |
+              When many similar cells work together they form a
+              **tissue**. In animals the four broad tissue types are
+              **epithelial**, **connective**, **muscle**, and
+              **nervous**. In plants the main tissue types are
+              **dermal**, **ground**, and **vascular**.
+            leaves:
+              - type: definition
+                title: "Tissue"
+                content: |
+                  A group of similar cells working together to perform
+                  a shared function.
+              - type: example
+                title: "Muscle tissue"
+                content: |
+                  Skeletal muscle cells line up in fibers so they can
+                  contract together and move bones.
+
+  - title: "Chapter 2 — Forces and Motion"
+    difficulty: basic
+    sections:
+      - title: "2.1 Newton's Three Laws"
+        topics:
+          - title: "Newton's laws of motion"
+            difficulty: intermediate
+            content: |
+              Newton's three laws of motion describe the relationship
+              between a body and the forces acting on it.
+
+              | Law       | Statement                                                             | Everyday example                                            |
+              |-----------|-----------------------------------------------------------------------|-------------------------------------------------------------|
+              | First     | An object stays at rest or moving at constant velocity unless acted on by a net force | A book on a table doesn't move until you push it           |
+              | Second    | `F = m * a` — force equals mass times acceleration                    | A heavier cart needs more force to reach the same speed     |
+              | Third     | For every action there is an equal and opposite reaction              | Pushing off the ground propels a swimmer forward            |
+            leaves:
+              - type: formula
+                title: "Second law"
+                content: |
+                  `F = m * a`. Force in newtons, mass in kilograms,
+                  acceleration in meters per second squared.
+              - type: example
+                title: "A 2 kg cart accelerating at 3 m/s^2"
+                content: |
+                  `F = 2 * 3 = 6 N`. Six newtons of net force are
+                  needed.
+              - type: exercise
+                title: "Practice 2"
+                content: |
+                  A 5 kg object experiences a 20 N net force. What is
+                  its acceleration?
+
+cross_refs:
+  - source_path: "ch1.s2.t1"
+    target_path: "ch1.s1.t1"
+    ref_type: prerequisite
+    description: "Tissues are made of cells; understand cells first."
+  - source_path: "ch2.s1.t1"
+    target_path: "ch1.s1.t1"
+    ref_type: related
+    description: "Both topics use the concept of structure-determining-function."

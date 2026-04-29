@@ -31,6 +31,7 @@ Pillow
 python-dateutil
 pytz
 python-json-logger
+PyYAML
 
 # Security
 django-cryptography

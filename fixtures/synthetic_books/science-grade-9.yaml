@@ -1,0 +1,118 @@
+slug: science-grade-9
+title: "Science — Grade 9"
+subject_code: SCI
+subject_name: Science
+grade_level: 9
+summary: >
+  Atoms, the periodic table, chemical bonding, and forms of energy.
+difficulty: intermediate
+
+chapters:
+  - title: "Chapter 1 — Atoms and the Periodic Table"
+    difficulty: intermediate
+    sections:
+      - title: "1.1 Periodic Table Basics"
+        topics:
+          - title: "Reading the periodic table"
+            difficulty: intermediate
+            content: |
+              The **periodic table** organizes all known chemical
+              elements by atomic number. Elements in the same column
+              (group) share similar chemical behavior; elements in the
+              same row (period) have the same number of electron
+              shells.
+
+              | Category          | Where found                  | Typical behavior                                |
+              |-------------------|------------------------------|-------------------------------------------------|
+              | Alkali metals     | Group 1 (except hydrogen)    | Soft, highly reactive with water                |
+              | Alkaline earth    | Group 2                      | Reactive but less so than alkali metals         |
+              | Halogens          | Group 17                     | Very reactive nonmetals                         |
+              | Noble gases       | Group 18                     | Almost completely unreactive                    |
+              | Transition metals | Groups 3–12                  | Hard, conduct electricity, form colored ions    |
+            leaves:
+              - type: definition
+                title: "Atomic number"
+                content: |
+                  The number of protons in an atom's nucleus. It
+                  uniquely identifies the element.
+              - type: key_point
+                title: "Group vs. period"
+                content: |
+                  *Group* = vertical column; *period* = horizontal row.
+              - type: exercise
+                title: "Practice 1"
+                content: |
+                  Sodium (Na) is in Group 1. To which category of
+                  elements does it belong?
+
+      - title: "1.2 Chemical Bonding"
+        topics:
+          - title: "Ionic vs. covalent bonds"
+            difficulty: intermediate
+            content: |
+              An **ionic bond** forms when one atom transfers an
+              electron to another, creating two oppositely charged ions
+              that attract each other (e.g. NaCl).
+
+              A **covalent bond** forms when two atoms *share* one or
+              more pairs of electrons (e.g. H₂O).
+            leaves:
+              - type: example
+                title: "Sodium chloride"
+                content: |
+                  Sodium (Na) gives up one electron to chlorine (Cl).
+                  The resulting Na⁺ and Cl⁻ ions are held together by
+                  electrostatic attraction in a crystal lattice.
+              - type: example
+                title: "Water"
+                content: |
+                  Each oxygen atom shares electrons with two hydrogen
+                  atoms via covalent bonds, giving the H₂O molecule.
+
+  - title: "Chapter 2 — Energy"
+    difficulty: intermediate
+    sections:
+      - title: "2.1 Forms of Energy"
+        topics:
+          - title: "Common forms of energy"
+            difficulty: basic
+            content: |
+              **Energy** is the capacity to do work. It can be
+              transferred between objects and converted between forms,
+              but it is never created or destroyed (the *law of
+              conservation of energy*).
+
+              | Form        | Description                                                | Example                          |
+              |-------------|------------------------------------------------------------|----------------------------------|
+              | Kinetic     | Energy of motion: `KE = 0.5 * m * v^2`                     | A rolling ball                   |
+              | Potential   | Stored energy due to position or shape                     | A stretched spring               |
+              | Thermal     | Energy from random motion of particles                     | A hot cup of coffee              |
+              | Chemical    | Energy stored in bonds between atoms                       | Food, gasoline                   |
+              | Electrical  | Energy carried by moving electric charge                   | Current in a wire                |
+              | Light       | Energy carried by electromagnetic radiation                | Sunlight                         |
+            leaves:
+              - type: formula
+                title: "Kinetic energy"
+                content: |
+                  `KE = 0.5 * m * v^2`. Joules = 0.5 × kilograms × (m/s)².
+              - type: key_point
+                title: "Conservation of energy"
+                content: |
+                  The total energy of a closed system is constant.
+                  Energy can change form but cannot be created or
+                  destroyed.
+              - type: exercise
+                title: "Practice 2"
+                content: |
+                  A 4 kg object moves at 3 m/s. What is its kinetic
+                  energy?
+
+cross_refs:
+  - source_path: "ch1.s2.t1"
+    target_path: "ch1.s1.t1"
+    ref_type: prerequisite
+    description: "Bonding ideas depend on understanding the periodic table."
+  - source_path: "ch2.s1.t1"
+    target_path: "ch1.s2.t1"
+    ref_type: related
+    description: "Chemical energy is stored in chemical bonds."

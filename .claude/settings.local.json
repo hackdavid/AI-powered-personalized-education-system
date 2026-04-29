@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python manage.py makemigrations)",
+      "Bash(python manage.py makemigrations accounts tenants common core)",
+      "Bash(python manage.py migrate)",
+      "Bash(python manage.py create_roles)",
+      "Bash(python manage.py createsuperuser --noinput)"
+    ]
+  }
+}

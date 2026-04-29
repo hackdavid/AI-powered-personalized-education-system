@@ -1,0 +1,116 @@
+slug: english-grade-8
+title: "English — Grade 8"
+subject_code: ENG
+subject_name: English
+grade_level: 8
+summary: >
+  Parts of speech, tenses, and basic sentence structure.
+difficulty: basic
+
+chapters:
+  - title: "Chapter 1 — Parts of Speech"
+    difficulty: basic
+    sections:
+      - title: "1.1 Nouns and Pronouns"
+        topics:
+          - title: "Pronouns and their cases"
+            difficulty: basic
+            content: |
+              A **pronoun** stands in for a noun so we don't repeat
+              ourselves. English personal pronouns change form
+              depending on their grammatical role (their *case*).
+
+              | Person  | Subject  | Object   | Possessive (adj.) | Possessive (noun) |
+              |---------|----------|----------|--------------------|--------------------|
+              | 1st sg. | I        | me       | my                 | mine               |
+              | 2nd sg. | you      | you      | your               | yours              |
+              | 3rd sg. | he/she/it| him/her/it| his/her/its        | his/hers/its       |
+              | 1st pl. | we       | us       | our                | ours               |
+              | 2nd pl. | you      | you      | your               | yours              |
+              | 3rd pl. | they     | them     | their              | theirs             |
+
+              **Subject** form is used when the pronoun does the action;
+              **object** form when it receives the action.
+            leaves:
+              - type: definition
+                title: "Pronoun"
+                content: |
+                  A word that takes the place of a noun (e.g. *he*,
+                  *they*, *it*).
+              - type: example
+                title: "Subject vs. object"
+                content: |
+                  *I gave the book to her.* Here `I` is the subject and
+                  `her` is the object.
+              - type: exercise
+                title: "Practice 1"
+                content: |
+                  Choose the correct pronoun:
+                  "Between you and (I / me), the test was hard."
+
+      - title: "1.2 Verbs and Tenses"
+        topics:
+          - title: "The simple tenses"
+            difficulty: basic
+            content: |
+              English has three **simple tenses**: past, present, and
+              future. Each describes when an action happens.
+
+              - **Simple past**: `She walked to school.`
+              - **Simple present**: `She walks to school.`
+              - **Simple future**: `She will walk to school.`
+
+              The verb form changes depending on the subject (number
+              and person) and the time of the action.
+            leaves:
+              - type: key_point
+                title: "Subject-verb agreement"
+                content: |
+                  In the simple present, third-person singular subjects
+                  take an `-s` on the verb (*she walks*, not *she walk*).
+              - type: exercise
+                title: "Practice 2"
+                content: |
+                  Rewrite "He plays football" in the simple past.
+
+  - title: "Chapter 2 — Sentence Structure"
+    difficulty: basic
+    sections:
+      - title: "2.1 Sentence Types"
+        topics:
+          - title: "Four sentence types by purpose"
+            difficulty: basic
+            content: |
+              Every English sentence falls into one of four functional
+              types based on its purpose:
+
+              | Type            | Purpose                       | Example                            | End mark |
+              |-----------------|-------------------------------|------------------------------------|----------|
+              | Declarative     | Makes a statement             | The dog is sleeping.               | `.`      |
+              | Interrogative   | Asks a question               | Is the dog sleeping?               | `?`      |
+              | Imperative      | Gives a command or request    | Please feed the dog.               | `.` / `!`|
+              | Exclamatory     | Expresses strong emotion      | The dog is sleeping!               | `!`      |
+            leaves:
+              - type: definition
+                title: "Declarative sentence"
+                content: |
+                  A sentence whose purpose is to make a statement, ending
+                  with a period.
+              - type: example
+                title: "Identify the type"
+                content: |
+                  *What a beautiful sunset!* — exclamatory.
+              - type: exercise
+                title: "Practice 3"
+                content: |
+                  Classify: "Close the door."
+
+cross_refs:
+  - source_path: "ch1.s2.t1"
+    target_path: "ch1.s1.t1"
+    ref_type: related
+    description: "Verbs work alongside nouns and pronouns to form sentences."
+  - source_path: "ch2.s1.t1"
+    target_path: "ch1.s2.t1"
+    ref_type: prerequisite
+    description: "Sentence types build on knowing verbs and tenses."

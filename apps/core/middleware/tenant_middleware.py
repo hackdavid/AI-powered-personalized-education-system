@@ -4,7 +4,7 @@ Tenant Middleware - Extracts and sets the current tenant for multi-tenancy.
 
 import logging
 from django.utils.deprecation import MiddlewareMixin
-from apps.tenants.models import Tenant
+from apps.accounts.models import Tenant
 
 logger = logging.getLogger(__name__)
 
