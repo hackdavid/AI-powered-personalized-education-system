@@ -13,7 +13,21 @@
       "Exec(git diff)",
       "Exec(pip install)",
       "Exec(mkdir)",
-      "Exec(touch)"
+      "Exec(touch)",
+      "Exec(git init)",
+      "Exec(git add)",
+      "Exec(git commit)",
+      "Exec(git remote)",
+      "Exec(mv)",
+      "Exec(git push)",
+      "Exec(git log)",
+      "Exec(timeout python)",
+      "Exec(tee)",
+      "Exec(nslookup)",
+      "Exec(sed)",
+      "Exec(head)",
+      "Exec(wc)",
+      "Exec(docker)"
     ]
   }
 }

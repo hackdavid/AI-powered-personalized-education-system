@@ -1,0 +1,55 @@
+# Keep the build context lean. Mirrors .gitignore plus a few extras
+# that we explicitly don't want baked into the image.
+
+# git
+.git/
+.gitignore
+.gitattributes
+
+# python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# environments / local artefacts
+.env
+.env.*
+!.env.example
+!.env.local.example
+.venv/
+venv/
+env/
+ENV/
+
+# databases / vector stores (never ship these in an image)
+db.sqlite3
+db.sqlite3-journal
+chroma_data/
+
+# editor / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# logs / build artefacts
+logs/
+staticfiles/
+media/
+*.log
+
+# CI / docs / scripts not needed at runtime
+.github/
+docs/
+README.md
+*.md
+!apps/**/migrations/
+scripts/
+tests/

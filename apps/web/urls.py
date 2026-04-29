@@ -1,9 +1,10 @@
 """
 URL configuration for apps.web.
 
-Organized into three namespaces, all included in config/urls.py:
+Organized into four namespaces, all included in config/urls.py:
 - auth:           login / logout / password
 - school_admin:   school admin CRUD UIs
+- student:        student-only pages (chat / progress / goals)
 - web:            home + dashboard
 """
 
@@ -17,6 +18,7 @@ from apps.web.views.school_admin import (
     student_views,
     document_views,
 )
+from apps.web.views.student import chat as student_chat_views
 
 
 # --- public + dashboard (namespace 'web') ---
@@ -69,4 +71,11 @@ school_admin_patterns = [
     path('documents/', document_views.document_list, name='document_list'),
     path('documents/upload/', document_views.document_upload, name='document_upload'),
     path('documents/<int:pk>/delete/', document_views.document_delete, name='document_delete'),
+]
+
+
+# --- student (namespace 'student') ---
+student_patterns = [
+    path('chat/', student_chat_views.chat_view, name='chat'),
+    path('chat/<int:session_id>/', student_chat_views.chat_view, name='chat_session'),
 ]

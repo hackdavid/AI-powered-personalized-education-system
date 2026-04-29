@@ -8,6 +8,7 @@ from django.urls import include, path
 from apps.web.urls import (
     auth_patterns,
     school_admin_patterns,
+    student_patterns,
     public_patterns,
 )
 
@@ -15,9 +16,10 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/', include((auth_patterns, 'auth'))),
     path('school-admin/', include((school_admin_patterns, 'school_admin'))),
+    path('student/', include((student_patterns, 'student'))),
     path('health/', include('apps.core.urls')),
+    path('api/v1/', include('apps.service.api.urls')),
     path('', include((public_patterns, 'web'))),
-    # path('api/v1/', include('apps.service.api.urls', namespace='service_api')),
 ]
 
 if settings.DEBUG:

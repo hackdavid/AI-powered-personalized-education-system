@@ -9,10 +9,20 @@ write features.
 ```
 eduai_platform/
 ├── manage.py
-├── config/                  # Django project (settings, urls, wsgi, asgi)
+├── requirements.txt         # SINGLE requirements file, all environments
+├── .env.example             # copy → .env, fill in secrets
+├── .env.local.example       # 3-line minimal version for new contributors
+├── Dockerfile               # production runtime image (Render)
+├── .dockerignore
+├── render.yaml              # Render service blueprint
+├── config/
+│   ├── settings.py          # SINGLE settings file; DEBUG flag toggles env
+│   ├── urls.py              # top-level URL patterns
+│   ├── wsgi.py, asgi.py
 ├── apps/
 │   ├── core/                # Infrastructure: base models, middleware,
-│   │                        # decorators, APIResponse, health check.
+│   │                        # decorators, APIResponse, health check,
+│   │                        # AppSetting (runtime-overridable settings).
 │   ├── accounts/            # Identity: User, Role, Permission, Tenant,
 │   │                        # AuthService, RBACService.
 │   ├── service/             # Domain: models + business services + REST APIs.
@@ -24,13 +34,10 @@ eduai_platform/
 │                            #   llm/, embeddings/, vector_store/, storage/.
 ├── frontend/
 │   ├── static/              # css/, js/core/, vendor/
-│   └── templates/           # base/, components/, dashboards/, auth/, school_admin/
-├── requirements/            # base.txt, development.txt, production.txt
-├── tests/                   # unit/, integration/, e2e/
-├── fixtures/                # JSON fixtures
+│   └── templates/           # base/, components/, dashboards/, auth/, school_admin/, student/
+├── fixtures/                # synthetic book YAMLs
 ├── logs/                    # app.log
-├── docs/                    # project_aim.md, memory.md, progress.md, todo.md
-└── chroma_data/             # ChromaDB persistent dir (gitignored)
+└── docs/                    # project_aim.md, memory.md, progress.md, todo.md
 ```
 
 Rule of thumb: **plumbing → core, who → accounts, what → service, screens → web,
@@ -45,11 +52,13 @@ external → clients/**.
 | DB (prod) | PostgreSQL |
 | Cache (prod) | Redis |
 | LLM | OpenAI-compatible API (works for OpenAI, Azure OpenAI, Ollama) |
-| Embeddings | sentence-transformers `all-MiniLM-L6-v2` (free, local, 384-dim) |
-| Vector store | ChromaDB PersistentClient (local, no server needed) |
+| Embeddings (default) | Remote: `eduai-embedder` HuggingFace Space (FastAPI + sentence-transformers, 384-dim). Repo lives outside `eduai_platform/`. |
+| Embeddings (fallback) | Local: sentence-transformers `all-MiniLM-L6-v2` (`pip install -r requirements/embeddings-local.txt`) |
+| Vector store | pgvector on Supabase Postgres (HNSW cosine, 384-dim); legacy ChromaDB code path removed in Phase 3C |
 | Async (planned) | Celery + Redis |
 | Static (prod) | WhiteNoise + CompressedManifestStaticFilesStorage |
-| Error tracking | Sentry (prod only) |
+| Error tracking | Sentry (prod only, opt-in via `SENTRY_DSN`) |
+| Deploy target | Render (Docker runtime, autoDeploy from `main`); see `docs/deployment.md` |
 | Frontend | Vanilla ES6, no React/Vue, no jQuery |
 
 ## 3. Roles & access
@@ -128,6 +137,21 @@ Anything user-edited where attribution matters extends `AuditModel`.
 `AuthService` handles login/logout/password lifecycle. `RBACService` handles
 permission checks, tenant gating, and queryset filtering by role.
 
+### TutorService — RAG entry point (Phase 2)
+
+`from apps.service.services.tutoring import TutorService`
+
+Single canonical entry point for the AI tutor. `answer_question(session,
+student, query, top_k=5)` runs one full Q&A round in a transaction:
+persists the student turn, retrieves grounded chunks from the tenant's
+`<tenant_id>_curriculum` ChromaDB collection, calls
+`clients.llm.LLMService.generate_with_context` when `OPENAI_API_KEY` is
+set (stub answerer otherwise), persists the assistant turn with the
+retrieved chunks, refreshes `session.last_message_at`, and auto-titles
+the session from the first question. Empty queries raise `ValueError`;
+cross-student / cross-tenant sessions raise `PermissionError`. The DRF
+`TutoringSessionViewSet` is its only caller in production code.
+
 ## 5. Frontend contracts
 
 All four utilities live under `frontend/static/js/core/` and are loaded by
@@ -171,39 +195,78 @@ Never write your own toast popups.
 
 ## 8. Config & environment variables
 
-Loaded by `python-decouple` from `.env`. Required keys:
+Single `config/settings.py`. `DJANGO_DEBUG` switches between dev and prod
+behaviour (SQLite fallback, console email, dummy cache, relaxed security)
+and specific overrides happen only when `DJANGO_DEBUG=False`. All vars
+loaded by `python-decouple` from `.env` (see `.env.example`).
 
 | Key | Default | Notes |
 |---|---|---|
-| `DJANGO_SECRET_KEY` | _(none)_ | Required |
+| `DJANGO_SECRET_KEY` | insecure placeholder | **required in prod** |
 | `DJANGO_DEBUG` | `False` | `True` in dev |
 | `DJANGO_ALLOWED_HOSTS` | `localhost,127.0.0.1` | comma-separated |
-| `DATABASE_URL` | sqlite | Required in prod |
-| `OPENAI_API_KEY` | _(none)_ | Required for tutoring |
-| `OPENAI_BASE_URL` | OpenAI default | Set for Azure/Ollama |
+| `DATABASE_URL` | _(empty)_ | Postgres URL (Supabase **transaction pooler**, port `6543`). Empty → SQLite in dev; **required in prod**. See note below. |
+| `OPENAI_API_KEY` | _(none)_ | required for grounded tutor answers (else stub mode) |
+| `OPENAI_BASE_URL` | `https://api.openai.com/v1` | swap for Azure/Ollama/etc. |
 | `OPENAI_MODEL_NAME` | `gpt-4` | LLM to use |
 | `ANTHROPIC_API_KEY` | _(none)_ | Optional fallback |
 | `LLM_PROVIDER` | `openai` | switch provider |
-| `EMBEDDING_MODEL_NAME` | `all-MiniLM-L6-v2` | sentence-transformers |
-| `EMBEDDING_MODEL_PRELOAD` | `False` | preload at app start |
-| `VECTOR_STORE_TYPE` | `chromadb` | only chromadb today |
-| `CHROMADB_PERSIST_DIR` | `BASE_DIR/chroma_data` | gitignored |
-| `REDIS_URL` | _(none)_ | prod only |
-| `SENTRY_DSN` | _(none)_ | prod only |
+| `EMBEDDING_PROVIDER` | `remote` | `remote` (HF Space) or `local` (sentence-transformers) |
+| `EMBEDDER_API_URL` | _(none)_ | required when provider=remote |
+| `EMBEDDER_API_KEY` | _(none)_ | shared secret matching the Space's `EMBEDDER_API_KEY` |
+| `EMBEDDING_MODEL_NAME` | `all-MiniLM-L6-v2` | sentence-transformers (local provider only) |
+| `EMBEDDING_MODEL_PRELOAD` | `False` | preload at app start (local provider only) |
+| `VECTOR_STORE_TYPE` | `pgvector` | only backend supported today |
+| `REDIS_URL` | _(none)_ | prod only; Redis cache enabled when set |
+| `SENTRY_DSN` | _(none)_ | prod only; opt-in error tracking |
+| `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`, `DEFAULT_FROM_EMAIL` | _(none)_ | prod only; dev uses console backend |
+| `LOG_FILE` | `BASE_DIR/logs/app.log` | JSON-lines output |
+| `SEED_DEFAULT_PASSWORD` | `Test@1234` | synthetic user password |
+
+**Runtime overrides**: most AI-service keys (the LLM / embedder block)
+are overridden from the DB via `AppSetting` at server startup. See §14
+for the resolution order. `.env` acts as the fallback for any key
+without an active `AppSetting` row.
+
+### Supabase connection mode (important)
+
+Use the **session-mode pooler URL (port `5432`)** for migrations only,
+and the **transaction-mode pooler URL (port `6543`)** for everything
+else. Free tier session mode caps at **15 concurrent connections**;
+transaction mode supports ~200.
+
+Settings already do the right thing:
+- `conn_max_age=0` — Django closes the socket after each request
+- `disable_server_side_cursors=True` — cursors don't survive transaction-pool boundaries
+
+Day-to-day URL in `.env`:
+
+```
+DATABASE_URL=postgresql://postgres.<ref>:<pwd>@aws-0-<region>.pooler.supabase.com:6543/postgres
+```
+
+When you run `python manage.py migrate`, temporarily flip the port to
+`5432` (session mode), apply, then flip back to `6543`. Most migrations
+work on either, but session mode is the safer default for schema
+changes.
 
 ## 9. Key URLs (top-level routing)
 
 ```
-/                         → web.public.home
-/dashboard/               → web.dashboards.dashboard_router (role-aware)
-/auth/login/              → web.auth.login_view
-/auth/logout/             → web.auth.logout_view
-/auth/password-change/    → web.auth.password_change_view
-/auth/password-reset/     → web.auth.password_reset_request_view
-/school-admin/...         → web.school_admin.* (CRUD UIs)
-/health/                  → core.health_check (JSON)
-/admin/                   → Django admin (superuser only)
-/api/v1/...               → service.api.* (when REST layer lands)
+/                                                      → web.public.home
+/dashboard/                                            → web.dashboards.dashboard_router (role-aware)
+/auth/login/                                           → web.auth.login_view
+/auth/logout/                                          → web.auth.logout_view
+/auth/password-change/                                 → web.auth.password_change_view
+/auth/password-reset/                                  → web.auth.password_reset_request_view
+/school-admin/...                                      → web.school_admin.* (CRUD UIs)
+/student/chat/                                         → web.student.chat.chat_view
+/student/chat/<session_id>/                            → web.student.chat.chat_view (active session)
+/health/                                               → core.health_check (JSON)
+/admin/                                                → Django admin (superuser only)
+/api/v1/tutoring/sessions/                             → service_api:tutoring-session-list (POST | GET)
+/api/v1/tutoring/sessions/<id>/                        → service_api:tutoring-session-detail (GET | DELETE)
+/api/v1/tutoring/sessions/<id>/messages/               → service_api:tutoring-session-messages (GET | POST)
 ```
 
 ## 10. Ingestion pipeline (already built, lives under `apps/service/services/ingestion/`)
@@ -216,13 +279,15 @@ Loaded by `python-decouple` from `.env`. Required keys:
 | 1 | `TOCDiscovery` + `PageCalibrator` | LLM-extract TOC, calibrate printed→PDF page indices |
 | 2 | `ChapterOutliner` + `ContentStructurer` | LLM-outline sections; vision LLM extracts content nodes (chapter/section/topic/definition/formula/example/exercise/summary/key_point) |
 | 3 | `ImageLinker` | attach image assets to relevant content nodes |
-| 4 | `ContentStorage` | persist nodes + assets, generate embeddings, upsert to ChromaDB |
+| 4 | `ContentStorage` | persist nodes + assets, generate embeddings via the HF Space, upsert `ContentEmbedding` rows into Supabase pgvector |
 | 5 | `CrossRefBuilder` | build prerequisite/related/extends/applies links between nodes |
 
 Orchestrator: `IngestionPipeline(skip_vision, max_pages).run(document_id) -> stats dict`.
 
-Math content is enforced as LaTeX. Embeddings dim = 384. Collection name =
-`<tenant_id>_curriculum`.
+Math content is enforced as LaTeX. Embeddings dim = 384, L2-normalized
+(cosine = dot product). Every `ContentEmbedding` row is scoped by `tenant`;
+the legacy `<tenant_id>_curriculum` collection naming lingers only in the
+seeding command's log output.
 
 CLI (today): `python manage.py ingest_document <document_id> [--skip-vision] [--max-pages N] [--list] [--force]`.
 
@@ -235,7 +300,7 @@ REST endpoint: not yet exposed (see todo.md Phase 1).
 python -m venv venv
 venv\Scripts\activate                       # Windows
 # source venv/bin/activate                  # macOS/Linux
-pip install -r requirements/development.txt
+pip install -r requirements.txt             # SINGLE requirements file
 copy .env.example .env                      # Windows
 # cp .env.example .env                      # macOS/Linux
 
@@ -244,12 +309,15 @@ python manage.py migrate
 python manage.py create_roles
 python manage.py createsuperuser            # Django superuser (technical)
 python manage.py create_system_admin        # System admin (business)
-python manage.py seed_synthetic_data --reset        # 2 demo tenants + users + classes + books
-# python manage.py seed_synthetic_data --reset --with-embeddings  # also embed into ChromaDB
+python manage.py bootstrap_app_settings --include-secrets   # populate AppSetting from .env
+python manage.py seed_synthetic_data --reset               # 2 demo tenants + users + classes + books
+# Required for the AI tutor: also embed every ContentNode into the vector
+# store so RAG retrieval has anything to find.
+# python manage.py seed_synthetic_data --reset --with-embeddings
 
 # Run
 python manage.py runserver                  # http://127.0.0.1:8000/
-python manage.py test apps.service          # run service-app tests (incl. seeding tests)
+python manage.py test apps                  # run all app tests (46 passing)
 python manage.py ingest_document <id>       # ingest one real PDF (Phase 6)
 ```
 
@@ -268,8 +336,8 @@ server) at project root.
 - Don't import from `apps.web.*` inside `apps/service/*` or `apps/accounts/*`.
   Dependency direction is `web → service → accounts → core` and
   `web/service → clients/`.
-- Don't talk to `openai`, `chromadb`, or `sentence_transformers` directly from
-  domain code. Always go through `clients/`.
+- Don't talk to `openai`, `pgvector`, `requests`, or `sentence_transformers`
+  directly from domain code. Always go through `clients/`.
 - Don't build a model that owns school-scoped data without extending
   `TenantAwareModel`.
 - Don't write raw `fetch` / `JSON.stringify` in JS. Use `APIClient`.
@@ -280,7 +348,62 @@ server) at project root.
 
 - Login redirects to `/dashboard/` which dispatches by role.
 - Health endpoint at `/health/` checks DB connectivity (extend it when adding
-  new external dependencies).
+  new external dependencies). Render uses it as the readiness probe.
 - All migrations were regenerated as part of the Phase 0 refactor (see
   progress.md). If `db.sqlite3` looks broken, delete it + re-run migrate.
 - Logs go to `logs/app.log` as JSON lines.
+- Deploy: connect the GitHub repo to Render → it picks up `render.yaml`
+  → set `DATABASE_URL` and `EMBEDDER_API_KEY` as Render secrets → autoDeploy
+  on every push to `main`. Full walkthrough in `docs/deployment.md`.
+
+## 14. Runtime settings via `AppSetting` (admin-editable config)
+
+A subset of `django.conf.settings` attributes can be overridden from the
+DB via the `AppSetting` model in `apps.core`. Lets one admin manage API
+keys / external URLs through Django admin without sharing the secret
+values with every team-mate's `.env`.
+
+### How resolution works
+
+1. `config/settings/base.py` reads `.env` (via python-decouple) at import
+   time — same as before.
+2. `apps.core.apps.CoreConfig.ready()` runs once at server startup, reads
+   every `AppSetting` row where `is_active=True`, and overwrites the
+   matching `settings.<key>` attribute via `setattr`.
+3. Existing code that does `from django.conf import settings;
+   settings.OPENAI_API_KEY` transparently sees the DB value.
+
+**Order of precedence**: active DB row > `.env` > default in `base.py`.
+
+**To change a value**: edit it in `/admin/core/appsetting/`, then restart
+the server. No code change, no `.env` edit required.
+
+### What's overridable
+
+The single source of truth is `REGISTRY` in
+`apps/core/management/commands/bootstrap_app_settings.py`. As of now:
+`OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL_NAME`,
+`ANTHROPIC_API_KEY`, `LLM_PROVIDER`, `EMBEDDING_PROVIDER`,
+`EMBEDDER_API_URL`, `EMBEDDER_API_KEY`, `EMBEDDING_MODEL_NAME`,
+`VECTOR_STORE_TYPE`. All string-valued; **never put bool / int settings
+here** (the override is `setattr(settings, key, db_value)` and `db_value`
+is always a string).
+
+### Bootstrap
+
+Run once after migrations land on a fresh checkout:
+
+```bash
+python manage.py bootstrap_app_settings              # public values only
+python manage.py bootstrap_app_settings --include-secrets   # also copy keys from your .env
+```
+
+Idempotent. Re-running adds new keys (when REGISTRY grows) without
+touching values you've already curated in admin.
+
+### What stays in `.env` forever
+
+`DJANGO_SECRET_KEY`, `DATABASE_URL`, `DJANGO_DEBUG`, `DJANGO_ALLOWED_HOSTS`,
+`SEED_DEFAULT_PASSWORD`. These are read before the DB is reachable, or
+need to be cast to non-string types (bool, int) at import time, so they
+can't be DB-managed without breaking startup.

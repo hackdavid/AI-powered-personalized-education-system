@@ -5,6 +5,679 @@ Append-only ledger of shipped work. Newest entries at the top. Each entry:
 
 ---
 
+## Phase 3D — Render deployment plumbing _(complete)_
+
+**Why:** the platform was running locally only. To get it in front of
+real users (or evaluators) we need a production host with autoDeploy
+from the main branch. Render fits — Docker runtime, free GitHub
+integration, you have credits.
+
+- **2026-04-30 • Dockerfile** • Single-stage `python:3.12-slim` image.
+  Installs `requirements.txt`, runs `collectstatic` at build time
+  (with placeholder env so Django boots without a real DB), opens a
+  writable `logs/` directory, exposes 8000 (Render injects `$PORT`).
+  CMD runs Gunicorn with 2 sync workers, 60s timeout, access/error
+  logs to stdout. ~280 MB final image.
+- **2026-04-30 • .dockerignore** • Excludes `.git`, `db.sqlite3`,
+  `chroma_data/` (legacy), `logs/`, `staticfiles/`, `.env*` (except
+  `.env.example` siblings), `venv/`, `docs/` — keeps the build context
+  small and prevents leaking developer secrets into image layers.
+- **2026-04-30 • render.yaml** • Declarative Render Blueprint. Web
+  service, Docker runtime, Starter plan, Frankfurt region (close to
+  Supabase eu-west-1), `autoDeploy: true` on `main`. Sets
+  `healthCheckPath: /health/` and a `preDeployCommand: python
+  manage.py migrate --noinput` so migrations run BEFORE traffic
+  switches to the new container. `envVars` block declares 9 vars:
+  - `DJANGO_SECRET_KEY` (`generateValue: true` — Render auto-generates)
+  - `DATABASE_URL`, `EMBEDDER_API_KEY` (`sync: false` — admin pastes
+    these into Render dashboard manually; never committed)
+  - 6 public defaults (`DJANGO_DEBUG=False`, allowed hosts, embedder
+    URL, etc.)
+- **2026-04-30 • settings.py tweaks for Render**:
+  - `RENDER_EXTERNAL_HOSTNAME` (auto-injected by Render at runtime) is
+    appended to `ALLOWED_HOSTS` if present, so a fresh deploy doesn't
+    get blocked by Django's host-validation middleware.
+  - `SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')`
+    added to the prod-only block. Render terminates TLS in front of
+    the container; without this the `SECURE_SSL_REDIRECT=True` setting
+    bounces the request infinitely.
+- **2026-04-30 • health endpoint audit** • `apps/core/views.py::
+  health_check` already does `SELECT 1` against the DB and returns
+  `200 healthy` / `503 unhealthy` with a `checks` dict. No changes
+  needed — Render uses it as the readiness probe out of the box.
+- **2026-04-30 • docs** • New `docs/deployment.md` — full
+  GitHub-to-Render walkthrough: blueprint creation, secret env-var
+  setup, first deploy, day-to-day workflow (auto-deploy on push,
+  one-off shell commands, AppSetting hot-edit + restart, rolling back
+  via the Deploys tab). Notes on free tier auto-suspend, memory
+  pressure, transaction-pool migration caveats. `docs/memory.md` §1
+  (project shape) lists the four new infra files; §2 (tech stack)
+  adds a "Deploy target: Render (Docker, autoDeploy)" row; §13
+  (useful pointers) gets a one-line deploy summary.
+
+### What's needed to actually go live
+
+- [ ] Push the repo to GitHub (Render only deploys from a remote)
+- [ ] In Render dashboard: New → Blueprint → connect repo
+- [ ] Render reads `render.yaml`, asks for two secrets:
+   - `DATABASE_URL` — the Supabase transaction-pooler URL (port 6543)
+   - `EMBEDDER_API_KEY` — the HuggingFace Space token
+- [ ] Manual Deploy → first build (~3–5 min) → Render swaps traffic
+- [ ] `curl https://<service>.onrender.com/health/` → `{"status":"healthy"}`
+
+After that, every `git push origin main` triggers a fresh deploy.
+
+### Stayed in offline mode
+
+`OPENAI_API_KEY` AppSetting row stays inactive on Supabase — the live
+service runs the stub answerer with real pgvector retrieval. Zero LLM
+spend in production. Flip it on later via
+`/admin/core/appsetting/` + restart the Render service.
+
+---
+
+## Phase 3C — ChromaDB removed, onboarding examples added _(complete)_
+
+**Why:** pgvector on Supabase is now doing all the vector work — time to
+delete the dead `chromadb` path and leave the repo with a clean,
+easy-to-follow onboarding story for new teammates.
+
+- **2026-04-30 • deps** • Dropped `chromadb` from `requirements.txt`.
+  Net effect: a fresh `pip install -r requirements.txt` no longer
+  pulls in `onnxruntime`, `hnswlib`, `opentelemetry-*`, and the other
+  ~30 transitive deps Chroma brought along.
+- **2026-04-30 • settings** •
+  - `config/settings.py` — `VECTOR_STORE_TYPE` default flipped from
+    `chromadb` → `pgvector`. `CHROMADB_PERSIST_DIR` setting removed
+    entirely.
+  - `.env.example` — matching cleanup.
+  - `apps/core/management/commands/bootstrap_app_settings.py` —
+    `VECTOR_STORE_TYPE` description updated to "currently only
+    pgvector".
+  - `apps/core/tests/test_app_setting.py` — bootstrap override uses
+    `VECTOR_STORE_TYPE='pgvector'`.
+  - On Supabase, updated the existing `AppSetting` row for
+    `VECTOR_STORE_TYPE` from `'chromadb'` to `'pgvector'` in place.
+- **2026-04-30 • docs** •
+  - `docs/memory.md` — §1 (project shape) drops the `chroma_data/`
+    line; §2 (tech stack) vector-store row now says pgvector on
+    Supabase; §8 (env vars) removes the `CHROMADB_PERSIST_DIR` row
+    and updates `VECTOR_STORE_TYPE`; §10 (ingestion pipeline) now
+    reads "upsert ContentEmbedding rows into Supabase pgvector"; §12
+    (things NOT to do) mentions `pgvector` / `requests` /
+    `sentence_transformers` instead of `chromadb`.
+  - No code imports left referencing `chromadb` — confirmed via
+    `grep -r 'import chromadb'` on the whole repo.
+- **2026-04-30 • onboarding examples** • Two new example files so
+  contributors don't have to guess:
+  - `.env.local.example` — **minimal** env for local dev. Only three
+    values to fill (`DJANGO_SECRET_KEY`, `DJANGO_DEBUG=True`,
+    `DATABASE_URL`). Contrasts with the full `.env.example` which
+    documents every optional prod flag.
+  - `docs/admin_setup.md` — admin-side checklist: every AppSetting
+    key, what value to paste, which are safe to leave inactive, and
+    a step-by-step "flip on real LLM later" sequence. Explicitly
+    documents that the happy default is **offline mode** (stub
+    tutor, no OpenAI bill).
+- **2026-04-30 • offline mode locked in** • `OPENAI_API_KEY` row on
+  Supabase stays inactive. Tutor keeps using the stub answerer that
+  formats retrieved chunks directly. Real grounded retrieval is
+  happening — you just get the sources as-is instead of a paragraph
+  of natural language. Zero LLM spend.
+- **2026-04-30 • verification** •
+  - `python manage.py check` — clean
+  - `grep -r chromadb eduai_platform/` — only docs + comments remain
+  - `python manage.py test apps` — **63/63 passing**
+  - `AppSetting` row count on Supabase: 10 total, 8 active (same as
+    before)
+
+### What the repo looks like now
+
+```
+eduai_platform/
+├── manage.py
+├── requirements.txt              # SINGLE file, no torch, no chromadb
+├── .env.example                  # full reference (every optional flag)
+├── .env.local.example            # ← NEW: 3-line minimum for local dev
+├── config/
+│   └── settings.py               # single file, DEBUG-toggled
+├── apps/
+│   ├── core/                     # + AppSetting + bootstrap command
+│   ├── accounts/
+│   ├── service/                  # + ContentEmbedding + pgvector client
+│   └── web/
+├── clients/                      # llm, embeddings, vector_store (pgvector)
+├── docs/
+│   ├── project_aim.md
+│   ├── memory.md
+│   ├── progress.md
+│   ├── todo.md
+│   └── admin_setup.md            # ← NEW: AppSetting configuration guide
+└── (no more chroma_data/)
+```
+
+### What a brand-new teammate does now
+
+```bash
+git clone <repo>
+pip install -r requirements.txt
+cp .env.local.example .env
+#  paste DJANGO_SECRET_KEY + the shared DATABASE_URL
+python manage.py runserver
+```
+
+No migrations, no seed, no API keys, no torch, no Chroma, no `chroma_data/`.
+Login as a seeded demo account (see `docs/admin_setup.md` for the list)
+and the RAG tutor works against shared Supabase pgvector in **offline
+mode** (stub answerer, real retrieval).
+
+---
+
+## Phase 3B — pgvector replaces ChromaDB _(complete)_
+
+**Why:** embeddings lived in a per-laptop `chroma_data/` directory which
+meant every team-mate had to re-embed. Moving them into Supabase
+Postgres via the `pgvector` extension makes them shared, indexed, and
+backed-up with the rest of the ORM data. Drops one external dependency
+and one per-developer install gotcha.
+
+- **2026-04-29 • schema** • New model
+  `apps/service/models/embedding.py::ContentEmbedding`. Columns:
+  `tenant` FK, `content_node` FK (cascade), `embedding`
+  `VectorField(384)`, `model_name` (varchar), `embedding_id` (legacy
+  string id kept for debugging). Unique key `(content_node, model_name)`
+  so one node can host multiple model versions later. Indexes:
+  `(tenant, model_name)` btree.
+- **2026-04-29 • migration** • `apps/service/migrations/0004_contentembedding.py`:
+  - `pgvector.django.VectorExtension()` — idempotent
+    `CREATE EXTENSION IF NOT EXISTS vector` (no-op on SQLite).
+  - `CreateModel(ContentEmbedding, …)`.
+  - `migrations.RunPython(create_hnsw_index_on_postgres,
+    drop_hnsw_index_on_postgres)` — raw SQL for the HNSW cosine index
+    guarded on `connection.vendor == 'postgresql'`. SQLite test DBs
+    skip this silently so `manage.py test apps` works without
+    Postgres.
+  Index spec: `USING hnsw (embedding vector_cosine_ops) WITH
+  (m = 16, ef_construction = 64)` — pgvector defaults, good for our
+  ~10K-vectors scale.
+- **2026-04-29 • client rewrite** •
+  `clients/vector_store/client.py::VectorStoreClient` reshaped around
+  pgvector. Public surface **unchanged** — same method signatures as
+  the old ChromaDB client so `CurriculumRetriever`, `ContentStorage`,
+  and `seed_synthetic_data._embed_tenant_nodes` all keep working
+  untouched:
+  - `get_or_create_collection(tenant_id, name)` — returns a thin
+    `_Collection(tenant_id, name)` routing handle. No physical
+    collection in pgvector; it's just a WHERE clause.
+  - `add_documents(collection, documents, metadatas, ids)` — bulk
+    embeds via the remote HF Space, then `bulk_create`s
+    `ContentEmbedding` rows. Uses `(tenant, content_node, model_name)`
+    as upsert key (delete-then-insert).
+  - `search(collection, query, top_k)` — embeds query, ranks by
+    `pgvector.django.CosineDistance`, returns the same
+    `{text, metadata, score}` dicts as Chroma did. `score = 1 - cosine_distance`.
+  - `delete_documents`, `list_collections`, `delete_collection`,
+    `get_collection_stats` — implemented for parity.
+- **2026-04-29 • embeddings populated** •
+  `python manage.py seed_synthetic_data --reset --with-embeddings
+  --books-only` against Supabase generated 148 `ContentEmbedding`
+  rows (74 per tenant × 2 tenants). Each is 384-dim, L2-normalised,
+  cosine-searchable via HNSW.
+- **2026-04-29 • smoke** • Logged in as
+  `william.king.79@springfield.test` (seeded grade-9 student), asked
+  *"What is a quadratic equation and how do I use the discriminant?"*
+  through the chat UI. Tutor returned 5 grounded chunks pulled
+  straight from Supabase pgvector:
+  ```
+  [1] ch1.s1.t1      Standard form of a quadratic        score=0.79
+  [2] ch1.s1.t1.l1   Quadratic equation                  score=0.61
+  [3] ch1.s2.t1      Solving with the quadratic formula  score=0.57
+  [4] ch1.s2.t1.l1   Quadratic formula                   score=0.53
+  [5] ch1.s2.t1.l4   Practice 1                          score=0.47
+  ```
+  Stub answerer formatted them into the assistant message (no
+  `OPENAI_API_KEY` active yet — switching that flag in admin will
+  instantly produce real LLM answers grounded in these same chunks).
+- **2026-04-29 • tests** •
+  `apps/service/tests/test_pgvector_client.py` — 17 passing tests
+  covering:
+  - `_Collection` routing (tenant stringification, delete shim,
+    count/peek)
+  - `add_documents`: happy path, empty batch short-circuit, skip
+    unknown nodes, dimension-mismatch error, re-embedding replaces
+    existing row, tenant isolation (other tenant's rows untouched)
+  - `search`: empty query short-circuit, embed_text called,
+    `CosineDistance` invoked with correct args
+  - Admin helpers: `delete_documents`, `list_collections`,
+    `delete_collection`, `get_collection_stats`
+  Tests use SQLite with `CosineDistance` mocked (no real vector math
+  needed). Whole `apps` suite: **63/63 passing** (5 seeding + 16
+  tutoring + 13 remote-embedder + 12 AppSetting + **17 pgvector**).
+
+### What this means for retrieval
+
+Before:
+
+```
+query → embed → chromadb PersistentClient on laptop disk → top-k hits
+```
+
+After:
+
+```
+query → embed via HF Space → Supabase pgvector HNSW search → top-k hits
+                                                ↑
+                                      shared across every dev machine
+```
+
+A teammate on a clean Windows box now needs zero vector-store setup —
+no `chroma_data/` directory, no torch, no per-dev seed — they just
+point at the shared `DATABASE_URL` and retrieval works.
+
+### Still to do (Phase 3C — cleanup)
+
+- Delete `chroma_data/` directory from repo root (already gitignored)
+- Drop `chromadb` from `requirements.txt`
+- Update `docs/memory.md` §10 (ingestion pipeline still mentions Chroma)
+- Verify nothing else imports from `chromadb` (run a final grep + tests)
+
+---
+
+## Phase 3A — Shared Postgres on Supabase _(complete)_
+
+**Why:** per-laptop SQLite meant every teammate re-ran migrations +
+`seed_synthetic_data` on their own machine, and demo data drifted. One
+shared Supabase Postgres ends that.
+
+- **2026-04-29 • connection** • Supabase project at
+  `db.vihkdpqvcruuvrgajdvv.supabase.co`. Direct host (`db.<ref>...`) is
+  **IPv6-only** and blocked on the dev Windows machine — classic
+  gotcha. Switched to the **session-mode transaction pooler**
+  (`aws-0-eu-west-1.pooler.supabase.com:5432`, user
+  `postgres.<project-ref>`), which is IPv4 and works on any OS.
+  Documented in `.env.example` and memory.md as the default.
+- **2026-04-29 • schema** • Ran all seven existing migrations against
+  the fresh Supabase DB:
+  - `contenttypes`, `auth`, `sessions`, `admin` (Django built-in)
+  - `accounts.0001_initial` (User, Role, Permission, Tenant)
+  - `service.0001_initial` → `.0003_tutoringsession_chatmessage_and_more`
+  - `core.0001_initial` (AppSetting)
+  Target Postgres version: 17.6 on aarch64-linux. No migration tweaks
+  needed — the schema ported cleanly from SQLite.
+- **2026-04-29 • identity** • `create_roles` seeded 4 roles + 20
+  permissions (Student/Teacher/SchoolAdmin/SystemAdmin).
+- **2026-04-29 • settings** • `bootstrap_app_settings --include-secrets`
+  populated 10 `AppSetting` rows on Supabase — 8 active (URL-style
+  settings + EMBEDDER_API_KEY), 2 inactive (`OPENAI_API_KEY`,
+  `ANTHROPIC_API_KEY` left blank for the admin to fill in).
+- **2026-04-29 • curriculum** • `seed_synthetic_data --reset` landed
+  the full demo dataset on Supabase in one shot:
+  ```
+  tenants=2           (springfield, riverside)
+  users=+182          (2 school_admins + 20 teachers + 160 students)
+  subjects=10  classes=8  class_subjects=40
+  books=12  chapters=24  sections=38  topics=40  leaves=108  cross_refs=24
+  ```
+  Documents total = 12 synthetic books. ContentNodes total = 210.
+- **2026-04-29 • smoke** • Verified end-to-end against the shared DB:
+  ```
+  POST /auth/login/  (admin@springfield.test)      → 302 → /dashboard/
+  GET  /dashboard/                                  → 200, 28 KB
+  GET  /school-admin/classes/                       → 200, 4 classes rendered
+  GET  /school-admin/students/                      → 200, 81 @springfield.test rows (80 students + admin)
+  GET  /school-admin/documents/                     → 200, 6 synthetic books visible
+  GET  /health/                                     → 200
+  ```
+- **2026-04-29 • gotcha fix** • `DJANGO_DEBUG=True` is now required
+  in `.env` for local dev (default is `False` so production security
+  headers don't surprise-enable on a team-mate's laptop). Without it,
+  `SECURE_SSL_REDIRECT=True` sends every HTTP request to HTTPS and
+  `runserver` breaks. Added it to the user's `.env` and the example.
+
+### What this unlocks for the team
+
+A new contributor does:
+
+```bash
+git clone <repo>
+pip install -r requirements.txt
+cp .env.example .env
+#  fill in DJANGO_SECRET_KEY + DJANGO_DEBUG=True + the shared DATABASE_URL
+python manage.py runserver
+```
+
+No `migrate`, no `seed`, no `create_roles`. The shared Supabase DB is
+already seeded. They log in with any of the 182 demo accounts (e.g.
+`admin@springfield.test` / `Test@1234`) and they're running.
+
+### Still to do in Phase 3
+
+- **B (next)** — replace ChromaDB with pgvector. New
+  `ContentEmbedding` model + HNSW index; rewrite `PgVectorClient`;
+  seed embeddings directly into Supabase. Drops the `chromadb`
+  dependency entirely.
+- **C** — cleanup: delete `chroma_data/`, drop `chromadb` from
+  requirements, update memory.md tech-stack row.
+
+---
+
+## Phase 2.7 — Config + requirements simplified to single files _(complete)_
+
+**Why:** three settings modules and three requirements files made the
+onboarding flow noisier than it needed to be for a team our size.
+Single file per concern; env-var switches for dev vs prod behaviour.
+
+- **2026-04-29 • settings** • `config/settings/{__init__,base,development,production}.py`
+  collapsed into one `config/settings.py`. All env-specific behaviour is
+  driven by `DJANGO_DEBUG` or optional URL env vars (`DATABASE_URL`,
+  `REDIS_URL`, `SENTRY_DSN`, `EMAIL_HOST`). Nothing from the old
+  production.py was lost — it now lives behind `if not DEBUG:` blocks.
+- **2026-04-29 • database** • Added `dj-database-url` dependency.
+  Resolution order: `DATABASE_URL` (Supabase/Postgres) → SQLite if
+  `DEBUG=True` → refuse to boot if neither. Connection options include
+  `conn_max_age=600` + `conn_health_checks=True` out of the box.
+- **2026-04-29 • requirements** • `requirements/{base,development,production,embeddings-local}.txt`
+  → single `requirements.txt`. Dev tooling (pytest / black / flake8 /
+  django-extensions) lives in the same file. `sentence-transformers`
+  stays commented out at the bottom as an opt-in fallback (the remote
+  embedder Space is the default). `chromadb` still in; flips out in
+  Phase 3.
+- **2026-04-29 • module paths** • `manage.py`, `config/wsgi.py`,
+  `config/asgi.py` all now point at `config.settings` (not
+  `config.settings.development`).
+- **2026-04-29 • scripts + docs** • `setup.bat` installs
+  `requirements.txt` (was `requirements\development.txt`). `.env.example`
+  rewritten to match the new single file, grouped by concern, with
+  `DATABASE_URL` documented and sensitive keys intentionally left blank.
+  `docs/memory.md` §1 project shape + §8 env vars + §11 run commands
+  updated. `README.md` quickstart now references the single file.
+- **2026-04-29 • verification** • `python manage.py check` clean with and
+  without `DATABASE_URL` set. Full test suite still green:
+  `DJANGO_DEBUG=True DATABASE_URL= python manage.py test apps` →
+  **46/46 passing** (5 seeding + 16 tutoring + 13 remote-embedder +
+  12 AppSetting). Pure refactor, zero behaviour change.
+
+### What this changes for a new teammate
+
+```
+git clone <repo>
+pip install -r requirements.txt      # SINGLE file, no -r development.txt
+cp .env.example .env                 # fill in DJANGO_SECRET_KEY + DATABASE_URL
+python manage.py migrate
+python manage.py runserver
+```
+
+No more "which requirements file?" / "which settings module?" questions.
+
+---
+
+## Phase 2.6 — Admin-editable runtime settings (`AppSetting`) _(complete)_
+
+**Why:** API keys (`OPENAI_API_KEY`, `EMBEDDER_API_KEY`, …) need to live
+somewhere that's editable by one trusted admin without sharing the value
+into every team-mate's `.env`. `.env` files are also annoying to keep in
+sync across machines.
+
+- **2026-04-29 • model** • New `apps/core/models/app_setting.py::AppSetting`
+  (extends `AuditModel`). Columns: `key`, `value` (TextField), `category`
+  (TextChoices: llm / embedding / vector_store / tutoring / platform /
+  other), `description`, `is_secret`, `is_active`. Single composite index
+  on `(is_active, category)`. `masked_value` property: full text for
+  non-secrets, `••••<last 4>` for secrets.
+- **2026-04-29 • startup hook** • `apps/core/apps.py::CoreConfig.ready()`
+  now reads every `AppSetting` row where `is_active=True` and applies
+  it via `setattr(django.conf.settings, key, value)`. Wrapped in
+  `OperationalError`/`ProgrammingError` try/except so first migration
+  doesn't crash. Skips `makemigrations`/`migrate`/etc. by inspecting
+  `sys.argv[1]` to avoid the table-not-yet-there race. Suppresses
+  Django's cosmetic "Accessing the database during app initialization
+  is discouraged" RuntimeWarning since the warning is the documented
+  pattern for this use case.
+- **2026-04-29 • admin** • New `apps/core/admin.py::AppSettingAdmin`.
+  Changelist masks secrets in the `value` column (only last 4 chars).
+  Detail view shows full value (admin is staff-only). `save_model`
+  auto-stamps `created_by` / `updated_by` from `request.user`. Fieldset
+  description tells the admin "Changes don't take effect until the
+  server restarts" so the UX expectation is in the form itself.
+- **2026-04-29 • bootstrap CLI** • New management command
+  `bootstrap_app_settings` (`apps/core/management/commands/`). Idempotent:
+  scans a `REGISTRY` of 10 known overridable keys, creates a row per key
+  copying the current `.env` value (public keys only by default; pass
+  `--include-secrets` to also copy keys). Re-running NEVER overwrites a
+  curated value. `--reset` deletes everything (with `yes` confirmation).
+  Secrets without a value land as `is_active=False` so admin notices
+  them in the changelist.
+- **2026-04-29 • tests** • New `apps/core/tests/test_app_setting.py` —
+  12 passing tests:
+  - 5 model: `__str__`, mask semantics for empty / short-secret /
+    long-secret / non-secret values
+  - 4 hand-off: active row overrides settings, inactive row leaves
+    settings alone, edit-then-reapply mirrors restart UX, multiple
+    active rows all propagate
+  - 3 bootstrap: first-run creates expected rows + leaves secrets
+    blank/inactive, `--include-secrets` copies keys, re-run is
+    idempotent (does not overwrite admin-curated values)
+- **2026-04-29 • verification** • Server start now logs:
+  `INFO apps Applied 8 AppSetting override(s) to django.conf.settings.`
+  End-to-end smoke (in shell):
+  ```
+  >>> AppSetting.objects.get(key='OPENAI_BASE_URL').value = 'https://custom-llm.example.com/v1'
+  >>> AppSetting.objects.get(key='OPENAI_BASE_URL').save()
+  >>> AppSetting.apply_to_settings()    # what ready() does on restart
+  >>> settings.OPENAI_BASE_URL          # 'https://custom-llm.example.com/v1' ✓
+  ```
+  All `apps.*` tests still green: 5 seeding + 16 tutoring + 13 remote
+  embeddings + 12 AppSetting = **46 passing**.
+
+### What this changes for the team
+
+- New developer flow: `git clone → pip install → cp .env.example .env`
+  with `DJANGO_SECRET_KEY` only → `python manage.py migrate` →
+  `python manage.py runserver`. They never see API keys.
+- Daud (or whichever admin) edits values at `/admin/core/appsetting/`
+  and restarts the server. `.env` files on team-mates' machines never
+  need updating.
+- Audit trail: every save records `updated_by` + `updated_at` in the row.
+
+### Not yet (deliberately)
+
+- **No live reflection.** Changes apply on next restart, not instantly.
+  Acceptable trade-off for simplicity; revisit if multi-worker
+  production needs faster propagation.
+- **No tenant scoping.** Settings are global. Per-tenant overrides can
+  land later as a nullable `tenant` FK without breaking anything (NULL
+  = global).
+- **No encryption-at-rest.** Plaintext in DB. The DB itself is
+  access-controlled and Supabase will be access-controlled. We can
+  switch to `EncryptedTextField` later via one migration.
+
+---
+
+## Phase 2.5 — Embeddings externalised to HuggingFace Space _(complete)_
+
+**Why:** `sentence-transformers` requires `torch`, which is the most
+common day-1 install failure on Windows + Conda. The whole team kept
+hitting the same DLL-load wall. Solution: move the embedder behind an
+HTTP boundary so the platform repo no longer needs ML deps.
+
+- **2026-04-29 • new repo** • Sibling repo `eduai-embedder/` (lives at
+  `code_base/eduai-embedder/text-embding-model/`, separate git, pushed
+  to HF Space `huggingface.co/spaces/ibrahimdaud/text-embding-model`).
+  ~80-line FastAPI app with three routes (`GET /health`,
+  `POST /embed`, `POST /embed_one`), Dockerfile that pre-downloads
+  `all-MiniLM-L6-v2` at build time, `X-API-Key` auth via Space secret,
+  pinned dependencies. CPU `cpu-basic` Space, free tier, 16 GB RAM.
+- **2026-04-29 • clients refactor** • `clients/embeddings/` is now a
+  provider-aware factory:
+  - `local_service.py` — renamed from `service.py`. Class
+    `LocalEmbeddingService` (alias `EmbeddingService` retained for
+    back-compat). Lazy-loads sentence-transformers on first call so
+    forgetting `init_model()` no longer crashes.
+  - `remote_client.py` — new. `RemoteEmbeddingService` matches the
+    local API exactly (`embed_text`, `embed_batch`,
+    `get_embedding_dimension`, `model_name`). Uses `requests.Session`
+    with sticky `X-API-Key` header, retries on 408/429/5xx with
+    0.5 s/1 s/2 s exponential backoff (3 attempts), 30 s timeout
+    (covers HF Space cold start), raises `EmbeddingClientError` on
+    permanent failure. Caches `model_name` and `dim` after first
+    successful call so they're free forever after.
+  - `__init__.py` — factory keyed on `settings.EMBEDDING_PROVIDER`
+    (`remote` default, `local` fallback). Re-exports
+    `get_embedding_service()` and `init_model()` so every existing
+    caller (`VectorStoreClient`, `ContentStorage`, the seeding
+    command) stays unchanged.
+- **2026-04-29 • settings + env** • `config/settings/base.py` reads
+  three new vars:
+  - `EMBEDDING_PROVIDER` (default `remote`)
+  - `EMBEDDER_API_URL` (required when provider=remote)
+  - `EMBEDDER_API_KEY` (matches the Space secret)
+  `.env.example` documents them with comments explaining the swap.
+- **2026-04-29 • requirements** • `sentence-transformers` moved out of
+  `requirements/base.txt` into a new `requirements/embeddings-local.txt`
+  optional extra (which `-r base.txt` so it's a strict superset).
+  Default install no longer pulls torch. `requests` is now in `base.txt`
+  (was already transitively present). Net: `pip install -r
+  requirements/development.txt` succeeds cleanly on Windows + Conda.
+- **2026-04-29 • tests** • New `apps/service/tests/test_embeddings_remote.py`
+  with 13 passing tests using `requests.Session.request` mocks (no
+  network, no torch). Covers happy paths (`embed_text`, `embed_batch`,
+  empty batch short-circuit, metadata caching), auth failures
+  (401/403 without retry), retries (503 → 200, persistent 5xx exhausts,
+  ConnectionError exhausts), missing-config errors, factory routing.
+  All `apps.service` tests now: 5 seeding + 16 tutoring + 13 remote
+  embeddings = **34 passing**.
+- **2026-04-29 • verification** • End-to-end against the live Space:
+  ```
+  >>> svc = get_embedding_service()
+  >>> type(svc).__name__   # 'RemoteEmbeddingService'
+  >>> svc.model_name        # 'all-MiniLM-L6-v2'
+  >>> svc.get_embedding_dimension()   # 384
+  >>> v = svc.embed_text("What is a quadratic equation?")
+  >>> sum(x*x for x in v)**0.5   # 1.0 (L2-normalised)
+  ```
+  Semantic check across 3 texts:
+  `cos(similar Q1↔Q2) = 0.829`, `cos(unrelated Q1↔Q3) = 0.082`. Quality
+  unchanged from running locally.
+
+### Tally update
+
+- **Repos in workspace**: 1 → **2** (added sibling `eduai-embedder`).
+- **Lines of Python (eduai_platform)**: +~250 (`remote_client.py` +
+  `test_embeddings_remote.py`).
+- **Default `pip install` size**: dropped torch (~800 MB) + transitive
+  CUDA stubs.
+- **Tests**: 21 → **34** passing.
+
+---
+
+## Phase 2 — Tutoring (RAG chat) _(complete)_
+
+- **2026-04-29 • models** • Two new domain models in
+  `apps/service/models/tutoring.py`:
+  - `TutoringSession(TenantAwareModel, TimestampedModel)` — `student` FK,
+    optional `subject` FK, `title` (auto-derived from first user question),
+    `is_active`, `last_message_at` (db_index). Composite index
+    `(tenant, student, -last_message_at)`.
+  - `ChatMessage(TimestampedModel)` — `session` FK (cascade), `role`
+    (`student | assistant`), `content`, `retrieved_chunks` JSONField (per-hit
+    `{node_id, document_id, title, snippet, score, page_number, ...}`),
+    `model` (e.g. `gpt-4`, `stub`). Index `(session, created_at)`.
+  - `apps/service/admin.py` registers both. `apps/service/models/__init__.py`
+    re-exports the new symbols.
+  - Migration: `service.0003_tutoringsession_chatmessage_and_more`.
+- **2026-04-29 • services** • New service package
+  `apps/service/services/tutoring/`:
+  - `prompts.py` — `TUTOR_SYSTEM_PROMPT` + `build_system_prompt(grade_level)`
+    that calibrates tone for younger / older students.
+  - `retriever.py::CurriculumRetriever` — thin wrapper over
+    `clients.vector_store.VectorStoreClient.search` against
+    `<tenant_id>_curriculum`. Hits are joined back to `ContentNode` via
+    `(document_id, node_id)` so callers see full citation metadata
+    (title, page, node path). Returns dataclass `RetrievedChunk` instances.
+    Vector-store failures are logged and yield empty results so the tutor
+    never hard-errors.
+  - `stub_answerer.py` — offline answerer used when `OPENAI_API_KEY` is
+    unset. Returns `"Top sources for your question:\n\n[1] {title}\n
+    {snippet}\n\n[2] ..."` verbatim (per planning decision: no fake
+    reasoning).
+  - `tutor_service.py::TutorService.answer_question(session, student, query,
+    top_k=5)` — orchestrates one Q&A round in a single transaction:
+    persists the student turn, retrieves chunks, branches to LLM or stub,
+    persists the assistant turn with `retrieved_chunks` payload, refreshes
+    `session.last_message_at`, and auto-titles the session from the first
+    question. Validates ownership (student + tenant) and rejects empty
+    queries. LLM exceptions fall back to the stub answerer with a logged
+    warning.
+- **2026-04-29 • api** • New REST namespace at
+  `apps/service/api/`:
+  - `serializers.py` — `TutoringSessionSerializer`,
+    `TutoringSessionDetailSerializer` (nests messages),
+    `ChatMessageSerializer`, `CreateMessageSerializer`.
+  - `tutoring.py::TutoringSessionViewSet` — DRF `ViewSet` (not
+    `ModelViewSet`) so every response goes through the project
+    `APIResponse` envelope. Endpoints:
+    - `POST   /api/v1/tutoring/sessions/`
+    - `GET    /api/v1/tutoring/sessions/`
+    - `GET    /api/v1/tutoring/sessions/<id>/`
+    - `DELETE /api/v1/tutoring/sessions/<id>/` (archives via
+      `is_active=False`)
+    - `GET    /api/v1/tutoring/sessions/<id>/messages/`
+    - `POST   /api/v1/tutoring/sessions/<id>/messages/` (the actual Q&A)
+    All endpoints reject non-students (`is_student` guard) and 404 across
+    tenant boundaries (no existence leakage).
+  - `urls.py` — `DefaultRouter` with `service_api` URL namespace.
+  - `config/urls.py` un-commented `path('api/v1/', include('apps.service.api.urls'))`.
+- **2026-04-29 • web** • Student chat page:
+  - `apps/web/views/student/chat.py::chat_view` — thin Django view that
+    just renders the shell; the JS layer hydrates everything else through
+    `APIClient`.
+  - `apps/web/urls.py` — added fourth namespace `student_patterns` with
+    `chat/` and `chat/<int:session_id>/` paths. Mounted at `/student/...`
+    in `config/urls.py`.
+  - `frontend/templates/student/chat.html` — two-column layout: session
+    list on the left, conversation + composer on the right. Empty state
+    when no session is selected. New-session modal (`<dialog>`) lets
+    students pick an optional subject before opening a session.
+  - `frontend/static/css/student.css` — chat-shell, session-row, bubble
+    (student / assistant variants), citation chips, sources panel,
+    composer, modal. Mobile collapses to single-column.
+  - `frontend/static/js/student/chat.js` — uses the existing
+    `APIClient`, renders `[N]` tokens as clickable citation chips that
+    expand the matching source row. Cmd/Ctrl+Enter submits. Optimistic
+    user bubble appears immediately, gets replaced with the persisted
+    response. Shows an `offline` badge on assistant messages with
+    `model='stub'`.
+  - `frontend/templates/dashboards/student_dashboard.html` — wired the
+    sidebar AI Tutor link to `student:chat`.
+- **2026-04-29 • tests** • `apps/service/tests/test_tutoring.py` —
+  16 passing tests, retriever and LLM both stubbed so tests run with no
+  ChromaDB / sentence-transformers / OpenAI dependencies:
+  - service: stub fallback, real-LLM happy path, LLM-failure fallback,
+    empty-retrieval skips LLM, empty-query rejected, cross-student
+    rejected, cross-tenant rejected, auto-title + `last_message_at` touch
+  - api: list requires login, list scoped to current student, list
+    forbidden for teachers, create returns 201, retrieve 404 across
+    tenants, message POST persists both turns, message validation 400,
+    message GET returns history, destroy archives.
+- **2026-04-29 • verification** • `python manage.py check` clean;
+  `python manage.py test apps.service` runs 21 tests (5 seeding + 16
+  tutoring) green. Manual smoke (no LLM key, no embeddings):
+  `GET /student/chat/` 200, `POST /api/v1/tutoring/sessions/` 201,
+  `POST /api/v1/tutoring/sessions/<id>/messages/` 201 returning the
+  honest offline-mode answer with `model='stub'`. Static assets
+  (`/static/css/student.css`, `/static/js/student/chat.js`) served at 200.
+
+### Tally update
+
+- **Models in DB**: 11 → **13** (added `TutoringSession`, `ChatMessage`).
+- **Lines of Python**: +~900 (service + api + tests + view).
+- **Static frontend**: +1 CSS file (`student.css`, ~9 KB), +1 JS file
+  (`student/chat.js`, ~10 KB), 1 new template (`student/chat.html`).
+- **REST endpoints live**: 6 (under `service_api:` namespace).
+- **Total tests**: 5 → **21** passing on `apps.service`.
+
+---
+
 ## Phase 1 — Synthetic data + schema hardening _(complete)_
 
 - **2026-04-27 • schema** • Two-field tweak on `service.Document` so

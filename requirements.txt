@@ -1,0 +1,73 @@
+# EduAI platform — single requirements file.
+#
+# One list for every environment. Dev-only tooling (pytest, black, ...)
+# lives at the bottom but is not separated into its own file because the
+# whole team wants one install command. Optional extras (torch for the
+# in-process embedder) are commented out at the very end.
+#
+#     pip install -r requirements.txt
+
+# --- Core Django ---
+Django>=5.0,<5.2
+python-decouple
+dj-database-url                # parses DATABASE_URL from .env (Supabase)
+psycopg2-binary                # Postgres driver
+
+# --- REST ---
+djangorestframework
+django-cors-headers
+django-filter
+
+# --- AI / remote services ---
+openai
+anthropic
+langchain
+requests                       # used by clients.embeddings.remote_client
+
+# --- Vector store ---
+# pgvector on Supabase Postgres. Requires the `vector` extension enabled
+# on the DB (one click in Supabase dashboard). Dimension + HNSW index
+# config live in apps/service/models/embedding.py.
+pgvector>=0.3,<0.4
+
+# --- Document processing ---
+PyPDF2
+python-docx
+unstructured
+Pillow
+
+# --- Utilities ---
+python-dateutil
+pytz
+python-json-logger
+PyYAML
+faker                          # seed_synthetic_data
+
+# --- Security ---
+django-cryptography
+
+# --- Production server (unused in dev, cheap to install) ---
+gunicorn
+whitenoise
+
+# --- Monitoring (dormant unless SENTRY_DSN is set) ---
+sentry-sdk
+
+# --- Dev / test tooling (intentionally in the same file) ---
+django-extensions
+ipython
+django-debug-toolbar
+factory-boy
+coverage
+pytest
+pytest-django
+black
+flake8
+
+# --- OPTIONAL: in-process embedder fallback ---
+# Uncomment only if you cannot reach the HuggingFace Space or want to
+# benchmark locally. Pulls in torch (~800 MB), which is the most common
+# install failure on Windows + Conda — the whole point of the remote
+# service is to avoid needing it.
+#
+# sentence-transformers

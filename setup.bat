@@ -24,7 +24,7 @@ call venv\Scripts\activate.bat
 
 echo.
 echo [*] Installing dependencies...
-pip install -r requirements\development.txt
+pip install -r requirements.txt
 if errorlevel 1 (
     echo [✗] Failed to install dependencies
     pause

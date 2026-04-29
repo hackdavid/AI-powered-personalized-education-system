@@ -156,31 +156,52 @@ ingestion is deferred to Phase 6 — no schema redesign needed there.
 
 ---
 
-## Phase 2 — Tutoring (RAG chat) — runs on synthetic data
+## Phase 2 — Tutoring (RAG chat) _(complete — 2026-04-29)_
 
-**LLM-cost note:** local embeddings (sentence-transformers, 384-dim) are
-free and used at seed time. The LLM answer step is gated on
-`OPENAI_API_KEY`; when absent the tutor falls back to a stub answerer
-that returns `"Top sources for your question:\n\n" + concatenated chunks`.
-This keeps the entire UX testable without paying for tokens.
+Built end-to-end on synthetic data. LLM-gated branch confirmed via mocked
+unit test; default offline answerer returns the top retrieved sources
+verbatim with `model='stub'` so the chat UX is fully exercised without
+paying for tokens. Rate-limiting deferred to Phase 7 per planning
+decision.
 
-- [ ] Models in `apps/service/models/`: `TutoringSession` (tenant-aware,
-      FK student, FK subject, is_active), `ChatMessage` (FK session, role
-      student|assistant, content, retrieved_chunks JSON).
-- [ ] `apps/service/services/tutoring/tutor_service.py::TutorService` with
-      `answer_question(query, grade_level)` returning `{answer, sources,
-      model}`. Internally retrieves top-k from `<tenant_id>_curriculum`
-      and calls `clients.llm.LLMService.generate_with_context` when an
-      API key is configured, otherwise the stub answerer.
-- [ ] DRF endpoints: `POST /api/v1/tutoring/sessions/`,
-      `POST /api/v1/tutoring/sessions/{id}/messages/`,
-      `GET /api/v1/tutoring/sessions/{id}/`.
-- [ ] Web UI: `apps/web/views/student/chat.py` + template
-      `frontend/templates/student/chat.html`. Streams new messages via
-      `APIClient.post`.
-- [ ] Source-citation rendering ([1], [2], …) — sources point to
+- [x] Models in `apps/service/models/`: `TutoringSession` (tenant-aware,
+      FK student, FK subject, title auto-derived, last_message_at indexed)
+      and `ChatMessage` (FK session cascade, role student|assistant,
+      content, retrieved_chunks JSON, model). Migration
+      `service.0003_tutoringsession_chatmessage_and_more`.
+- [x] `apps/service/services/tutoring/tutor_service.py::TutorService.
+      answer_question(session, student, query, top_k=5)` returning
+      `TutorAnswer` (user_message, assistant_message, sources, model).
+      Internally retrieves top-k from `<tenant_id>_curriculum` via
+      `CurriculumRetriever` and calls
+      `clients.llm.LLMService.generate_with_context` when
+      `OPENAI_API_KEY` is set; otherwise routes to `stub_answerer`.
+      LLM exceptions fall back to the stub with a logged warning.
+- [x] DRF `TutoringSessionViewSet` with all four originally planned routes
+      plus list, destroy, and GET messages:
+      - `POST   /api/v1/tutoring/sessions/`
+      - `GET    /api/v1/tutoring/sessions/`
+      - `GET    /api/v1/tutoring/sessions/<id>/`
+      - `DELETE /api/v1/tutoring/sessions/<id>/` (archives)
+      - `GET    /api/v1/tutoring/sessions/<id>/messages/`
+      - `POST   /api/v1/tutoring/sessions/<id>/messages/`
+      All wrap `APIResponse`. Cross-tenant access returns 404.
+- [x] Web UI: `apps/web/views/student/chat.py::chat_view` +
+      `frontend/templates/student/chat.html` +
+      `frontend/static/css/student.css` +
+      `frontend/static/js/student/chat.js`. Hydrates session list and
+      messages via `APIClient`; renders citation chips; new-session
+      modal; mobile-collapsing two-column layout.
+- [x] Source-citation rendering: `[1]`, `[2]`, … in answer text are
+      converted to clickable chips that toggle the corresponding source
+      row (title, page, snippet) below the bubble. Sources reference
       `ContentNode` rows seeded in Phase 1.
-- [ ] Rate-limit per student per minute.
+- [ ] **Deferred:** rate-limit per student per minute — moved to Phase 7
+      (production hardening). Cache infra not yet wired in dev.
+- [x] Tests: 16 passing in `apps/service/tests/test_tutoring.py`
+      covering service stub + real-LLM branches + tenant guard +
+      view-level RBAC + message persistence. Whole `apps.service` test
+      suite green at 21/21.
 
 ---
 

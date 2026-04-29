@@ -5,6 +5,8 @@ from django.contrib import admin
 from apps.service.models import (
     Subject, Class, ClassSubject, Document,
     ContentNode, Asset, ContentCrossRef,
+    TutoringSession, ChatMessage,
+    ContentEmbedding,
 )
 
 
@@ -56,3 +58,37 @@ class AssetAdmin(admin.ModelAdmin):
 class ContentCrossRefAdmin(admin.ModelAdmin):
     list_display = ('source_node', 'target_node', 'ref_type')
     list_filter = ('ref_type',)
+
+
+@admin.register(TutoringSession)
+class TutoringSessionAdmin(admin.ModelAdmin):
+    list_display = ('id', 'title', 'student', 'subject', 'tenant', 'is_active', 'last_message_at')
+    list_filter = ('is_active', 'tenant', 'subject')
+    search_fields = ('title', 'student__email')
+    readonly_fields = ('last_message_at',)
+
+
+@admin.register(ChatMessage)
+class ChatMessageAdmin(admin.ModelAdmin):
+    list_display = ('id', 'session', 'role', 'model', 'created_at')
+    list_filter = ('role', 'model')
+    search_fields = ('content',)
+    readonly_fields = ('retrieved_chunks',)
+
+
+@admin.register(ContentEmbedding)
+class ContentEmbeddingAdmin(admin.ModelAdmin):
+    """Read-only admin for embeddings — they're machine-generated."""
+    list_display = ('id', 'content_node', 'model_name', 'tenant', 'created_at')
+    list_filter = ('model_name', 'tenant')
+    search_fields = ('content_node__node_id', 'content_node__title', 'embedding_id')
+    readonly_fields = (
+        'tenant', 'content_node', 'embedding_id', 'model_name',
+        'embedding', 'created_at', 'updated_at',
+    )
+
+    def has_add_permission(self, request):
+        return False  # created only by the seeding / ingestion pipelines
+
+    def has_change_permission(self, request, obj=None):
+        return False
