@@ -27,7 +27,10 @@
       "Exec(sed)",
       "Exec(head)",
       "Exec(wc)",
-      "Exec(docker)"
+      "Exec(docker)",
+      "Exec(where python)",
+      "Exec(node)",
+      "Exec(\"C:/Users/DaudDewan/OneDrive - SymphonyAI/Documents/Learning/roehampton/ai_engineering/env/Scripts/python.exe\")"
     ]
   }
 }

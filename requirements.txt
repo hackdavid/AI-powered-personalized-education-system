@@ -19,7 +19,12 @@ django-cors-headers
 django-filter
 
 # --- AI / remote services ---
-openai
+# NOTE on pins: `httpx` 0.28.0 dropped the `proxies=` kwarg, which older
+# versions of the `openai` SDK (< 1.55.3) still pass internally and crash
+# with `TypeError: Client.__init__() got an unexpected keyword argument
+# 'proxies'`. Keep the lower bound at the first compatible release.
+openai>=1.55.3,<2.0
+httpx>=0.27,<0.29
 anthropic
 langchain
 requests                       # used by clients.embeddings.remote_client

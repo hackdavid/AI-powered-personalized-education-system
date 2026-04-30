@@ -95,13 +95,19 @@ class AppSetting(AuditModel):
     def apply_to_settings(cls) -> int:
         """Push every active row into django.conf.settings. Returns count applied.
 
-        Called from CoreConfig.ready(). Wrapped in a try/except by the
-        caller so that a missing table (first migration) or an
-        unreachable DB doesn't crash startup — we silently fall back to
-        whatever .env / settings.py already provides.
+        Called from `CoreConfig.ready()` at startup AND from the tutor pipeline
+        at request time (so admin edits don't require a restart). Wrapped in a
+        try/except by the caller so that a missing table (first migration) or
+        an unreachable DB doesn't crash startup — we silently fall back to
+        whatever `.env` / `settings.py` already provides.
+
+        Values are whitespace-stripped on the way in. Copy-paste from the
+        admin UI often carries trailing spaces / newlines that would
+        otherwise sail through and produce a 401 at LLM-call time.
         """
         applied = 0
         for row in cls.objects.filter(is_active=True).only('key', 'value'):
-            setattr(settings, row.key, row.value)
+            value = (row.value or '').strip()
+            setattr(settings, row.key, value)
             applied += 1
         return applied
