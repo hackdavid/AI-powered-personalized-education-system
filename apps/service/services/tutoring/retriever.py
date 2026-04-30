@@ -1,20 +1,36 @@
 """
-Curriculum retriever — thin wrapper over `clients.vector_store.VectorStoreClient`.
+Curriculum retriever — subject-scoped pgvector search with topic-aware reranking.
 
-Retrieves the top-k most relevant ContentNode chunks for a query, scoped to a
-tenant's `<tenant_id>_curriculum` collection. Returned hits are enriched with
-the matching `ContentNode` row so callers (and the chat UI) can render proper
-citations: title, document, page number, and the local node path.
+Talks to `ContentEmbedding` directly via the ORM so we can push the router's
+subject filter down into the same query that does the cosine search. That's
+cheaper *and* more accurate than the old "retrieve top-k globally, filter in
+Python" flow: we no longer throw away high-similarity hits just because they
+belong to the wrong subject for this question.
+
+Query shape:
+
+    ContentEmbedding.objects
+        .filter(tenant=tenant, model_name=EMBEDDING_MODEL_NAME,
+                content_node__subject_id__in=subject_ids)   # if routed
+        .annotate(distance=CosineDistance('embedding', qv))
+        .order_by('distance')
+        .select_related('content_node__document')[:top_k * retrieve_multiplier]
+
+We retrieve more than `top_k` when `topic_titles` is non-empty and rerank
+locally with a tiny title-match boost. This is cheap and gives a meaningful
+precision lift for multi-topic subjects (e.g. a question about *polynomials*
+inside Mathematics gets polynomial chunks ahead of algebra ones).
 """
 
+from __future__ import annotations
+
 import logging
-from dataclasses import dataclass, field, asdict
-from typing import List, Optional
+from dataclasses import asdict, dataclass, field
+from typing import List, Optional, Sequence
 
 from django.conf import settings
 
 from apps.accounts.models import Tenant
-from apps.service.models import ContentNode
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +46,7 @@ class RetrievedChunk:
     score: float
     page_number: Optional[int] = None
     subject_id: Optional[int] = None
+    subject_name: str = ''
     extra: dict = field(default_factory=dict)
 
     def to_dict(self) -> dict:
@@ -43,102 +60,174 @@ def _trim(text: str, length: int = 600) -> str:
     return text if len(text) <= length else text[: length - 1] + '…'
 
 
+# A small over-fetch so we have room to rerank locally when topic_titles is set.
+RETRIEVE_MULTIPLIER = 3
+TOPIC_MATCH_BOOST = 0.08
+
+
 class CurriculumRetriever:
-    """Retrieve grounded curriculum chunks for a tenant."""
+    """Retrieve grounded curriculum chunks, optionally scoped by subject."""
 
     COLLECTION_NAME = 'curriculum'
 
-    def __init__(self, vector_store=None):
-        self._vector_store = vector_store
+    def __init__(self, embedding_service=None):
+        self._embedding_service = embedding_service
 
     @property
-    def vector_store(self):
-        if self._vector_store is None:
-            from clients.vector_store import VectorStoreClient
-            self._vector_store = VectorStoreClient()
-        return self._vector_store
+    def embedding_service(self):
+        if self._embedding_service is None:
+            from clients.embeddings import get_embedding_service
+            self._embedding_service = get_embedding_service()
+        return self._embedding_service
+
+    # ------------------------------------------------------------------ public
 
     def retrieve(
         self,
         tenant: Tenant,
         query: str,
+        *,
         top_k: int = 5,
+        subject_ids: Optional[Sequence[int]] = None,
+        topic_titles: Optional[Sequence[str]] = None,
+        # Back-compat with the old single-subject signature. Ignored when
+        # `subject_ids` is provided (caller went with the new API).
         subject_id: Optional[int] = None,
     ) -> List[RetrievedChunk]:
-        """Return up to `top_k` chunks for `query` from the tenant's curriculum."""
-        if not query.strip():
+        """Return up to `top_k` chunks for `query`.
+
+        `subject_ids` applies a hard DB-level filter via the `ContentNode.subject`
+        join. `topic_titles` softly boosts matching nodes' scores after the
+        pgvector sort, which is enough for the multi-topic case without
+        hurting recall.
+        """
+        query = (query or '').strip()
+        if not query:
+            return []
+
+        scope_ids = list(subject_ids) if subject_ids else None
+        if scope_ids is None and subject_id is not None:
+            scope_ids = [subject_id]
+
+        try:
+            query_vec = self.embedding_service.embed_text(query)
+        except Exception as exc:
+            logger.warning('retriever: embedding failed for tenant=%s: %s', tenant.id, exc)
             return []
 
         try:
-            collection = self.vector_store.get_or_create_collection(
-                str(tenant.id),
-                self.COLLECTION_NAME,
+            raw_hits = self._pgvector_search(
+                tenant=tenant,
+                query_vec=query_vec,
+                top_k=top_k,
+                subject_ids=scope_ids,
             )
-            hits = self.vector_store.search(collection, query, top_k=top_k)
         except Exception as exc:
-            # Vector store / embeddings unavailable. Log and return empty;
-            # the tutor will then say it has no sources rather than hard-erroring.
             logger.warning(
-                'Vector store retrieval failed for tenant=%s query=%r: %s',
-                tenant.id, query[:60], exc,
+                'retriever: pgvector query failed for tenant=%s (subjects=%s): %s',
+                tenant.id, scope_ids, exc,
             )
             return []
 
-        return self._enrich_hits(tenant, hits, subject_id=subject_id)
+        # Rerank with topic match if the router gave us titles.
+        reranked = self._rerank_by_topic(raw_hits, topic_titles)
+        return reranked[:top_k]
 
-    def _enrich_hits(
+    # ------------------------------------------------------------------ internals
+
+    def _pgvector_search(
         self,
+        *,
         tenant: Tenant,
-        hits: List[dict],
-        subject_id: Optional[int] = None,
+        query_vec,
+        top_k: int,
+        subject_ids: Optional[Sequence[int]],
     ) -> List[RetrievedChunk]:
-        """Merge each hit with its underlying ContentNode row for full citations."""
-        if not hits:
-            return []
+        """Run the actual cosine-distance ordered query."""
+        from pgvector.django import CosineDistance
 
-        # Pull (document_id, node_id) pairs from metadata so we can do a single bulk lookup.
-        keys = []
-        for h in hits:
-            meta = h.get('metadata') or {}
-            doc_id = meta.get('document_id')
-            node_id = meta.get('node_id')
-            if doc_id is None or node_id is None:
-                continue
-            keys.append((doc_id, node_id))
+        from apps.service.models import ContentEmbedding
 
-        if not keys:
-            return []
+        model_name = getattr(settings, 'EMBEDDING_MODEL_NAME', 'all-MiniLM-L6-v2')
+        limit = max(top_k * RETRIEVE_MULTIPLIER, top_k)
 
-        # Bulk fetch matching ContentNodes for this tenant.
-        from django.db.models import Q
-        q = Q()
-        for doc_id, node_id in keys:
-            q |= Q(document_id=doc_id, node_id=node_id)
+        qs = (
+            ContentEmbedding.objects
+            .filter(tenant=tenant, model_name=model_name)
+            .annotate(distance=CosineDistance('embedding', query_vec))
+            .order_by('distance')
+            .select_related('content_node__document', 'content_node__subject')
+        )
+        if subject_ids:
+            qs = qs.filter(content_node__subject_id__in=list(subject_ids))
 
-        node_qs = ContentNode.objects.filter(tenant=tenant).filter(q).select_related('document')
-        node_lookup = {(n.document_id, n.node_id): n for n in node_qs}
+        rows = qs[:limit]
 
         out: List[RetrievedChunk] = []
-        for h in hits:
-            meta = h.get('metadata') or {}
-            doc_id = meta.get('document_id')
-            node_id = meta.get('node_id')
-            node = node_lookup.get((doc_id, node_id))
+        for row in rows:
+            node = row.content_node
             if node is None:
-                # Vector hit no longer matches an ORM row — skip silently.
-                continue
-            if subject_id and node.subject_id and node.subject_id != subject_id:
-                continue
+                continue  # orphaned embedding
+            document = node.document
+            subject = node.subject
 
             out.append(RetrievedChunk(
                 node_id=node.node_id,
                 document_id=node.document_id,
-                document_title=node.document.title if node.document_id else '',
+                document_title=document.title if document else '',
                 title=node.title,
-                snippet=_trim(h.get('text') or node.content_plain or ''),
-                score=float(h.get('score') or 0.0),
+                snippet=_trim(node.content_plain or node.content or ''),
+                score=float(1.0 - row.distance),  # cosine similarity in [0,1]
                 page_number=node.page_number,
                 subject_id=node.subject_id,
-                extra={'node_type': node.node_type},
+                subject_name=subject.name if subject else '',
+                extra={
+                    'node_type': node.node_type,
+                    'difficulty': node.difficulty or '',
+                },
             ))
         return out
+
+    @staticmethod
+    def _rerank_by_topic(
+        hits: List[RetrievedChunk],
+        topic_titles: Optional[Sequence[str]],
+    ) -> List[RetrievedChunk]:
+        """Boost chunks whose title matches the router's topic picks.
+
+        Substring match both ways (topic ⊂ node, node ⊂ topic) so small
+        wording differences don't sink an otherwise perfect chunk.
+        """
+        if not hits or not topic_titles:
+            return hits
+
+        titles_lower = [t.lower() for t in topic_titles if t]
+        if not titles_lower:
+            return hits
+
+        boosted: List[RetrievedChunk] = []
+        for h in hits:
+            boost = 0.0
+            node_title_lower = (h.title or '').lower()
+            for topic in titles_lower:
+                if topic and (topic in node_title_lower or node_title_lower in topic):
+                    boost = TOPIC_MATCH_BOOST
+                    break
+            if boost:
+                boosted.append(RetrievedChunk(
+                    node_id=h.node_id,
+                    document_id=h.document_id,
+                    document_title=h.document_title,
+                    title=h.title,
+                    snippet=h.snippet,
+                    score=h.score + boost,
+                    page_number=h.page_number,
+                    subject_id=h.subject_id,
+                    subject_name=h.subject_name,
+                    extra={**h.extra, 'topic_boosted': True},
+                ))
+            else:
+                boosted.append(h)
+
+        boosted.sort(key=lambda c: c.score, reverse=True)
+        return boosted

@@ -70,6 +70,15 @@ class ChatMessage(TimestampedModel):
         blank=True,
         help_text="LLM identifier (e.g. 'gpt-4', 'stub'). Empty for student turns.",
     )
+    metadata = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text=(
+            'Free-form per-turn metadata. For assistant turns this carries the '
+            'router decision (routed subject / topics / intent / refined query) '
+            'so the UI can render a subject chip and we can slice analytics.'
+        ),
+    )
 
     class Meta:
         ordering = ['session', 'created_at']

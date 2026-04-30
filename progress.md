@@ -2,6 +2,126 @@
 
 ---
 
+## 2026-04-30 (pm): AI Tutor polish — live admin config, clear errors, no demo fallbacks
+
+### What changed
+
+- **Live config reload**: `TutorService._refresh_runtime_config()` re-applies active
+  `AppSetting` rows at the top of every tutor request (both blocking and streaming).
+  Admins can edit `OPENAI_API_KEY` / `OPENAI_BASE_URL` / `OPENAI_MODEL_NAME` in
+  `/admin/core/appsetting/` and the tutor picks them up on the next request —
+  **no server restart needed**.
+- **Whitespace stripping** in `AppSetting.apply_to_settings` + `LLMService.__init__` —
+  copy-paste from the admin UI often carries trailing spaces / newlines that
+  would silently 401 at LLM time.
+- **Differentiated error messages**:
+  - `UNAVAILABLE_MESSAGE` → only when `OPENAI_API_KEY` is genuinely empty
+    (blocking returns 503, streaming emits a single `error` frame).
+  - `build_upstream_error_message(exc)` → includes the concrete exception
+    class + truncated message, so students see e.g. "APIStatusError: 404 …"
+    and admins can fix the proxy path or model name fast.
+- **No more offline/demo content**: `stub_answerer.py` stays deleted. Every
+  failure surfaces a real, actionable message.
+- **New management command**: `python manage.py check_tutor_config [--test]`
+  - Prints the live `AppSetting` rows for tutor keys (even if someone created
+    them under the default "other" category instead of `llm`).
+  - Shows what `django.conf.settings` actually holds (whitespace-stripped,
+    secret values masked).
+  - Flags lookalike keys (case typos, stray whitespace).
+  - With `--test`, fires a real 1-token LLM call and prints the actual reply
+    or exception — the fastest way to tell whether it's a config issue or a
+    proxy/network issue.
+- **Server log now points to the fix**: when `TutorUnavailable` fires, we log
+  the actual state of the `OPENAI_API_KEY` row ("INACTIVE" vs "value=EMPTY"
+  vs "No row exists") so the admin can jump straight to the broken field.
+
+### Files
+
+- Modified: `apps/core/models/app_setting.py` (strip whitespace), `apps/service/services/tutoring/{prompts,tutor_service}.py`, `clients/llm/service.py`
+- New: `apps/core/management/commands/check_tutor_config.py`
+
+### Test coverage
+- 31 / 31 tutor tests pass, including the updated "unavailable" path.
+
+---
+
+## 2026-04-30: AI Tutor — Dynamic Routing, Streaming UX, Markdown+LaTeX Rendering
+
+### What was built
+
+**Backend — two-LLM pipeline with a single model:**
+- **LLMService rewrite** (`clients/llm/service.py`): per-call `model` / `temperature` /
+  `response_format` overrides; new `generate_stream()` (SSE-ready token iterator),
+  `generate_structured()` (JSON mode with regex-extract fallback for endpoints
+  that don't honour `response_format`), and `stream=True` on `generate_with_context`.
+  Kept `.client`, `._model_name`, `generate()`, `generate_with_context()` surface
+  for the ingestion pipeline. Single configurable LLM used across router + answerer.
+- **Student catalog** (`apps/service/services/tutoring/catalog.py`): compact
+  `[{subject_id, name, chapters: [...]}]` for the student's grade. Uses
+  `ClassSubject` ⋈ `ContentNode(node_type='chapter'/'section')` with caps and
+  dedup, cached per `(tenant, grade)` in Django cache. Fallback path when
+  `ClassSubject` is empty.
+- **Query router** (`apps/service/services/tutoring/router.py`): **one LLM call**
+  with JSON mode that picks `subject_ids`, `topic_titles`, `refined_query`,
+  `intent`, `needs_retrieval`, `confidence`. Pre-filters the catalog to the
+  top-N candidate subjects via cosine embedding similarity (no LLM), so the
+  classifier prompt stays small. Safe fallbacks (embedding-only routing on LLM
+  failure, heuristic routing on empty catalog).
+- **Retriever upgrade** (`apps/service/services/tutoring/retriever.py`): now
+  talks to `ContentEmbedding` via the ORM directly, pushing the subject filter
+  down into the cosine query (no more post-filter in Python). Topic-title
+  match boosts score for multi-topic subjects.
+- **Prompts** (`apps/service/services/tutoring/prompts.py`): Markdown + KaTeX
+  + tables + images + citation rules baked into the answerer system prompt;
+  grade / subject / topic / intent-tailored additions; separate small
+  chitchat / meta prompts for the short-circuit branch.
+- **TutorService refactor** (`tutor_service.py`): `answer_question()` (blocking)
+  and `stream_answer()` (SSE event iterator) share one pipeline — catalog →
+  router → retriever → answerer. Persists routing metadata on the assistant
+  turn via a new `ChatMessage.metadata` JSONField (migration 0005).
+
+**API — SSE streaming:**
+- `POST /api/v1/tutoring/sessions/<id>/messages/` still works (blocking, richer
+  response includes `routing`).
+- **New** `POST /api/v1/tutoring/sessions/<id>/messages/stream/` →
+  `text/event-stream`. Event types: `user_message`, `routing`, `sources`,
+  `token`, `done`, `error`, `close`.
+- **Session creation no longer accepts `subject`** — the router decides per
+  question. Old subject param is silently ignored for backward compat.
+
+**Frontend — professional chat UX:**
+- **Dropped the subject-picker modal** entirely.
+- Added Markdown → DOMPurify → KaTeX → highlight.js → citation rendering
+  pipeline (all CDN, no build step): `marked@12`, `DOMPurify@3`, `KaTeX@0.16`
+  with `auto-render`, `highlight.js@11` with 8 common languages.
+- Full `frontend/static/js/student/chat.js` rewrite: SSE consumer via
+  `fetch` + `ReadableStream`, optimistic user bubble, animated "Thinking…"
+  indicator until tokens arrive, live re-render of Markdown on each token,
+  `[N]` citation chips with hover-tooltip preview + click-to-scroll to the
+  matching source row, copy button on assistant turns + on each code block,
+  Enter-to-send, Shift+Enter for newline, auto-growing composer.
+- Full CSS redesign (`frontend/static/css/student.css`): ChatGPT-style
+  layout (student pill right, assistant full-width prose), routing chip,
+  sources drawer (collapsible), complete Markdown typography (headings,
+  lists, tables, code, blockquotes, images), KaTeX display equations,
+  suggestion chips on the empty state.
+
+**Tests:**
+- 16 → **24 tests** (all passing). New coverage: router unit tests
+  (JSON sanitisation, embedding fallback, empty query / empty catalog),
+  SSE endpoint end-to-end, retriever subject-filter forwarding, chitchat
+  short-circuit, routing metadata persistence on both stub and LLM branches.
+
+### Files
+
+- New: `apps/service/services/tutoring/catalog.py`
+- New: `apps/service/services/tutoring/router.py`
+- New migration: `apps/service/migrations/0005_chatmessage_metadata.py`
+- Rewritten: `clients/llm/service.py`, `apps/service/services/tutoring/{tutor_service,retriever,prompts,__init__}.py`, `apps/service/api/tutoring.py`, `apps/service/api/serializers.py`, `frontend/templates/student/chat.html`, `frontend/static/js/student/chat.js`, `frontend/static/css/student.css`, `apps/web/views/student/chat.py`, `apps/service/tests/test_tutoring.py`
+- Modified: `apps/service/models/tutoring.py` (added `ChatMessage.metadata`)
+
+---
+
 ## 2026-04-20: School Admin Portal COMPLETE
 
 ### What was built
