@@ -1,0 +1,851 @@
+/* =========================================================================
+   Student area — "Hunter's System" theme.
+   Dark-only. Anime HUD surfaces layered over shadcn polish.
+   Students only; admin/teacher/school-admin keep the light default theme.
+   ========================================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;700&display=swap');
+
+:root {
+    /* Background */
+    --sys-bg: #050816;
+    --sys-bg-deep: #020209;
+
+    /* Surfaces — semi-transparent dark, backdrop-blurred */
+    --sys-surface: rgba(17, 24, 39, 0.7);
+    --sys-surface-2: rgba(30, 41, 59, 0.55);
+    --sys-surface-3: rgba(51, 65, 85, 0.4);
+    --sys-surface-hover: rgba(34, 211, 238, 0.06);
+
+    /* Text */
+    --sys-text: #e2e8f0;
+    --sys-text-dim: #94a3b8;
+    --sys-text-muted: #64748b;
+
+    /* Borders */
+    --sys-border: rgba(148, 163, 184, 0.15);
+    --sys-border-soft: rgba(148, 163, 184, 0.08);
+    --sys-border-strong: rgba(148, 163, 184, 0.3);
+
+    /* Accents */
+    --sys-cyan: #22d3ee;
+    --sys-cyan-soft: rgba(34, 211, 238, 0.15);
+    --sys-violet: #a78bfa;
+    --sys-violet-soft: rgba(167, 139, 250, 0.15);
+    --sys-gold: #fbbf24;
+    --sys-gold-soft: rgba(251, 191, 36, 0.15);
+    --sys-crimson: #f43f5e;
+    --sys-crimson-soft: rgba(244, 63, 94, 0.15);
+    --sys-emerald: #10b981;
+    --sys-emerald-soft: rgba(16, 185, 129, 0.15);
+
+    /* Rank colors */
+    --rank-e: #9ca3af;
+    --rank-d: #10b981;
+    --rank-c: #22d3ee;
+    --rank-b: #a78bfa;
+    --rank-a: #fbbf24;
+
+    /* Typography */
+    --sys-font-sans: 'Geist', 'Inter', system-ui, -apple-system, sans-serif;
+    --sys-font-mono: 'Geist Mono', ui-monospace, 'SF Mono', 'Menlo', monospace;
+
+    /* Sizing */
+    --sys-radius: 12px;
+    --sys-radius-sm: 8px;
+    --sys-radius-lg: 16px;
+    --sys-sidebar-width: 240px;
+    --sys-rail-width: 340px;
+
+    /* Shadows / glows */
+    --sys-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.2);
+    --sys-glow-cyan: 0 0 20px rgba(34, 211, 238, 0.35);
+    --sys-glow-violet: 0 0 20px rgba(167, 139, 250, 0.35);
+    --sys-glow-gold: 0 0 20px rgba(251, 191, 36, 0.35);
+    --sys-glow-crimson: 0 0 20px rgba(244, 63, 94, 0.4);
+}
+
+/* =========================================================================
+   Base — applies whenever .sys-dark is on <html> or ancestor
+   ========================================================================= */
+
+html.sys-dark,
+body.sys-dark {
+    background:
+        radial-gradient(ellipse at top, #0a1026 0%, #050816 50%, #020209 100%);
+    color: var(--sys-text);
+    font-family: var(--sys-font-sans);
+    min-height: 100vh;
+}
+
+html.sys-dark body {
+    background:
+        /* Grid overlay — subtle */
+        linear-gradient(rgba(148, 163, 184, 0.04) 1px, transparent 1px) 0 0 / 40px 40px,
+        linear-gradient(90deg, rgba(148, 163, 184, 0.04) 1px, transparent 1px) 0 0 / 40px 40px,
+        /* Base radial */
+        radial-gradient(ellipse at top, #0a1026 0%, #050816 50%, #020209 100%);
+    margin: 0;
+}
+
+html.sys-dark a {
+    color: var(--sys-cyan);
+}
+
+html.sys-dark * {
+    box-sizing: border-box;
+}
+
+/* =========================================================================
+   Shell — grid layout for student pages
+   ========================================================================= */
+
+.sys-shell {
+    display: grid;
+    grid-template-columns: var(--sys-sidebar-width) 1fr;
+    min-height: 100vh;
+}
+
+.sys-shell--with-rail {
+    grid-template-columns: var(--sys-sidebar-width) 1fr var(--sys-rail-width);
+}
+
+@media (max-width: 900px) {
+    .sys-shell,
+    .sys-shell--with-rail {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* =========================================================================
+   Sidebar
+   ========================================================================= */
+
+.sys-sidebar {
+    background: rgba(5, 8, 22, 0.85);
+    border-right: 1px solid var(--sys-border);
+    backdrop-filter: blur(12px);
+    display: flex;
+    flex-direction: column;
+    padding: 1.25rem 0.75rem;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+}
+
+@media (max-width: 900px) {
+    .sys-sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: var(--sys-sidebar-width);
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+        z-index: 60;
+    }
+    .sys-sidebar.is-open {
+        transform: translateX(0);
+    }
+}
+
+.sys-sidebar-brand {
+    padding: 0.5rem 0.75rem 1.5rem;
+    font-family: var(--sys-font-mono);
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    color: var(--sys-text);
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+}
+
+.sys-sidebar-brand-bracket {
+    color: var(--sys-cyan);
+}
+
+.sys-sidebar-brand-text {
+    background: linear-gradient(135deg, var(--sys-cyan) 0%, var(--sys-violet) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.sys-sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    flex: 1;
+}
+
+.sys-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: var(--sys-radius-sm);
+    color: var(--sys-text-dim);
+    font-family: var(--sys-font-sans);
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s;
+    border-left: 2px solid transparent;
+}
+
+.sys-nav-link:hover {
+    background: var(--sys-surface-hover);
+    color: var(--sys-text);
+}
+
+.sys-nav-link--active {
+    background: var(--sys-cyan-soft);
+    color: var(--sys-cyan);
+    border-left-color: var(--sys-cyan);
+    box-shadow: inset 0 0 12px rgba(34, 211, 238, 0.1);
+}
+
+.sys-nav-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.sys-sidebar-hunter {
+    margin-top: auto;
+    padding: 0.75rem;
+    border-top: 1px solid var(--sys-border-soft);
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.sys-sidebar-hunter-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--sys-cyan) 0%, var(--sys-violet) 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-family: var(--sys-font-mono);
+    flex-shrink: 0;
+}
+
+.sys-sidebar-hunter-avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.sys-sidebar-hunter-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.sys-sidebar-hunter-name {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--sys-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sys-sidebar-hunter-meta {
+    font-size: 0.7rem;
+    color: var(--sys-text-muted);
+    font-family: var(--sys-font-mono);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.2rem;
+}
+
+.sys-sidebar-hunter-logout {
+    color: var(--sys-text-muted);
+    display: inline-flex;
+    padding: 0.35rem;
+    border-radius: 6px;
+    transition: color 0.15s, background 0.15s;
+}
+
+.sys-sidebar-hunter-logout:hover {
+    color: var(--sys-crimson);
+    background: var(--sys-crimson-soft);
+}
+
+/* =========================================================================
+   Main content
+   ========================================================================= */
+
+.sys-main {
+    padding: 2rem 2.5rem;
+    max-width: 1280px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+@media (max-width: 900px) {
+    .sys-main {
+        padding: 4.5rem 1rem 2rem;
+    }
+}
+
+/* Mobile hamburger toggle */
+.sys-mobile-toggle {
+    display: none;
+    position: fixed;
+    top: 0.75rem;
+    left: 0.75rem;
+    z-index: 70;
+    background: var(--sys-surface);
+    border: 1px solid var(--sys-border);
+    border-radius: var(--sys-radius-sm);
+    padding: 0.5rem;
+    color: var(--sys-text);
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+}
+
+@media (max-width: 900px) {
+    .sys-mobile-toggle {
+        display: inline-flex;
+    }
+}
+
+.sys-mobile-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 55;
+}
+
+.sys-mobile-backdrop.is-open {
+    display: block;
+}
+
+/* =========================================================================
+   Panel — the standard holographic card
+   ========================================================================= */
+
+.sys-panel {
+    position: relative;
+    background: var(--sys-surface);
+    border: 1px solid var(--sys-border);
+    border-radius: var(--sys-radius);
+    padding: 1.5rem;
+    backdrop-filter: blur(8px);
+    box-shadow: var(--sys-shadow);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.sys-panel:hover {
+    border-color: var(--sys-border-strong);
+    box-shadow: var(--sys-shadow), 0 0 20px rgba(34, 211, 238, 0.05);
+}
+
+.sys-panel--glow-cyan {
+    box-shadow: var(--sys-shadow), var(--sys-glow-cyan);
+    border-color: rgba(34, 211, 238, 0.3);
+}
+
+.sys-panel--glow-violet {
+    box-shadow: var(--sys-shadow), var(--sys-glow-violet);
+    border-color: rgba(167, 139, 250, 0.3);
+}
+
+.sys-panel--glow-gold {
+    box-shadow: var(--sys-shadow), var(--sys-glow-gold);
+    border-color: rgba(251, 191, 36, 0.3);
+}
+
+.sys-panel--urgent {
+    box-shadow: var(--sys-shadow), var(--sys-glow-crimson);
+    border-color: rgba(244, 63, 94, 0.4);
+}
+
+.sys-panel--compact {
+    padding: 1rem 1.25rem;
+}
+
+.sys-panel-title {
+    font-family: var(--sys-font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    color: var(--sys-text-dim);
+    text-transform: uppercase;
+    margin: 0 0 0.75rem;
+}
+
+.sys-panel-title::before {
+    content: '[ ';
+    color: var(--sys-cyan);
+}
+
+.sys-panel-title::after {
+    content: ' ]';
+    color: var(--sys-cyan);
+}
+
+.sys-panel-title--violet::before,
+.sys-panel-title--violet::after {
+    color: var(--sys-violet);
+}
+
+.sys-panel-title--gold::before,
+.sys-panel-title--gold::after {
+    color: var(--sys-gold);
+}
+
+.sys-panel-title--crimson::before,
+.sys-panel-title--crimson::after {
+    color: var(--sys-crimson);
+}
+
+/* Decorative corner brackets for featured panels */
+.sys-bracket-corners {
+    position: relative;
+}
+
+.sys-bracket-corners::before,
+.sys-bracket-corners::after {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--sys-cyan);
+    pointer-events: none;
+}
+
+.sys-bracket-corners::before {
+    top: -2px;
+    left: -2px;
+    border-right: none;
+    border-bottom: none;
+}
+
+.sys-bracket-corners::after {
+    bottom: -2px;
+    right: -2px;
+    border-left: none;
+    border-top: none;
+}
+
+/* =========================================================================
+   Buttons
+   ========================================================================= */
+
+.sys-btn-primary,
+.sys-btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.55rem 1.1rem;
+    border-radius: var(--sys-radius-sm);
+    font-family: var(--sys-font-sans);
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    border: 1px solid transparent;
+    text-decoration: none;
+    transition: all 0.15s;
+}
+
+.sys-btn-primary {
+    background: var(--sys-cyan);
+    color: #050816;
+    box-shadow: var(--sys-glow-cyan);
+}
+
+.sys-btn-primary:hover {
+    background: #06b6d4;
+    box-shadow: 0 0 28px rgba(34, 211, 238, 0.6);
+    transform: translateY(-1px);
+}
+
+.sys-btn-ghost {
+    background: transparent;
+    color: var(--sys-cyan);
+    border-color: var(--sys-cyan);
+}
+
+.sys-btn-ghost:hover {
+    background: var(--sys-cyan-soft);
+    box-shadow: var(--sys-glow-cyan);
+}
+
+.sys-btn-lg {
+    padding: 0.8rem 1.6rem;
+    font-size: 0.95rem;
+}
+
+/* =========================================================================
+   Progress bars
+   ========================================================================= */
+
+.sys-progress {
+    width: 100%;
+    height: 8px;
+    background: var(--sys-surface-3);
+    border-radius: 999px;
+    overflow: hidden;
+    border: 1px solid var(--sys-border-soft);
+}
+
+.sys-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--sys-gold) 0%, #fde047 100%);
+    box-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+    transition: width 0.4s ease;
+}
+
+.sys-progress--cyan .sys-progress-fill {
+    background: linear-gradient(90deg, var(--sys-cyan) 0%, #67e8f9 100%);
+    box-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
+}
+
+.sys-progress--violet .sys-progress-fill {
+    background: linear-gradient(90deg, var(--sys-violet) 0%, #c4b5fd 100%);
+    box-shadow: 0 0 10px rgba(167, 139, 250, 0.5);
+}
+
+.sys-progress--emerald .sys-progress-fill {
+    background: linear-gradient(90deg, var(--sys-emerald) 0%, #6ee7b7 100%);
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+}
+
+/* =========================================================================
+   Rank badges — hex-shaped
+   ========================================================================= */
+
+.sys-rank-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 44px;
+    font-family: var(--sys-font-mono);
+    font-weight: 700;
+    font-size: 1rem;
+    color: #050816;
+    clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+    flex-shrink: 0;
+}
+
+.sys-rank-badge--sm {
+    width: 22px;
+    height: 24px;
+    font-size: 0.7rem;
+}
+
+.sys-rank-badge--lg {
+    width: 64px;
+    height: 70px;
+    font-size: 1.5rem;
+}
+
+.sys-rank-badge--e { background: var(--rank-e); }
+.sys-rank-badge--d { background: var(--rank-d); box-shadow: 0 0 12px rgba(16, 185, 129, 0.5); }
+.sys-rank-badge--c { background: var(--rank-c); box-shadow: 0 0 12px rgba(34, 211, 238, 0.5); }
+.sys-rank-badge--b { background: var(--rank-b); box-shadow: 0 0 12px rgba(167, 139, 250, 0.5); }
+.sys-rank-badge--a { background: var(--rank-a); box-shadow: 0 0 14px rgba(251, 191, 36, 0.6); }
+.sys-rank-badge--s {
+    background: conic-gradient(from 0deg, #22d3ee, #a78bfa, #fbbf24, #22d3ee);
+    box-shadow: 0 0 16px rgba(167, 139, 250, 0.7);
+    color: white;
+}
+
+/* =========================================================================
+   Chips — small status tags
+   ========================================================================= */
+
+.sys-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+    font-family: var(--sys-font-mono);
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border: 1px solid transparent;
+}
+
+.sys-chip--cyan { background: var(--sys-cyan-soft); color: var(--sys-cyan); border-color: rgba(34, 211, 238, 0.3); }
+.sys-chip--violet { background: var(--sys-violet-soft); color: var(--sys-violet); border-color: rgba(167, 139, 250, 0.3); }
+.sys-chip--gold { background: var(--sys-gold-soft); color: var(--sys-gold); border-color: rgba(251, 191, 36, 0.3); }
+.sys-chip--crimson { background: var(--sys-crimson-soft); color: var(--sys-crimson); border-color: rgba(244, 63, 94, 0.3); }
+.sys-chip--emerald { background: var(--sys-emerald-soft); color: var(--sys-emerald); border-color: rgba(16, 185, 129, 0.3); }
+.sys-chip--muted { background: var(--sys-surface-3); color: var(--sys-text-muted); border-color: var(--sys-border); }
+
+/* =========================================================================
+   Mastery bars
+   ========================================================================= */
+
+.sys-mastery-row {
+    display: grid;
+    grid-template-columns: 100px 1fr 50px;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.4rem 0;
+}
+
+.sys-mastery-row-label {
+    font-size: 0.8125rem;
+    color: var(--sys-text-dim);
+}
+
+.sys-mastery-row-value {
+    font-family: var(--sys-font-mono);
+    font-size: 0.8rem;
+    color: var(--sys-text);
+    text-align: right;
+}
+
+/* =========================================================================
+   Streak grid
+   ========================================================================= */
+
+.sys-streak-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+}
+
+.sys-streak-day {
+    aspect-ratio: 1;
+    border-radius: 6px;
+    background: var(--sys-surface-3);
+    border: 1px solid var(--sys-border-soft);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--sys-font-mono);
+    font-size: 0.7rem;
+    color: var(--sys-text-muted);
+    position: relative;
+}
+
+.sys-streak-day--active {
+    background: var(--sys-emerald-soft);
+    border-color: var(--sys-emerald);
+    color: var(--sys-emerald);
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+}
+
+.sys-streak-day--today {
+    border-color: var(--sys-cyan);
+    color: var(--sys-cyan);
+    animation: sys-pulse 2s ease-in-out infinite;
+}
+
+/* =========================================================================
+   Mission items
+   ========================================================================= */
+
+.sys-mission-item {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.9rem 1rem;
+    border-radius: var(--sys-radius-sm);
+    background: var(--sys-surface-2);
+    border: 1px solid var(--sys-border-soft);
+    margin-bottom: 0.6rem;
+    transition: border-color 0.15s, background 0.15s;
+    cursor: pointer;
+    text-decoration: none;
+    color: var(--sys-text);
+}
+
+.sys-mission-item:hover {
+    border-color: var(--sys-cyan);
+    background: var(--sys-surface);
+}
+
+.sys-mission-item--completed {
+    opacity: 0.45;
+    cursor: default;
+}
+
+.sys-mission-item--urgent {
+    border-color: var(--sys-crimson);
+    box-shadow: 0 0 12px rgba(244, 63, 94, 0.2);
+}
+
+.sys-mission-number {
+    font-family: var(--sys-font-mono);
+    font-size: 0.9rem;
+    color: var(--sys-cyan);
+    font-weight: 600;
+    width: 1.5rem;
+    text-align: center;
+}
+
+.sys-mission-title {
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin: 0 0 0.2rem;
+}
+
+.sys-mission-desc {
+    font-size: 0.75rem;
+    color: var(--sys-text-dim);
+    margin: 0;
+}
+
+.sys-mission-reward {
+    font-family: var(--sys-font-mono);
+    font-size: 0.75rem;
+    color: var(--sys-gold);
+    white-space: nowrap;
+}
+
+/* =========================================================================
+   Animations
+   ========================================================================= */
+
+@keyframes sys-pulse {
+    0%, 100% {
+        opacity: 1;
+        box-shadow: 0 0 14px rgba(34, 211, 238, 0.3);
+    }
+    50% {
+        opacity: 0.85;
+        box-shadow: 0 0 24px rgba(34, 211, 238, 0.6);
+    }
+}
+
+@keyframes sys-reveal {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.sys-anim-pulse {
+    animation: sys-pulse 2s ease-in-out infinite;
+}
+
+.sys-anim-reveal {
+    animation: sys-reveal 0.4s ease-out both;
+}
+
+.sys-anim-reveal-stagger > * {
+    animation: sys-reveal 0.4s ease-out both;
+}
+.sys-anim-reveal-stagger > *:nth-child(1) { animation-delay: 0.05s; }
+.sys-anim-reveal-stagger > *:nth-child(2) { animation-delay: 0.1s; }
+.sys-anim-reveal-stagger > *:nth-child(3) { animation-delay: 0.15s; }
+.sys-anim-reveal-stagger > *:nth-child(4) { animation-delay: 0.2s; }
+.sys-anim-reveal-stagger > *:nth-child(5) { animation-delay: 0.25s; }
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* =========================================================================
+   Utility
+   ========================================================================= */
+
+.sys-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+.sys-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+.sys-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+
+@media (max-width: 900px) {
+    .sys-grid-2, .sys-grid-3, .sys-grid-4 {
+        grid-template-columns: 1fr;
+    }
+}
+
+.sys-flex { display: flex; }
+.sys-flex-col { display: flex; flex-direction: column; }
+.sys-gap-sm { gap: 0.5rem; }
+.sys-gap-md { gap: 1rem; }
+.sys-gap-lg { gap: 1.5rem; }
+.sys-items-center { align-items: center; }
+.sys-justify-between { justify-content: space-between; }
+.sys-mono { font-family: var(--sys-font-mono); }
+.sys-text-dim { color: var(--sys-text-dim); }
+.sys-text-muted { color: var(--sys-text-muted); }
+.sys-text-cyan { color: var(--sys-cyan); }
+.sys-text-violet { color: var(--sys-violet); }
+.sys-text-gold { color: var(--sys-gold); }
+.sys-text-emerald { color: var(--sys-emerald); }
+.sys-text-crimson { color: var(--sys-crimson); }
+.sys-mt-sm { margin-top: 0.5rem; }
+.sys-mt-md { margin-top: 1rem; }
+.sys-mt-lg { margin-top: 1.5rem; }
+.sys-mb-sm { margin-bottom: 0.5rem; }
+.sys-mb-md { margin-bottom: 1rem; }
+.sys-mb-lg { margin-bottom: 1.5rem; }
+
+.sys-stat-value {
+    font-family: var(--sys-font-mono);
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--sys-text);
+    line-height: 1;
+}
+
+.sys-stat-label {
+    font-family: var(--sys-font-mono);
+    font-size: 0.7rem;
+    color: var(--sys-text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 0.4rem;
+}
+
+.sys-stat-accent-cyan { color: var(--sys-cyan); }
+.sys-stat-accent-gold { color: var(--sys-gold); }
+.sys-stat-accent-violet { color: var(--sys-violet); }
+.sys-stat-accent-crimson { color: var(--sys-crimson); }
+
+/* =========================================================================
+   Integration — cancel base.html's light chrome when sys-dark is active.
+   These rules only fire on pages that put .sys-dark on <html>, so they
+   don't affect admin / teacher / school-admin templates.
+   ========================================================================= */
+
+html.sys-dark body.font-sans,
+html.sys-dark body {
+    background-color: transparent;
+}
+
+html.sys-dark nav.app-navbar {
+    display: none !important;
+}
+
+html.sys-dark main.min-h-screen {
+    min-height: 0 !important;
+    padding: 0 !important;
+}
+
+html.sys-dark main.min-h-screen > .max-w-7xl {
+    /* Preserve Django messages; just avoid the side padding clashing with the shell. */
+    max-width: 100%;
+    padding: 0.5rem 1rem;
+    margin: 0;
+}

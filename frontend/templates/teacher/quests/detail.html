@@ -1,0 +1,97 @@
+{% extends 'base/dashboard_base.html' %}
+
+{% block dashboard_title %}{{ assignment.title }}{% endblock %}
+{% block page_title %}{{ assignment.title }}{% endblock %}
+
+{% block page_subtitle %}
+<div class="flex items-center gap-2 mt-1 text-sm text-gray-600 flex-wrap">
+    <span class="px-2 py-0.5 rounded-full
+        {% if assignment.status == 'draft' %}bg-yellow-100 text-yellow-800
+        {% elif assignment.status == 'published' %}bg-green-100 text-green-800
+        {% else %}bg-gray-100 text-gray-600{% endif %}">{{ assignment.get_status_display|upper }}</span>
+    <span>&middot;</span>
+    <span>{{ assignment.class_obj.name }}</span>
+    {% if assignment.subject %}<span>&middot;</span><span>{{ assignment.subject.name }}</span>{% endif %}
+    <span>&middot;</span>
+    <span>Due {{ assignment.due_date|date:"M j, Y g:i A" }}</span>
+    <span>&middot;</span>
+    <span>{{ assignment.questions.count }} questions &middot; {{ assignment.total_marks }} marks</span>
+    <span>&middot;</span>
+    <span class="text-amber-600 font-medium">+{{ assignment.reward_xp }} XP on 100%</span>
+</div>
+{% endblock %}
+
+{% block page_actions %}
+{% if assignment.status == 'draft' %}
+<form method="post" action="{% url 'teacher:quest_publish' assignment.id %}">
+    {% csrf_token %}
+    <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition">Publish Quest</button>
+</form>
+{% elif assignment.status == 'published' %}
+<form method="post" action="{% url 'teacher:quest_archive' assignment.id %}"
+      onsubmit="return confirm('Archive this quest? Students will no longer see it.');">
+    {% csrf_token %}
+    <button type="submit" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg font-semibold hover:bg-gray-300 transition">Archive</button>
+</form>
+{% endif %}
+{% endblock %}
+
+{% block sidebar_nav %}
+<a href="{% url 'web:dashboard' %}" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 transition">Dashboard</a>
+<a href="{% url 'teacher:quest_list' %}" class="flex items-center px-6 py-3 text-gray-700 bg-indigo-50 border-r-4 border-indigo-600 transition">Quests</a>
+{% endblock %}
+
+{% block dashboard_content %}
+{% if messages %}
+  {% for message in messages %}
+    <div class="mb-4 p-3 rounded-lg {% if message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200{% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
+      {{ message }}
+    </div>
+  {% endfor %}
+{% endif %}
+
+{% if assignment.description %}
+<div class="bg-white rounded-xl shadow-md p-4 mb-4">
+    <h3 class="text-sm font-semibold text-gray-600 mb-1">DESCRIPTION</h3>
+    <p class="text-sm text-gray-800">{{ assignment.description }}</p>
+</div>
+{% endif %}
+
+<div class="bg-white rounded-xl shadow-md overflow-hidden">
+    <header class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-gray-800">Questions</h3>
+        <span class="text-xs text-gray-500">Review and confirm before publishing.</span>
+    </header>
+    <ol class="divide-y divide-gray-100">
+        {% for q in questions %}
+        <li class="p-5">
+            <div class="flex justify-between items-start mb-2">
+                <p class="font-medium text-gray-900">
+                    <span class="text-gray-400 font-mono mr-2">Q{{ forloop.counter|stringformat:"02d" }}</span>
+                    {{ q.question_text }}
+                </p>
+                <span class="ml-4 text-xs font-mono text-amber-600 whitespace-nowrap">{{ q.marks }} {{ q.marks|pluralize:"mark,marks" }}</span>
+            </div>
+            {% if q.options %}
+            <ul class="pl-6 mt-2 space-y-1">
+                {% for opt in q.options %}
+                <li class="flex items-start gap-2 text-sm">
+                    <span class="font-mono text-gray-500 mt-0.5">{{ opt.key }}.</span>
+                    <span class="{% if opt.key == q.correct_answer %}text-green-700 font-semibold{% else %}text-gray-700{% endif %}">{{ opt.text }}{% if opt.key == q.correct_answer %} &#10003;{% endif %}</span>
+                </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+            {% if q.explanation %}
+            <details class="mt-2">
+                <summary class="text-xs text-indigo-600 cursor-pointer hover:underline">Explanation</summary>
+                <p class="mt-1 text-xs text-gray-600 pl-4">{{ q.explanation }}</p>
+            </details>
+            {% endif %}
+        </li>
+        {% empty %}
+        <li class="p-6 text-center text-gray-500">No questions on this quest yet.</li>
+        {% endfor %}
+    </ol>
+</div>
+{% endblock %}

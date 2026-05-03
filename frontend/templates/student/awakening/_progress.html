@@ -1,0 +1,10 @@
+{% load static %}
+<div class="awakening-progress" style="display:flex; gap:0.5rem; justify-content:center; align-items:center; margin-bottom:2rem;">
+  {% for i in "12345" %}
+    {% with step_num=forloop.counter %}
+    <span class="awakening-progress-dot{% if step_num <= current_step %} awakening-progress-dot--done{% endif %}{% if step_num == current_step %} awakening-progress-dot--active{% endif %}"
+          style="width:10px; height:10px; border-radius:999px; background:{% if step_num == current_step %}var(--sys-cyan){% elif step_num < current_step %}var(--sys-cyan-soft){% else %}var(--sys-surface-3){% endif %}; box-shadow:{% if step_num == current_step %}0 0 10px var(--sys-cyan){% else %}none{% endif %};"></span>
+    {% endwith %}
+  {% endfor %}
+  <span class="sys-mono" style="margin-left:0.75rem; color:var(--sys-text-dim); font-size:0.8rem;">Step {{ current_step }} of {{ total_steps }}</span>
+</div>

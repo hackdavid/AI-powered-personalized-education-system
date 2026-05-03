@@ -1,0 +1,144 @@
+{% extends 'student/_shell.html' %}
+{% load static %}
+
+{% block title %}{{ subject.name }} · Codex · EduAI{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+.codex-subject-header { margin-bottom: 1.5rem; }
+.codex-breadcrumb {
+    font-family: var(--sys-font-mono);
+    font-size: 0.75rem;
+    color: var(--sys-text-dim);
+    letter-spacing: 0.1em;
+    margin: 0 0 0.5rem;
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+.codex-breadcrumb a { color: var(--sys-cyan); text-decoration: none; }
+.codex-breadcrumb a:hover { text-decoration: underline; }
+.codex-breadcrumb-sep { color: var(--sys-cyan); }
+.codex-subject-title {
+    font-family: var(--sys-font-mono);
+    font-size: 1.6rem;
+    color: var(--sys-text);
+    margin: 0 0 0.5rem;
+    letter-spacing: 0.03em;
+}
+.codex-subject-sub { color: var(--sys-text-dim); font-size: 0.9rem; margin: 0; }
+
+.codex-chapter {
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+}
+.codex-chapter-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+}
+.codex-chapter-title {
+    font-family: var(--sys-font-mono);
+    font-size: 1rem;
+    color: var(--sys-text);
+    margin: 0;
+    letter-spacing: 0.02em;
+}
+.codex-chapter-title a { color: inherit; text-decoration: none; }
+.codex-chapter-title a:hover { color: var(--sys-cyan); }
+.codex-chapter-number {
+    font-family: var(--sys-font-mono);
+    font-size: 0.75rem;
+    color: var(--sys-text-muted);
+    letter-spacing: 0.15em;
+}
+.codex-section-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin: 0.5rem 0 0;
+    padding-left: 1rem;
+    list-style: none;
+}
+.codex-section-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: var(--sys-radius-sm);
+    color: var(--sys-text-dim);
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: all 0.1s;
+    border-left: 2px solid var(--sys-border-soft);
+}
+.codex-section-link:hover {
+    background: var(--sys-surface-2);
+    color: var(--sys-text);
+    border-left-color: var(--sys-cyan);
+}
+.codex-section-kind {
+    font-family: var(--sys-font-mono);
+    font-size: 0.65rem;
+    color: var(--sys-text-muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-left: auto;
+}
+</style>
+{% endblock %}
+
+{% block student_content %}
+<header class="codex-subject-header">
+    <nav class="codex-breadcrumb">
+        <a href="{% url 'student:codex_list' %}">Codex</a>
+        <span class="codex-breadcrumb-sep">/</span>
+        <span>{{ subject.name }}</span>
+    </nav>
+    <h1 class="codex-subject-title">{{ subject.name }}</h1>
+    <p class="codex-subject-sub">
+        {{ chapter_count }} chapter{{ chapter_count|pluralize }}
+        {% if subject.description %} &middot; {{ subject.description }}{% endif %}
+    </p>
+</header>
+
+{% if rows %}
+<div class="sys-anim-reveal-stagger">
+    {% for row in rows %}
+    <section class="sys-panel codex-chapter">
+        <header class="codex-chapter-header">
+            <div>
+                <span class="codex-chapter-number">CH {{ forloop.counter|stringformat:"02d" }}</span>
+                <h3 class="codex-chapter-title">
+                    <a href="{% url 'student:codex_node' row.chapter.id %}">{{ row.chapter.title }}</a>
+                </h3>
+            </div>
+            <a href="{% url 'student:codex_node' row.chapter.id %}" class="sys-btn-ghost" style="font-size:0.75rem; padding:0.3rem 0.75rem;">Open &rarr;</a>
+        </header>
+        {% if row.sections %}
+        <ul class="codex-section-list">
+            {% for section in row.sections %}
+            <li>
+                <a href="{% url 'student:codex_node' section.id %}" class="codex-section-link">
+                    <span>{{ section.title }}</span>
+                    <span class="codex-section-kind">{{ section.node_type|upper }}</span>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="sys-text-muted" style="font-size:0.8rem; margin:0.25rem 0 0 1rem; font-style:italic;">No sections yet in this chapter.</p>
+        {% endif %}
+    </section>
+    {% endfor %}
+</div>
+{% else %}
+<div class="sys-panel" style="text-align:center; padding:3rem; color:var(--sys-text-dim);">
+    <p>No chapters indexed for {{ subject.name }} yet.</p>
+</div>
+{% endif %}
+{% endblock %}

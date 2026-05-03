@@ -1,0 +1,230 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Quest Chamber · {{ assignment.title }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/student-theme.css' %}">
+<script>document.documentElement.classList.add('sys-dark');</script>
+<style>
+body { overflow: hidden; }
+.chamber {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    background:
+        radial-gradient(ellipse at top, #0a1026 0%, #050816 50%, #020209 100%);
+    color: var(--sys-text);
+}
+.chamber-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 2rem;
+    border-bottom: 1px solid var(--sys-border);
+    background: rgba(5, 8, 22, 0.85);
+    backdrop-filter: blur(12px);
+    flex-shrink: 0;
+}
+.chamber-title-label {
+    font-family: var(--sys-font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    color: var(--sys-cyan);
+    text-transform: uppercase;
+    margin: 0 0 0.15rem;
+}
+.chamber-title {
+    font-family: var(--sys-font-mono);
+    font-size: 1rem;
+    color: var(--sys-text);
+    margin: 0;
+    letter-spacing: 0.02em;
+}
+.chamber-progress {
+    display: flex;
+    gap: 0.4rem;
+    align-items: center;
+}
+.chamber-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--sys-surface-3);
+    border: 1px solid var(--sys-border-soft);
+    transition: all 0.2s;
+}
+.chamber-dot--current {
+    background: var(--sys-cyan);
+    box-shadow: 0 0 10px rgba(34, 211, 238, 0.6);
+}
+.chamber-dot--answered {
+    background: var(--sys-emerald);
+    border-color: var(--sys-emerald);
+}
+
+.chamber-body {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    justify-content: center;
+    padding: 2rem 1rem;
+}
+.chamber-card {
+    width: 100%;
+    max-width: 720px;
+}
+.chamber-q-meta {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+.chamber-q-label {
+    font-family: var(--sys-font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    color: var(--sys-text-dim);
+    text-transform: uppercase;
+}
+.chamber-q-text {
+    font-size: 1.15rem;
+    color: var(--sys-text);
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+.chamber-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+.chamber-option {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: var(--sys-surface-2);
+    border: 1px solid var(--sys-border);
+    border-radius: var(--sys-radius-sm);
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--sys-text);
+}
+.chamber-option:hover {
+    border-color: var(--sys-cyan);
+    background: var(--sys-surface);
+}
+.chamber-option--selected {
+    border-color: var(--sys-cyan);
+    background: var(--sys-cyan-soft);
+    box-shadow: 0 0 14px rgba(34, 211, 238, 0.25);
+}
+.chamber-option-key {
+    font-family: var(--sys-font-mono);
+    font-weight: 700;
+    color: var(--sys-cyan);
+    width: 24px;
+    text-align: center;
+    font-size: 0.95rem;
+}
+.chamber-option-text {
+    flex: 1;
+    font-size: 0.95rem;
+}
+
+.chamber-textarea {
+    width: 100%;
+    min-height: 150px;
+    padding: 1rem;
+    background: var(--sys-surface-2);
+    border: 1px solid var(--sys-border);
+    border-radius: var(--sys-radius-sm);
+    color: var(--sys-text);
+    font-family: var(--sys-font-sans);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    resize: vertical;
+}
+.chamber-textarea:focus {
+    outline: none;
+    border-color: var(--sys-cyan);
+    box-shadow: 0 0 14px rgba(34, 211, 238, 0.25);
+}
+
+.chamber-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 2rem;
+    border-top: 1px solid var(--sys-border);
+    background: rgba(5, 8, 22, 0.85);
+    backdrop-filter: blur(12px);
+    flex-shrink: 0;
+}
+.chamber-footer-left,
+.chamber-footer-right {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+.chamber-save-status {
+    font-family: var(--sys-font-mono);
+    font-size: 0.7rem;
+    color: var(--sys-text-muted);
+    letter-spacing: 0.1em;
+}
+.chamber-save-status--saving { color: var(--sys-cyan); }
+.chamber-save-status--saved { color: var(--sys-emerald); }
+.chamber-save-status--error { color: var(--sys-crimson); }
+</style>
+{% endblock %}
+
+{% block content %}
+<meta name="csrf-token" content="{{ csrf_token }}">
+<div class="chamber" data-assignment-id="{{ assignment.id }}">
+    <header class="chamber-topbar">
+        <div>
+            <p class="chamber-title-label">[ QUEST CHAMBER ]</p>
+            <h1 class="chamber-title">{{ assignment.title }}</h1>
+        </div>
+        <div class="chamber-progress" id="chamber-progress" aria-label="Question progress"></div>
+        <a href="{% url 'student:quest_list' %}" class="sys-btn-ghost" id="chamber-exit">Exit Chamber</a>
+    </header>
+
+    <main class="chamber-body">
+        <section class="sys-panel sys-bracket-corners chamber-card" id="chamber-card">
+            <div class="chamber-q-meta">
+                <span class="sys-chip sys-chip--violet" id="chamber-q-number">Q 1 / ?</span>
+                <span class="sys-chip sys-chip--gold" id="chamber-q-marks">1 mark</span>
+            </div>
+            <p class="chamber-q-text" id="chamber-q-text">Loading...</p>
+            <div id="chamber-q-interact"></div>
+        </section>
+    </main>
+
+    <footer class="chamber-footer">
+        <div class="chamber-footer-left">
+            <button type="button" class="sys-btn-ghost" id="chamber-prev">&larr; Prev</button>
+            <button type="button" class="sys-btn-ghost" id="chamber-next">Next &rarr;</button>
+        </div>
+        <div class="chamber-save-status" id="chamber-save-status">Loaded</div>
+        <div class="chamber-footer-right">
+            <button type="button" class="sys-btn-primary sys-btn-lg" id="chamber-submit">[ SUBMIT QUEST ]</button>
+        </div>
+    </footer>
+</div>
+
+{{ questions_payload|json_script:"quest-payload" }}
+<script>
+    window.__QUEST_PAYLOAD__ = JSON.parse(document.getElementById('quest-payload').textContent);
+    window.__QUEST_SAVE_URL__ = "{% url 'student:quest_save_draft' assignment.id %}";
+    window.__QUEST_SUBMIT_URL__ = "{% url 'student:quest_submit' assignment.id %}";
+    window.__QUEST_RESULTS_URL__ = "{% url 'student:quest_results' assignment.id %}";
+    window.__QUEST_LIST_URL__ = "{% url 'student:quest_list' %}";
+</script>
+<script src="{% static 'js/student/quest_chamber.js' %}"></script>
+{% endblock %}
+
+{% block footer %}{% endblock %}

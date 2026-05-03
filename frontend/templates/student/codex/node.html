@@ -1,0 +1,331 @@
+{% extends 'student/_shell.html' %}
+{% load static %}
+
+{% block title %}{{ node.title }} · Codex · EduAI{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
+      integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV"
+      crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github-dark.min.css">
+<style>
+.codex-node-header { margin-bottom: 1.5rem; }
+.codex-node-breadcrumb {
+    font-family: var(--sys-font-mono);
+    font-size: 0.75rem;
+    color: var(--sys-text-dim);
+    letter-spacing: 0.1em;
+    margin: 0 0 0.75rem;
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+.codex-node-breadcrumb a { color: var(--sys-cyan); text-decoration: none; }
+.codex-node-breadcrumb a:hover { text-decoration: underline; }
+.codex-node-breadcrumb-sep { color: var(--sys-cyan); }
+
+.codex-node-kind-chip {
+    font-family: var(--sys-font-mono);
+    font-size: 0.7rem;
+    color: var(--sys-violet);
+    background: var(--sys-violet-soft);
+    padding: 0.15rem 0.6rem;
+    border-radius: 999px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    display: inline-block;
+    margin-bottom: 0.5rem;
+}
+
+.codex-node-title {
+    font-family: var(--sys-font-mono);
+    font-size: 1.6rem;
+    color: var(--sys-text);
+    margin: 0 0 0.5rem;
+    letter-spacing: 0.03em;
+}
+.codex-node-meta {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    color: var(--sys-text-muted);
+    font-family: var(--sys-font-mono);
+    font-size: 0.75rem;
+}
+
+.codex-node-content {
+    color: var(--sys-text);
+    font-family: var(--sys-font-sans);
+    font-size: 0.95rem;
+    line-height: 1.7;
+}
+.codex-node-content h1,
+.codex-node-content h2,
+.codex-node-content h3,
+.codex-node-content h4 {
+    font-family: var(--sys-font-mono);
+    color: var(--sys-text);
+    margin: 1.25rem 0 0.5rem;
+    letter-spacing: 0.02em;
+}
+.codex-node-content h2 { font-size: 1.1rem; }
+.codex-node-content h3 { font-size: 1rem; }
+.codex-node-content p { margin: 0 0 0.75rem; }
+.codex-node-content ul,
+.codex-node-content ol { padding-left: 1.5rem; margin: 0 0 0.75rem; }
+.codex-node-content li { margin-bottom: 0.3rem; }
+.codex-node-content code {
+    background: var(--sys-surface-3);
+    color: var(--sys-cyan);
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+    font-family: var(--sys-font-mono);
+    font-size: 0.9em;
+}
+.codex-node-content pre {
+    background: var(--sys-surface-3);
+    padding: 0.75rem 1rem;
+    border-radius: var(--sys-radius-sm);
+    overflow-x: auto;
+    border: 1px solid var(--sys-border-soft);
+    margin: 0.75rem 0;
+}
+.codex-node-content pre code {
+    background: transparent;
+    padding: 0;
+    color: var(--sys-text);
+}
+.codex-node-content blockquote {
+    border-left: 3px solid var(--sys-cyan);
+    padding: 0.4rem 1rem;
+    margin: 0.75rem 0;
+    color: var(--sys-text-dim);
+    background: rgba(34, 211, 238, 0.04);
+}
+.codex-node-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 0.9rem;
+}
+.codex-node-content th,
+.codex-node-content td {
+    border: 1px solid var(--sys-border);
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+}
+.codex-node-content th {
+    background: var(--sys-surface-2);
+    color: var(--sys-text-dim);
+    font-family: var(--sys-font-mono);
+    font-size: 0.8rem;
+}
+.codex-node-content strong { color: var(--sys-text); }
+.codex-node-content em { color: var(--sys-text-dim); }
+.codex-node-content a { color: var(--sys-cyan); }
+
+.codex-ctas {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin: 2rem 0 1rem;
+}
+
+.codex-children {
+    margin-top: 1.5rem;
+}
+.codex-children-heading { margin-bottom: 0.75rem; }
+.codex-child-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+    border-radius: var(--sys-radius-sm);
+    color: var(--sys-text-dim);
+    text-decoration: none;
+    background: var(--sys-surface-2);
+    border: 1px solid var(--sys-border-soft);
+    margin-bottom: 0.4rem;
+    transition: all 0.15s;
+}
+.codex-child-link:hover {
+    color: var(--sys-text);
+    border-color: var(--sys-cyan);
+    background: var(--sys-surface);
+}
+.codex-child-kind {
+    font-family: var(--sys-font-mono);
+    font-size: 0.65rem;
+    color: var(--sys-text-muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-left: auto;
+}
+
+.codex-sibling-nav {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--sys-border-soft);
+    gap: 1rem;
+}
+.codex-sibling-link {
+    color: var(--sys-text-dim);
+    text-decoration: none;
+    font-size: 0.85rem;
+    padding: 0.5rem 0.9rem;
+    border-radius: var(--sys-radius-sm);
+    border: 1px solid var(--sys-border-soft);
+    background: var(--sys-surface-2);
+    transition: all 0.15s;
+    max-width: 48%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.codex-sibling-link:hover {
+    color: var(--sys-cyan);
+    border-color: var(--sys-cyan);
+}
+.codex-sibling-dir {
+    font-family: var(--sys-font-mono);
+    font-size: 0.7rem;
+    color: var(--sys-text-muted);
+    letter-spacing: 0.1em;
+    display: block;
+    margin-bottom: 0.15rem;
+}
+</style>
+{% endblock %}
+
+{% block student_content %}
+<article>
+    <header class="codex-node-header">
+        <nav class="codex-node-breadcrumb">
+            <a href="{% url 'student:codex_list' %}">Codex</a>
+            {% if node.subject %}
+                <span class="codex-node-breadcrumb-sep">/</span>
+                <a href="{% url 'student:codex_subject' node.subject.id %}">{{ node.subject.name }}</a>
+            {% endif %}
+            {% for b in breadcrumb %}
+                <span class="codex-node-breadcrumb-sep">/</span>
+                <a href="{% url 'student:codex_node' b.id %}">{{ b.title }}</a>
+            {% endfor %}
+            <span class="codex-node-breadcrumb-sep">/</span>
+            <span>{{ node.title }}</span>
+        </nav>
+        <span class="codex-node-kind-chip">{{ node.node_type }}</span>
+        <h1 class="codex-node-title">{{ node.title }}</h1>
+        <div class="codex-node-meta">
+            {% if node.subject %}<span>{{ node.subject.name }}</span>{% endif %}
+            {% if node.document %}<span>&middot; {{ node.document.title }}</span>{% endif %}
+            {% if node.page_number %}<span>&middot; p. {{ node.page_number }}</span>{% endif %}
+            {% if node.difficulty %}<span>&middot; {{ node.get_difficulty_display }}</span>{% endif %}
+        </div>
+    </header>
+
+    {% if node.content %}
+    <section class="sys-panel">
+        <div class="codex-node-content" id="codex-node-content" data-raw-content="{{ node.content|escape }}">
+            <div class="sys-text-muted sys-mono" style="padding:2rem; text-align:center;">Loading content…</div>
+        </div>
+    </section>
+    {% else %}
+    <section class="sys-panel" style="padding:2rem; color:var(--sys-text-dim); text-align:center;">
+        <p class="sys-mono" style="letter-spacing:0.1em;">[ NO CONTENT ]</p>
+        <p style="margin-top:0.4rem;">This node is a structural container. Pick a child below to read its content.</p>
+    </section>
+    {% endif %}
+
+    <div class="codex-ctas">
+        <a href="{% url 'student:chat' %}?topic={{ node.id }}" class="sys-btn-primary">
+            Ask the System Advisor about this
+        </a>
+        <a href="{% url 'student:hunt_new' %}?title=Master+{{ node.title|urlencode }}{% if node.subject %}&subject={{ node.subject.id }}{% endif %}" class="sys-btn-ghost">
+            Start a Hunt on this
+        </a>
+    </div>
+
+    {% if children %}
+    <section class="codex-children">
+        <h3 class="sys-panel-title codex-children-heading">SUB-TOPICS</h3>
+        {% for c in children %}
+        <a href="{% url 'student:codex_node' c.id %}" class="codex-child-link">
+            <span>{{ c.title }}</span>
+            <span class="codex-child-kind">{{ c.node_type }}</span>
+        </a>
+        {% endfor %}
+    </section>
+    {% endif %}
+
+    <nav class="codex-sibling-nav">
+        <div>
+            {% if prev_sibling %}
+            <a href="{% url 'student:codex_node' prev_sibling.id %}" class="codex-sibling-link">
+                <span class="codex-sibling-dir">&larr; PREVIOUS</span>
+                {{ prev_sibling.title }}
+            </a>
+            {% endif %}
+        </div>
+        <div>
+            {% if next_sibling %}
+            <a href="{% url 'student:codex_node' next_sibling.id %}" class="codex-sibling-link" style="text-align:right;">
+                <span class="codex-sibling-dir">NEXT &rarr;</span>
+                {{ next_sibling.title }}
+            </a>
+            {% endif %}
+        </div>
+    </nav>
+</article>
+{% endblock %}
+
+{% block student_extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.9/dist/purify.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
+        integrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8"
+        crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+        integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05"
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<script>
+(function () {
+    const el = document.getElementById('codex-node-content');
+    if (!el) return;
+    const raw = el.getAttribute('data-raw-content') || '';
+    if (typeof marked === 'undefined') {
+        el.textContent = raw;
+        return;
+    }
+    let html = marked.parse(raw);
+    if (window.DOMPurify) {
+        html = DOMPurify.sanitize(html);
+    }
+    el.innerHTML = html;
+
+    // KaTeX (if math is present)
+    if (window.renderMathInElement) {
+        window.renderMathInElement(el, {
+            delimiters: [
+                { left: '$$', right: '$$', display: true },
+                { left: '$', right: '$', display: false },
+            ],
+            throwOnError: false,
+        });
+    }
+
+    // Syntax highlight fenced code blocks
+    if (window.hljs) {
+        el.querySelectorAll('pre code').forEach(block => {
+            try { window.hljs.highlightElement(block); } catch (_) {}
+        });
+    }
+})();
+</script>
+{% endblock %}

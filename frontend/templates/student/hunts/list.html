@@ -1,0 +1,177 @@
+{% extends 'student/_shell.html' %}
+{% load static %}
+
+{% block title %}Hunts · EduAI{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+.hunt-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+.hunt-header-text h1 {
+    font-family: var(--sys-font-mono);
+    font-size: 1.4rem;
+    letter-spacing: 0.08em;
+    color: var(--sys-text);
+    margin: 0 0 0.25rem;
+}
+.hunt-header-sub { color: var(--sys-text-dim); font-size: 0.85rem; margin: 0; }
+
+.hunt-card {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1.25rem;
+    align-items: center;
+    padding: 1.25rem;
+    margin-bottom: 0.75rem;
+    text-decoration: none;
+    color: var(--sys-text);
+    border-left: 3px solid transparent;
+    transition: all 0.15s;
+}
+.hunt-card:hover { border-left-color: var(--sys-gold); }
+.hunt-card-title {
+    font-family: var(--sys-font-mono);
+    font-size: 1.05rem;
+    color: var(--sys-text);
+    margin: 0 0 0.35rem;
+    letter-spacing: 0.02em;
+}
+.hunt-card-meta {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    font-size: 0.75rem;
+    color: var(--sys-text-muted);
+    margin-bottom: 0.75rem;
+}
+.hunt-card-desc {
+    font-size: 0.85rem;
+    color: var(--sys-text-dim);
+    margin: 0 0 0.6rem;
+}
+.hunt-card-progress-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 0.75rem;
+}
+.hunt-card-progress-label {
+    font-family: var(--sys-font-mono);
+    font-size: 0.75rem;
+    color: var(--sys-text-dim);
+    white-space: nowrap;
+}
+.hunt-card-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+    white-space: nowrap;
+}
+.hunt-card-xp {
+    font-family: var(--sys-font-mono);
+    color: var(--sys-gold);
+    font-size: 0.9rem;
+}
+
+.hunt-empty {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: var(--sys-text-dim);
+    font-family: var(--sys-font-mono);
+}
+.hunt-empty-title {
+    color: var(--sys-text);
+    font-size: 1rem;
+    letter-spacing: 0.1em;
+    margin: 0 0 0.5rem;
+}
+
+.hunt-group-title {
+    margin-top: 2rem;
+    margin-bottom: 0.75rem;
+}
+</style>
+{% endblock %}
+
+{% block student_content %}
+<div class="hunt-header">
+    <div class="hunt-header-text">
+        <h1>[ HUNT LOG ]</h1>
+        <p class="hunt-header-sub">Your self-set goals, decomposed by the System into a dungeon chain.</p>
+    </div>
+    <a href="{% url 'student:hunt_new' %}" class="sys-btn-primary sys-btn-lg">+ Begin Hunt</a>
+</div>
+
+{% if group_counts.active == 0 and group_counts.completed == 0 and group_counts.expired == 0 %}
+<div class="sys-panel hunt-empty sys-panel--glow-gold">
+    <h3 class="hunt-empty-title">[ NO HUNTS YET ]</h3>
+    <p>Declare a learning goal and the System will decompose it into 6-8 tasks, a final boss, and a XP payoff.</p>
+    <a href="{% url 'student:hunt_new' %}" class="sys-btn-primary sys-mt-md">Deploy your first Hunt</a>
+</div>
+{% endif %}
+
+{% if groups.active %}
+<h3 class="sys-panel-title hunt-group-title">ACTIVE HUNTS ({{ group_counts.active }})</h3>
+{% for g in groups.active %}
+<a href="{% url 'student:hunt_detail' g.id %}" class="sys-panel hunt-card">
+    <div>
+        <h3 class="hunt-card-title">{{ g.title }}</h3>
+        <div class="hunt-card-meta">
+            {% if g.subject %}<span class="sys-chip sys-chip--cyan">{{ g.subject.name }}</span>{% endif %}
+            <span class="sys-chip sys-chip--gold">{{ g.days_remaining }}d left</span>
+            <span class="sys-mono">Node {{ g.tasks.all|length }} tasks</span>
+        </div>
+        {% if g.description %}<p class="hunt-card-desc">{{ g.description|truncatechars:120 }}</p>{% endif %}
+        <div class="hunt-card-progress-row">
+            <div class="sys-progress sys-progress--violet">
+                <div class="sys-progress-fill" style="width: {{ g.progress_pct }}%;"></div>
+            </div>
+            <span class="hunt-card-progress-label">{{ g.progress_pct }}%</span>
+        </div>
+    </div>
+    <div class="hunt-card-right">
+        <span class="hunt-card-xp">+{{ g.xp_reward }} XP on clear</span>
+        <span class="sys-chip sys-chip--cyan">OPEN MAP</span>
+    </div>
+</a>
+{% endfor %}
+{% endif %}
+
+{% if groups.completed %}
+<h3 class="sys-panel-title sys-panel-title--gold hunt-group-title">COMPLETED ({{ group_counts.completed }})</h3>
+{% for g in groups.completed %}
+<a href="{% url 'student:hunt_detail' g.id %}" class="sys-panel hunt-card" style="opacity:0.75;">
+    <div>
+        <h3 class="hunt-card-title">{{ g.title }}</h3>
+        <div class="hunt-card-meta">
+            <span class="sys-chip sys-chip--emerald">CLEARED</span>
+            {% if g.subject %}<span class="sys-chip sys-chip--muted">{{ g.subject.name }}</span>{% endif %}
+        </div>
+    </div>
+    <div class="hunt-card-right">
+        <span class="sys-chip sys-chip--gold">+{{ g.xp_reward }} XP earned</span>
+    </div>
+</a>
+{% endfor %}
+{% endif %}
+
+{% if groups.expired %}
+<h3 class="sys-panel-title sys-panel-title--crimson hunt-group-title">EXPIRED / ABANDONED ({{ group_counts.expired }})</h3>
+{% for g in groups.expired %}
+<a href="{% url 'student:hunt_detail' g.id %}" class="sys-panel hunt-card" style="opacity:0.5;">
+    <div>
+        <h3 class="hunt-card-title">{{ g.title }}</h3>
+        <div class="hunt-card-meta">
+            <span class="sys-chip sys-chip--muted">{{ g.get_status_display }}</span>
+        </div>
+    </div>
+</a>
+{% endfor %}
+{% endif %}
+{% endblock %}

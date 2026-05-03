@@ -1,0 +1,112 @@
+{% extends 'student/_shell.html' %}
+{% load static %}
+
+{% block title %}Awakening · Identity · EduAI{% endblock %}
+
+{% block student_content %}
+<div class="awakening-hero" style="max-width: 720px; margin: 0 auto; padding: 2rem 0;">
+  {% include 'student/awakening/_progress.html' %}
+
+  <section class="sys-panel sys-bracket-corners sys-anim-reveal" style="padding: 2rem;">
+    <h2 class="sys-panel-title" style="text-align:center; margin-bottom: 1.5rem;">HUNTER IDENTITY</h2>
+
+    {% if error %}
+    <div class="sys-panel sys-panel--urgent sys-mb-md" style="padding: 0.75rem 1rem;">
+      <p class="sys-mono sys-text-crimson" style="font-size: 0.8rem; margin: 0;">{{ error }}</p>
+    </div>
+    {% endif %}
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      <div class="sys-mono sys-text-dim sys-mb-sm"
+           style="font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase;">
+        Choose your Hunter Title
+      </div>
+      <div class="awakening-titles-grid sys-mb-lg"
+           style="display:grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem;">
+        {% for t in titles %}
+        <label class="awakening-option-card{% if selected_title == t.key %} awakening-option-card--selected{% endif %}"
+               data-role="title-card"
+               style="cursor:pointer; display:block; padding: 1rem; border-radius: var(--sys-radius-sm); background: var(--sys-surface-2); border: 1px solid {% if selected_title == t.key %}var(--sys-cyan){% else %}var(--sys-border){% endif %}; box-shadow: {% if selected_title == t.key %}var(--sys-glow-cyan){% else %}none{% endif %}; transition: border-color 0.15s, box-shadow 0.15s;">
+          <input type="radio" name="hunter_title" value="{{ t.key }}"
+                 {% if selected_title == t.key %}checked{% endif %}
+                 style="position:absolute; opacity:0; pointer-events:none;">
+          <div class="sys-flex sys-items-center sys-justify-between sys-mb-sm">
+            <span class="sys-mono sys-text-cyan" style="font-size: 0.95rem; font-weight: 600;">{{ t.name }}</span>
+            <span class="sys-chip sys-chip--muted" style="font-size: 0.65rem;">{{ t.tag }}</span>
+          </div>
+          <p class="sys-text-dim" style="font-size: 0.8rem; margin: 0;">{{ t.desc }}</p>
+        </label>
+        {% endfor %}
+      </div>
+
+      <div class="sys-mono sys-text-dim sys-mb-sm"
+           style="font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase;">
+        Pick up to 5 interests
+      </div>
+      <div class="awakening-tags sys-mb-lg" style="display:flex; flex-wrap:wrap; gap: 0.5rem;">
+        {% for tag in interest_tags %}
+        <label class="awakening-tag-chip" data-role="tag-chip"
+               style="cursor:pointer; display:inline-flex; align-items:center; user-select:none;">
+          <input type="checkbox" name="interest_tags" value="{{ tag }}"
+                 {% if tag in selected_tags %}checked{% endif %}
+                 style="position:absolute; opacity:0; pointer-events:none;">
+          <span class="sys-chip {% if tag in selected_tags %}sys-chip--cyan{% else %}sys-chip--muted{% endif %}"
+                data-role="tag-chip-visual"
+                style="cursor:pointer;">
+            {{ tag }}
+          </span>
+        </label>
+        {% endfor %}
+      </div>
+
+      <div style="text-align:center;">
+        <button type="submit" class="sys-btn-primary sys-btn-lg">Continue &rarr;</button>
+      </div>
+    </form>
+  </section>
+</div>
+
+<script>
+(function() {
+  // Hunter title picker: click card → select radio and update visual state.
+  document.querySelectorAll('[data-role="title-card"]').forEach(function(card) {
+    card.addEventListener('click', function(ev) {
+      // Don't double-toggle when the native radio input click bubbles back up.
+      if (ev.target.tagName === 'INPUT') return;
+      var radio = card.querySelector('input[type="radio"]');
+      if (!radio) return;
+      radio.checked = true;
+      document.querySelectorAll('[data-role="title-card"]').forEach(function(c) {
+        c.classList.remove('awakening-option-card--selected');
+        c.style.borderColor = 'var(--sys-border)';
+        c.style.boxShadow = 'none';
+      });
+      card.classList.add('awakening-option-card--selected');
+      card.style.borderColor = 'var(--sys-cyan)';
+      card.style.boxShadow = 'var(--sys-glow-cyan)';
+    });
+  });
+
+  // Interest tag toggles.
+  document.querySelectorAll('[data-role="tag-chip"]').forEach(function(label) {
+    var input = label.querySelector('input[type="checkbox"]');
+    var chip = label.querySelector('[data-role="tag-chip-visual"]');
+    if (!input || !chip) return;
+    label.addEventListener('click', function(ev) {
+      if (ev.target.tagName === 'INPUT') return;
+      ev.preventDefault();
+      input.checked = !input.checked;
+      if (input.checked) {
+        chip.classList.remove('sys-chip--muted');
+        chip.classList.add('sys-chip--cyan');
+      } else {
+        chip.classList.remove('sys-chip--cyan');
+        chip.classList.add('sys-chip--muted');
+      }
+    });
+  });
+})();
+</script>
+{% endblock %}

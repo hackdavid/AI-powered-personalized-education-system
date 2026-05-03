@@ -1,0 +1,36 @@
+{% extends 'student/_shell.html' %}
+{% load static %}
+
+{% block title %}Awakening · EduAI{% endblock %}
+
+{% block student_content %}
+<div class="awakening-hero" style="max-width: 720px; margin: 0 auto; padding: 2rem 0;">
+  <section class="sys-panel sys-panel--glow-cyan sys-bracket-corners sys-anim-reveal"
+           style="padding: 2.5rem;">
+    <div class="sys-mono sys-text-dim sys-mb-md"
+         style="font-size: 0.75rem; letter-spacing: 0.22em; text-transform: uppercase; text-align:center;">
+      [ SYSTEM NOTICE ]
+    </div>
+    <h1 class="sys-mono sys-text-cyan"
+        style="font-size: 2.25rem; font-weight: 700; margin: 0 0 1.25rem; text-align:center;">
+      Awakening Required
+    </h1>
+    <p style="font-size: 1rem; line-height: 1.65; color: var(--sys-text); margin: 0 0 1.25rem;">
+      An anomaly has been detected in your learning record. The System has assigned you for
+      evaluation, <strong class="sys-text-cyan">Hunter {{ user.first_name|default:user.email }}</strong>.
+      This Awakening will calibrate your starting rank, unlock your daily missions, and initialize
+      your Codex access.
+    </p>
+    <p class="sys-mono sys-text-dim"
+       style="font-size: 0.85rem; margin: 0 0 2rem;">
+      Estimated time: 4 minutes.
+    </p>
+    <div style="text-align:center;">
+      <a href="{% url 'student:awakening_identity' %}"
+         class="sys-btn-primary sys-btn-lg">
+        Begin Awakening &rarr;
+      </a>
+    </div>
+  </section>
+</div>
+{% endblock %}
