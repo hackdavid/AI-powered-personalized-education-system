@@ -42,8 +42,19 @@ def hunt_list_view(request):
     # Expire any overdue active hunts before rendering
     today = timezone.localdate()
     for g in list(qs.filter(status=Goal.STATUS_ACTIVE, target_date__lt=today)):
-        g.status = Goal.STATUS_EXPIRED
-        g.save(update_fields=['status', 'updated_at'])
+        partial = g.close_as_expired()
+        if partial > 0:
+            try:
+                award_xp(
+                    request.user,
+                    source=XPLedger.SOURCE_HUNT_COMPLETE,
+                    amount=partial,
+                    description=f'Hunt expired at {g.progress_pct}%: {g.title[:100]}',
+                    related_object_type='hunt',
+                    related_object_id=g.id,
+                )
+            except Exception as exc:
+                logger.warning('Partial XP on hunt expiry failed: %s', exc)
 
     groups = {
         'active': [g for g in qs if g.status == Goal.STATUS_ACTIVE],
@@ -259,6 +270,18 @@ def hunt_task_quiz_view(request, task_pk):
             # Second award can also level-up / rank-up
             leveled_up = leveled_up or bonus.leveled_up
             ranked_up = ranked_up or bonus.ranked_up
+
+        # Bump mastery on the goal's subject when the student passes.
+        try:
+            from apps.service.services.mastery import apply_mastery_update
+            if goal.subject_id:
+                apply_mastery_update(
+                    getattr(request.user, 'profile', None),
+                    goal.subject_id,
+                    grade['pct'],
+                )
+        except Exception as exc:  # pragma: no cover
+            logger.warning('Mastery update failed post hunt quiz: %s', exc)
 
         # Close matching MissionItem (hunt_task) if one exists today
         try:

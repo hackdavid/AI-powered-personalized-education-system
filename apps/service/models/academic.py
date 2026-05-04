@@ -116,6 +116,16 @@ class Class(TenantAwareModel, TimestampedModel):
         help_text='Whether this class is currently active'
     )
 
+    # Many-to-many through Enrollment (migration 0006). Provides
+    # `class.students.all()` and `user.enrolled_classes.all()`.
+    students = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        through='Enrollment',
+        through_fields=('class_obj', 'student'),
+        related_name='enrolled_classes',
+        blank=True,
+    )
+
     class Meta:
         verbose_name = 'Class'
         verbose_name_plural = 'Classes'

@@ -50,6 +50,15 @@ class StudentProfile(TimestampedModel):
         help_text='VARK profile from onboarding')
     interest_tags = models.JSONField(default=list, blank=True)
 
+    # Generic per-student engine state (streak milestones hit, future flags,
+    # etc.) — migration 0009 adds this column. Prefer this bucket over adding
+    # narrow single-use columns.
+    preferences = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text='Misc student preferences / engine state (e.g. streak milestones hit).',
+    )
+
     onboarding_complete = models.BooleanField(default=False, db_index=True)
 
     class Meta:

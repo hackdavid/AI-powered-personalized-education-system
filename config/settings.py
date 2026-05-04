@@ -84,6 +84,7 @@ MIDDLEWARE = [
 
     # Custom
     'apps.core.middleware.tenant_middleware.TenantMiddleware',
+    'apps.core.middleware.onboarding.OnboardingRequiredMiddleware',
     'apps.core.middleware.request_logging.RequestLoggingMiddleware',
     'apps.core.middleware.exception_handler.ExceptionHandlerMiddleware',
 ]
