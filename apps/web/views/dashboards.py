@@ -197,7 +197,7 @@ def dashboard_router(request):
         return _student_status_view(request)
 
     if role == 'teacher':
-        return render(request, 'dashboards/teacher_dashboard.html', {'user': user})
+        return teacher_status_view(request)
 
     if role == 'school_admin':
         from apps.service.models import Class
@@ -223,3 +223,180 @@ def dashboard_router(request):
         return render(request, 'dashboards/system_admin_dashboard.html', {'user': user})
 
     return render(request, 'base/no_role.html', {'user': user})
+
+
+# ---------------------------------------------------------------------------
+# Teacher dashboard — "Mission Control"
+# ---------------------------------------------------------------------------
+
+
+def _teacher_recent_activity(teacher, student_ids, limit=10):
+    """Last `limit` notable events from the teacher's students.
+
+    Pulls from XPLedger (already the canonical timeline of student progression
+    events) and renders an icon + headline + timestamp per row.
+    """
+    from apps.service.models import XPLedger
+
+    if not student_ids:
+        return []
+
+    rows = (
+        XPLedger.objects
+        .filter(student_id__in=student_ids)
+        .select_related('student')
+        .order_by('-created_at')[:limit]
+    )
+
+    # Map XPLedger.source -> (icon-name, verb)
+    icon_for = {
+        XPLedger.SOURCE_QUEST: ('quest', 'completed a quest'),
+        XPLedger.SOURCE_HUNT_TASK: ('hunt', 'cleared a hunt task'),
+        XPLedger.SOURCE_HUNT_COMPLETE: ('hunt', 'finished a hunt'),
+        XPLedger.SOURCE_DAILY_QUEST: ('daily', 'finished a daily quest'),
+        XPLedger.SOURCE_STREAK_MILESTONE: ('streak', 'hit a streak milestone'),
+        XPLedger.SOURCE_AWAKENING: ('onboard', 'completed onboarding'),
+        XPLedger.SOURCE_CHAT_ACTIVITY: ('chat', 'asked the System Advisor'),
+        XPLedger.SOURCE_ADMIN_ADJUSTMENT: ('admin', 'received an XP adjustment'),
+    }
+
+    out = []
+    for r in rows:
+        icon, verb = icon_for.get(r.source, ('event', 'event'))
+        out.append({
+            'icon': icon,
+            'student_name': r.student.get_full_name() or r.student.email,
+            'verb': verb,
+            'amount': r.amount,
+            'description': r.description,
+            'created_at': r.created_at,
+        })
+    return out
+
+
+def _teacher_status_context(user):
+    """Assemble the data backing the teacher dashboard.
+
+    Pulled out of the view function so tests can call it directly without
+    setting up the full request/middleware stack.
+    """
+    from apps.service.models import (
+        Assignment,
+        Enrollment,
+        StudentAssignment,
+        StudentProfile,
+    )
+    from apps.web.views.teacher.quests import _teacher_classes
+
+    classes = list(_teacher_classes(user))
+    class_ids = [c.id for c in classes]
+
+    # ---- Roster: every active student in any of my classes ----
+    student_ids = list(
+        Enrollment.objects
+        .filter(class_obj_id__in=class_ids, is_active=True)
+        .values_list('student_id', flat=True)
+        .distinct()
+    )
+
+    # ---- Stat: Active Assignments (published, due in the future) ----
+    now = timezone.now()
+    active_assignments_count = (
+        Assignment.objects
+        .filter(
+            tenant=user.tenant,
+            class_obj_id__in=class_ids,
+            status=Assignment.STATUS_PUBLISHED,
+            due_date__gte=now,
+        )
+        .count()
+    )
+
+    # ---- Stat: Pending Reviews (submitted, awaiting grading) ----
+    # Anything submitted but not yet graded — covers essays/uploads waiting
+    # for the teacher even after auto-grading runs on MCQ-only quests.
+    pending_reviews_count = (
+        StudentAssignment.objects
+        .filter(
+            assignment__tenant=user.tenant,
+            assignment__class_obj_id__in=class_ids,
+            status=StudentAssignment.STATUS_SUBMITTED,
+        )
+        .count()
+    )
+
+    # ---- Stat: Avg class mastery % ----
+    # mastery_per_subject is a JSONField on StudentProfile; aggregate in
+    # Python because there's no portable SQL JSON aggregate across DB
+    # backends.
+    profiles = StudentProfile.objects.filter(student_id__in=student_ids)
+    mastery_total = 0.0
+    mastery_count = 0
+    for p in profiles:
+        for _sid, pct in (p.mastery_per_subject or {}).items():
+            if pct is None:
+                continue
+            mastery_total += float(pct)
+            mastery_count += 1
+    avg_mastery_pct = int(round(mastery_total / mastery_count)) if mastery_count else 0
+
+    # ---- My Classes: card per class ----
+    class_cards = []
+    if class_ids:
+        # One DB hit each for student counts and active-quest counts.
+        student_counts = dict(
+            Enrollment.objects
+            .filter(class_obj_id__in=class_ids, is_active=True)
+            .values_list('class_obj_id')
+            .annotate(n=Count('id'))
+            .values_list('class_obj_id', 'n')
+        )
+        quest_counts = dict(
+            Assignment.objects
+            .filter(
+                class_obj_id__in=class_ids,
+                status=Assignment.STATUS_PUBLISHED,
+                due_date__gte=now,
+            )
+            .values_list('class_obj_id')
+            .annotate(n=Count('id'))
+            .values_list('class_obj_id', 'n')
+        )
+        for c in classes:
+            class_cards.append({
+                'id': c.id,
+                'name': c.name,
+                'grade_level': c.grade_level,
+                'section': c.section,
+                'academic_year': c.academic_year,
+                'is_homeroom': c.class_teacher_id == user.id,
+                'student_count': student_counts.get(c.id, 0),
+                'active_quest_count': quest_counts.get(c.id, 0),
+            })
+
+    # ---- Recent activity (XPLedger feed) ----
+    recent_activity = _teacher_recent_activity(user, student_ids, limit=10)
+
+    return {
+        'user': user,
+        'stats': {
+            'total_students': len(student_ids),
+            'total_classes': len(classes),
+            'active_assignments': active_assignments_count,
+            'pending_reviews': pending_reviews_count,
+            'avg_mastery_pct': avg_mastery_pct,
+        },
+        'classes': class_cards,
+        'recent_activity': recent_activity,
+        'active_page': 'dashboard',
+    }
+
+
+@login_required
+def teacher_status_view(request):
+    """Render the teacher dashboard ("Mission Control")."""
+    user = request.user
+    if user.role_name != 'teacher' and not user.is_superuser:
+        return redirect('web:dashboard')
+    ctx = _teacher_status_context(user)
+    return render(request, 'dashboards/teacher_dashboard.html', ctx)

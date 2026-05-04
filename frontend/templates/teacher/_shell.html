@@ -1,0 +1,178 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/teacher.css' %}">
+<script>
+    // Force tx-light class on <html> before paint to avoid flash of unstyled chrome.
+    document.documentElement.classList.add('tx-light');
+</script>
+{% endblock %}
+
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="tx-mobile-backdrop" id="tx-mobile-backdrop"></div>
+
+<div class="tx-shell">
+    <aside class="tx-sidebar" id="tx-sidebar" aria-label="Teacher navigation">
+        <div class="tx-sidebar-brand">
+            <span class="tx-sidebar-brand-mark">E</span>
+            <div>
+                <div>EduAI</div>
+                <div class="tx-sidebar-brand-sub">Teacher</div>
+            </div>
+        </div>
+
+        <nav class="tx-sidebar-nav" aria-label="Primary">
+            <div class="tx-sidebar-nav-section">Overview</div>
+            <a href="{% url 'teacher:dashboard' %}"
+               class="tx-nav-link{% if active_page == 'dashboard' %} tx-nav-link--active{% endif %}">
+                <svg class="tx-nav-icon" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <rect x="3" y="3" width="7" height="9" rx="1"/>
+                    <rect x="14" y="3" width="7" height="5" rx="1"/>
+                    <rect x="14" y="12" width="7" height="9" rx="1"/>
+                    <rect x="3" y="16" width="7" height="5" rx="1"/>
+                </svg>
+                <span class="tx-nav-link-label">Dashboard</span>
+            </a>
+
+            <div class="tx-sidebar-nav-section">Teaching</div>
+            <a href="{% url 'teacher:quest_list' %}"
+               class="tx-nav-link{% if active_page == 'quests' %} tx-nav-link--active{% endif %}">
+                <svg class="tx-nav-icon" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="9" y1="13" x2="15" y2="13"/>
+                    <line x1="9" y1="17" x2="13" y2="17"/>
+                </svg>
+                <span class="tx-nav-link-label">Quests</span>
+            </a>
+
+            <a href="#"
+               class="tx-nav-link{% if active_page == 'classes' %} tx-nav-link--active{% endif %}"
+               aria-disabled="true" title="Coming next">
+                <svg class="tx-nav-icon" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                <span class="tx-nav-link-label">Classes</span>
+            </a>
+
+            <a href="#"
+               class="tx-nav-link{% if active_page == 'gradebook' %} tx-nav-link--active{% endif %}"
+               aria-disabled="true" title="Coming next">
+                <svg class="tx-nav-icon" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <line x1="18" y1="20" x2="18" y2="10"/>
+                    <line x1="12" y1="20" x2="12" y2="4"/>
+                    <line x1="6" y1="20" x2="6" y2="14"/>
+                </svg>
+                <span class="tx-nav-link-label">Gradebook</span>
+            </a>
+
+            <div class="tx-sidebar-nav-section">Workflow</div>
+            <a href="#"
+               class="tx-nav-link{% if active_page == 'needs_attention' %} tx-nav-link--active{% endif %}"
+               aria-disabled="true" title="Coming next">
+                <svg class="tx-nav-icon" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <span class="tx-nav-link-label">Needs Attention</span>
+                {% if stats.pending_reviews %}
+                <span class="tx-nav-link-badge">{{ stats.pending_reviews }}</span>
+                {% endif %}
+            </a>
+
+            <a href="#"
+               class="tx-nav-link{% if active_page == 'students' %} tx-nav-link--active{% endif %}"
+               aria-disabled="true" title="Coming next">
+                <svg class="tx-nav-icon" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                </svg>
+                <span class="tx-nav-link-label">Students</span>
+            </a>
+        </nav>
+
+        {% if user.is_authenticated %}
+        <div class="tx-sidebar-footer">
+            <div class="tx-sidebar-avatar" aria-hidden="true">
+                {{ user.first_name.0|upper }}{{ user.last_name.0|upper }}
+            </div>
+            <div class="tx-sidebar-user-info">
+                <div class="tx-sidebar-user-name">{{ user.get_full_name|default:user.email }}</div>
+                <div class="tx-sidebar-user-role">{{ user.role.display_name|default:'Teacher' }}</div>
+            </div>
+            <a href="{% url 'auth:logout' %}" class="tx-sidebar-logout" title="Sign out" aria-label="Sign out">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                    <polyline points="16 17 21 12 16 7"/>
+                    <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+            </a>
+        </div>
+        {% endif %}
+    </aside>
+
+    <header class="tx-topbar">
+        <button type="button" class="tx-topbar-toggle" id="tx-topbar-toggle" aria-label="Open navigation">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 6h18M3 12h18M3 18h18"/>
+            </svg>
+        </button>
+
+        <nav class="tx-breadcrumbs" aria-label="Breadcrumb">
+            {% block breadcrumbs %}
+                <span class="tx-breadcrumbs-current">Dashboard</span>
+            {% endblock %}
+        </nav>
+
+        <div class="tx-topbar-actions">
+            {% block topbar_actions %}{% endblock %}
+        </div>
+    </header>
+
+    <main class="tx-main">
+        {% block teacher_content %}{% endblock %}
+    </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    const toggle = document.getElementById('tx-topbar-toggle');
+    const sidebar = document.getElementById('tx-sidebar');
+    const backdrop = document.getElementById('tx-mobile-backdrop');
+    if (!toggle || !sidebar || !backdrop) return;
+
+    function open() {
+        sidebar.classList.add('is-open');
+        backdrop.classList.add('is-open');
+    }
+    function close() {
+        sidebar.classList.remove('is-open');
+        backdrop.classList.remove('is-open');
+    }
+    toggle.addEventListener('click', open);
+    backdrop.addEventListener('click', close);
+    sidebar.querySelectorAll('a').forEach(a => a.addEventListener('click', close));
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') close();
+    });
+})();
+</script>
+{% block teacher_extra_js %}{% endblock %}
+{% endblock %}

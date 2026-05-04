@@ -1,73 +1,104 @@
-{% extends 'base/dashboard_base.html' %}
+{% extends 'teacher/_shell.html' %}
+{% load static %}
 
-{% block dashboard_title %}Teacher · Quests{% endblock %}
-{% block page_title %}Quests{% endblock %}
+{% block title %}Quests · EduAI Teacher{% endblock %}
 
-{% block page_subtitle %}
-<p class="text-gray-600 mt-1">Create and publish assignments for your classes.</p>
+{% block breadcrumbs %}
+<a href="{% url 'teacher:dashboard' %}">Dashboard</a>
+<span class="tx-breadcrumbs-sep">/</span>
+<span class="tx-breadcrumbs-current">Quests</span>
 {% endblock %}
 
-{% block page_actions %}
-<a href="{% url 'teacher:quest_create' %}" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition flex items-center">
-    <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+{% block topbar_actions %}
+<a href="{% url 'teacher:quest_create' %}" class="tx-btn-primary tx-btn-sm">
+    <svg class="tx-icon-sm" fill="none" stroke="currentColor" stroke-width="2.2"
+         stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <line x1="12" y1="5" x2="12" y2="19"/>
+        <line x1="5" y1="12" x2="19" y2="12"/>
     </svg>
-    Create Quest
+    New Quest
 </a>
 {% endblock %}
 
-{% block sidebar_nav %}
-<a href="{% url 'web:dashboard' %}" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 transition">
-    <svg class="h-5 w-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-    </svg>
-    Dashboard
-</a>
-<a href="{% url 'teacher:quest_list' %}" class="flex items-center px-6 py-3 text-gray-700 bg-indigo-50 border-r-4 border-indigo-600 transition">
-    <svg class="h-5 w-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-    </svg>
-    Quests
-</a>
-{% endblock %}
+{% block teacher_content %}
 
-{% block dashboard_content %}
-{% for key, label, variant in 'draft;Draft;yellow published;Published;green archived;Archived;gray'|default:'' %}{% endfor %}
+<div class="tx-page-header">
+    <div>
+        <h1 class="tx-page-title">Quests</h1>
+        <p class="tx-page-subtitle">Create and publish assignments for your classes.</p>
+    </div>
+</div>
 
-<section class="mb-8">
-    <h2 class="text-lg font-semibold text-gray-800 mb-3">Drafts <span class="ml-1 text-sm font-normal text-gray-500">({{ counts.draft }})</span></h2>
+{% if messages %}
+{% for message in messages %}
+<div class="tx-card tx-mb-md" style="border-color: var({% if message.tags == 'error' %}--tx-alert{% else %}--tx-info{% endif %});">
+    <div class="tx-card-body" style="padding: 0.75rem 1rem; font-size: 0.85rem;">
+        {{ message }}
+    </div>
+</div>
+{% endfor %}
+{% endif %}
+
+<!-- Drafts -->
+<section class="tx-card tx-mb-lg">
+    <div class="tx-card-header">
+        <div>
+            <h2 class="tx-card-title">Drafts</h2>
+            <p class="tx-card-subtitle">{{ counts.draft }} quest{{ counts.draft|pluralize }} not yet published</p>
+        </div>
+        <a href="{% url 'teacher:quest_create' %}" class="tx-btn-secondary tx-btn-sm">New draft</a>
+    </div>
     {% if groups.draft %}
-      <div class="bg-white rounded-xl shadow-md overflow-hidden divide-y divide-gray-100">
-        {% for a in groups.draft %}
-          {% include 'teacher/quests/_row.html' with a=a show_publish=True %}
-        {% endfor %}
-      </div>
+        <div>
+            {% for a in groups.draft %}
+                {% include 'teacher/quests/_row.html' with a=a show_publish=True %}
+            {% endfor %}
+        </div>
     {% else %}
-      <p class="text-sm text-gray-500 bg-white rounded-xl shadow-md p-6">No drafts yet. <a href="{% url 'teacher:quest_create' %}" class="text-indigo-600 hover:underline">Create one.</a></p>
+        <div class="tx-card-empty">
+            <strong>No drafts yet</strong>
+            <span><a href="{% url 'teacher:quest_create' %}" style="color: var(--tx-primary); text-decoration: none;">Create one</a> — the System will auto-generate questions from your topic.</span>
+        </div>
     {% endif %}
 </section>
 
-<section class="mb-8">
-    <h2 class="text-lg font-semibold text-gray-800 mb-3">Published <span class="ml-1 text-sm font-normal text-gray-500">({{ counts.published }})</span></h2>
+<!-- Published -->
+<section class="tx-card tx-mb-lg">
+    <div class="tx-card-header">
+        <div>
+            <h2 class="tx-card-title">Published</h2>
+            <p class="tx-card-subtitle">{{ counts.published }} live quest{{ counts.published|pluralize }} students can take</p>
+        </div>
+    </div>
     {% if groups.published %}
-      <div class="bg-white rounded-xl shadow-md overflow-hidden divide-y divide-gray-100">
-        {% for a in groups.published %}
-          {% include 'teacher/quests/_row.html' with a=a show_publish=False %}
-        {% endfor %}
-      </div>
+        <div>
+            {% for a in groups.published %}
+                {% include 'teacher/quests/_row.html' with a=a show_publish=False %}
+            {% endfor %}
+        </div>
     {% else %}
-      <p class="text-sm text-gray-500 bg-white rounded-xl shadow-md p-6">Nothing published yet.</p>
+        <div class="tx-card-empty">
+            <strong>Nothing published yet</strong>
+            <span>Drafts you publish will appear here.</span>
+        </div>
     {% endif %}
 </section>
 
+<!-- Archived (only show if any) -->
 {% if groups.archived %}
-<section class="mb-8">
-    <h2 class="text-lg font-semibold text-gray-800 mb-3">Archived <span class="ml-1 text-sm font-normal text-gray-500">({{ counts.archived }})</span></h2>
-    <div class="bg-white rounded-xl shadow-md overflow-hidden divide-y divide-gray-100 opacity-70">
+<section class="tx-card tx-mb-lg" style="opacity: 0.85;">
+    <div class="tx-card-header">
+        <div>
+            <h2 class="tx-card-title">Archived</h2>
+            <p class="tx-card-subtitle">{{ counts.archived }} quest{{ counts.archived|pluralize }} hidden from students</p>
+        </div>
+    </div>
+    <div>
         {% for a in groups.archived %}
-          {% include 'teacher/quests/_row.html' with a=a show_publish=False %}
+            {% include 'teacher/quests/_row.html' with a=a show_publish=False %}
         {% endfor %}
     </div>
 </section>
 {% endif %}
+
 {% endblock %}
