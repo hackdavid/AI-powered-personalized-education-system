@@ -1,0 +1,25 @@
+{% comment %}Single row rendering for a teacher-owned assignment.{% endcomment %}
+<a href="{% url 'teacher:quest_detail' a.id %}" class="flex items-center justify-between p-4 hover:bg-gray-50 transition">
+    <div class="flex-1 min-w-0">
+        <h3 class="text-base font-semibold text-gray-800 truncate">{{ a.title }}</h3>
+        <div class="flex items-center gap-2 mt-1 text-xs text-gray-500">
+            {% if a.subject %}<span class="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-full">{{ a.subject.name }}</span>{% endif %}
+            <span>{{ a.class_obj.name }}</span>
+            <span>&middot;</span>
+            <span>Due {{ a.due_date|date:"M j, Y g:i A" }}</span>
+            <span>&middot;</span>
+            <span>{{ a.questions.count }} question{{ a.questions.count|pluralize }}</span>
+            <span>&middot;</span>
+            <span>{{ a.total_marks }} marks</span>
+            <span>&middot;</span>
+            <span>Lvl {{ a.difficulty }}/5</span>
+        </div>
+    </div>
+    <div class="flex items-center gap-3 ml-4">
+        <span class="px-2 py-1 text-xs font-semibold rounded-full
+            {% if a.status == 'draft' %}bg-yellow-100 text-yellow-800
+            {% elif a.status == 'published' %}bg-green-100 text-green-800
+            {% else %}bg-gray-100 text-gray-600{% endif %}">{{ a.get_status_display|upper }}</span>
+        <span class="text-xs text-gray-400">&rarr;</span>
+    </div>
+</a>

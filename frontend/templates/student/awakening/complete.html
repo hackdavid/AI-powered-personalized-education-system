@@ -1,0 +1,64 @@
+{% extends 'student/_shell.html' %}
+{% load static %}
+
+{% block title %}Awakening Complete · EduAI{% endblock %}
+
+{% block student_content %}
+<div class="awakening-hero" style="max-width: 720px; margin: 0 auto; padding: 2rem 0;">
+  {% include 'student/awakening/_progress.html' %}
+
+  <section class="sys-panel sys-panel--glow-cyan sys-bracket-corners sys-anim-reveal"
+           style="padding: 2.5rem;">
+    <h2 class="sys-panel-title" style="text-align:center; margin-bottom: 1.5rem;">AWAKENING COMPLETE</h2>
+
+    <div class="sys-flex sys-items-center sys-gap-lg sys-mb-lg"
+         style="justify-content:center; flex-wrap: wrap;">
+      <div class="sys-flex-col sys-items-center" style="gap: 0.5rem;">
+        <div class="sys-rank-badge sys-rank-badge--lg sys-rank-badge--{{ rank|lower }}">{{ rank }}</div>
+        <span class="sys-mono sys-text-dim" style="font-size: 0.7rem; letter-spacing: 0.12em;">CALIBRATED RANK</span>
+      </div>
+
+      {% if hunter_title %}
+      <div class="sys-flex-col sys-items-center" style="gap: 0.3rem;">
+        <span class="sys-mono sys-text-cyan" style="font-size: 1.05rem; font-weight: 600; text-transform: capitalize;">
+          {{ hunter_title }}
+        </span>
+        <span class="sys-mono sys-text-dim" style="font-size: 0.7rem; letter-spacing: 0.12em;">HUNTER TITLE</span>
+      </div>
+      {% endif %}
+    </div>
+
+    {% if mastery_rows %}
+    <div class="sys-mono sys-text-dim sys-mb-sm"
+         style="font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase;">
+      Mastery initialized
+    </div>
+    <div class="awakening-mastery sys-mb-lg">
+      {% for row in mastery_rows %}
+      <div class="sys-mastery-row">
+        <span class="sys-mastery-row-label">{{ row.subject }}</span>
+        <div class="sys-progress sys-progress--cyan">
+          <div class="sys-progress-fill" style="width: {{ row.pct }}%;"></div>
+        </div>
+        <span class="sys-mastery-row-value">{{ row.pct }}%</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="sys-text-dim sys-mb-lg" style="text-align:center; font-size: 0.85rem;">
+      Your Codex will initialize as soon as curriculum is assigned.
+    </p>
+    {% endif %}
+
+    <p class="sys-text-dim" style="text-align:center; font-size: 0.9rem; margin: 0 0 1.5rem;">
+      Your daily Mission Brief is ready. Step into the System.
+    </p>
+
+    <div style="text-align:center;">
+      <a href="{% url 'web:dashboard' %}" class="sys-btn-primary sys-btn-lg">
+        Enter the System &rarr;
+      </a>
+    </div>
+  </section>
+</div>
+{% endblock %}

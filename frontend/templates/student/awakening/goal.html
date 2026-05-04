@@ -1,0 +1,102 @@
+{% extends 'student/_shell.html' %}
+{% load static %}
+
+{% block title %}Awakening · Goal · EduAI{% endblock %}
+
+{% block student_content %}
+<div class="awakening-hero" style="max-width: 720px; margin: 0 auto; padding: 2rem 0;">
+  {% include 'student/awakening/_progress.html' %}
+
+  <section class="sys-panel sys-bracket-corners sys-anim-reveal" style="padding: 2rem;">
+    <h2 class="sys-panel-title" style="text-align:center; margin-bottom: 1rem;">DECLARE YOUR GOAL</h2>
+    <p class="sys-text-dim" style="text-align:center; font-size: 0.9rem; margin: 0 0 1.75rem;">
+      What do you want to accomplish this term? The System will build your first Hunt around it.
+    </p>
+
+    {% if error %}
+    <div class="sys-panel sys-panel--urgent sys-mb-md" style="padding: 0.75rem 1rem;">
+      <p class="sys-mono sys-text-crimson" style="font-size: 0.8rem; margin: 0;">{{ error }}</p>
+    </div>
+    {% endif %}
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      <div class="sys-mono sys-text-dim sys-mb-sm"
+           style="font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase;">
+        Quick-pick a template
+      </div>
+      <div class="awakening-templates sys-mb-lg" style="display:flex; flex-wrap:wrap; gap: 0.5rem;">
+        {% for tpl in templates %}
+        <label class="awakening-template-chip" data-role="template-chip"
+               style="cursor:pointer; display:inline-flex;">
+          <input type="radio" name="goal_template" value="{{ tpl }}"
+                 data-title="{{ tpl }}"
+                 {% if selected_template == tpl %}checked{% endif %}
+                 style="position:absolute; opacity:0; pointer-events:none;">
+          <span class="sys-chip {% if selected_template == tpl %}sys-chip--cyan{% else %}sys-chip--muted{% endif %}"
+                data-role="template-chip-visual"
+                style="cursor:pointer; font-size: 0.75rem;">
+            {{ tpl }}
+          </span>
+        </label>
+        {% endfor %}
+      </div>
+
+      <label for="goal_title" class="sys-mono sys-text-dim"
+             style="display:block; font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 0.4rem;">
+        Goal title
+      </label>
+      <input type="text" id="goal_title" name="goal_title" maxlength="200"
+             value="{{ prior_title }}"
+             placeholder="e.g. Ace my Physics mid-term"
+             class="awakening-text-input"
+             style="width:100%; padding: 0.7rem 0.9rem; background: var(--sys-surface-2); border: 1px solid var(--sys-border); border-radius: var(--sys-radius-sm); color: var(--sys-text); font-family: var(--sys-font-sans); font-size: 0.95rem; margin-bottom: 1.25rem;">
+
+      <label for="goal_description" class="sys-mono sys-text-dim"
+             style="display:block; font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; margin-bottom: 0.4rem;">
+        Notes (optional)
+      </label>
+      <textarea id="goal_description" name="goal_description" rows="4" maxlength="2000"
+                placeholder="Any specifics — topics, exams, targets — that the System should know."
+                style="width:100%; padding: 0.7rem 0.9rem; background: var(--sys-surface-2); border: 1px solid var(--sys-border); border-radius: var(--sys-radius-sm); color: var(--sys-text); font-family: var(--sys-font-sans); font-size: 0.9rem; resize: vertical; margin-bottom: 1.5rem;">{{ prior_description }}</textarea>
+
+      <div style="text-align:center;">
+        <button type="submit" class="sys-btn-primary sys-btn-lg">Continue &rarr;</button>
+      </div>
+    </form>
+  </section>
+</div>
+
+<script>
+(function() {
+  var titleInput = document.getElementById('goal_title');
+  document.querySelectorAll('[data-role="template-chip"]').forEach(function(label) {
+    var input = label.querySelector('input[type="radio"]');
+    var chip = label.querySelector('[data-role="template-chip-visual"]');
+    if (!input || !chip) return;
+    label.addEventListener('click', function(ev) {
+      if (ev.target.tagName === 'INPUT') return;
+      ev.preventDefault();
+      // Clear all templates, then select this one.
+      document.querySelectorAll('[data-role="template-chip"]').forEach(function(l) {
+        var i = l.querySelector('input[type="radio"]');
+        var c = l.querySelector('[data-role="template-chip-visual"]');
+        if (i) i.checked = false;
+        if (c) {
+          c.classList.remove('sys-chip--cyan');
+          c.classList.add('sys-chip--muted');
+        }
+      });
+      input.checked = true;
+      chip.classList.remove('sys-chip--muted');
+      chip.classList.add('sys-chip--cyan');
+      // Prefill title if empty.
+      if (titleInput && !titleInput.value.trim()) {
+        titleInput.value = input.getAttribute('data-title') || '';
+      }
+    });
+  });
+})();
+</script>
+{% endblock %}

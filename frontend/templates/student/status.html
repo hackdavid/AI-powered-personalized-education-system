@@ -1,0 +1,182 @@
+{% extends 'student/_shell.html' %}
+{% load static %}
+
+{% block title %}Status · EduAI{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+  /* Scoped status-window refinements */
+  .status-banner {
+    display: grid;
+    grid-template-columns: 80px 1fr auto;
+    gap: 1.5rem;
+    align-items: center;
+  }
+  .status-banner-avatar {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--sys-cyan) 0%, var(--sys-violet) 100%);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--sys-font-mono); font-weight: 700;
+    font-size: 1.75rem; color: #050816;
+  }
+  .status-banner-avatar img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+  .status-banner-eyebrow {
+    font-family: var(--sys-font-mono); font-size: 0.7rem;
+    color: var(--sys-text-dim); letter-spacing: 0.2em; text-transform: uppercase;
+    margin: 0 0 0.25rem;
+  }
+  .status-banner-name {
+    font-family: var(--sys-font-mono); font-size: 1.6rem;
+    color: var(--sys-text); margin: 0 0 0.5rem;
+  }
+  .status-banner-meta {
+    display: flex; align-items: center; gap: 0.75rem;
+    font-family: var(--sys-font-mono); font-size: 0.85rem;
+    color: var(--sys-text-dim); margin-bottom: 0.5rem;
+  }
+  .status-xp-bar-wrapper { max-width: 420px; }
+  .status-brief-empty {
+    text-align: center; padding: 2rem; color: var(--sys-text-dim);
+    font-family: var(--sys-font-mono); font-size: 0.85rem;
+  }
+</style>
+{% endblock %}
+
+{% block student_content %}
+<!-- ===== Hunter Status banner ===== -->
+<section class="sys-panel sys-panel--glow-cyan sys-bracket-corners sys-mb-lg sys-anim-reveal">
+  <div class="status-banner">
+    <div class="status-banner-avatar" aria-hidden="true">
+      {% if user.avatar %}<img src="{{ user.avatar.url }}" alt="">{% else %}{{ user.first_name.0|upper }}{{ user.last_name.0|upper }}{% endif %}
+    </div>
+    <div>
+      <p class="status-banner-eyebrow">
+        HUNTER{% if profile.hunter_title %} · {{ profile.hunter_title|upper }}{% endif %}
+      </p>
+      <h1 class="status-banner-name">{{ user.get_full_name|default:user.email }}</h1>
+      <div class="status-banner-meta">
+        <span>Lv {{ profile.level }}</span>
+        <span>·</span>
+        <span>{{ profile.total_xp }} / {{ profile.xp_for_next_level }} XP</span>
+        {% if profile.streak_days > 0 %}
+        <span class="sys-chip sys-chip--emerald">{{ profile.streak_days }}-day streak</span>
+        {% endif %}
+      </div>
+      <div class="status-xp-bar-wrapper">
+        <div class="sys-progress">
+          <div class="sys-progress-fill" style="width: {{ profile.xp_progress_pct|floatformat:1 }}%;"></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="sys-rank-badge sys-rank-badge--lg sys-rank-badge--{{ profile.rank|lower }}">{{ profile.rank }}</div>
+      <p class="sys-mono sys-text-dim" style="text-align:center; font-size:0.7rem; margin-top:0.4rem; letter-spacing:0.15em;">RANK</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 3-col panel row ===== -->
+<div class="sys-grid-3 sys-mb-lg sys-anim-reveal-stagger">
+  <!-- Active Quests stat -->
+  <section class="sys-panel sys-panel--compact">
+    <h3 class="sys-panel-title">ACTIVE QUESTS</h3>
+    <p class="sys-stat-value sys-stat-accent-violet">0</p>
+    <p class="sys-stat-label">In progress</p>
+    <p class="sys-text-muted" style="font-size:0.75rem; margin-top:0.75rem;">Teachers can publish quests to you. None yet.</p>
+  </section>
+
+  <!-- Mastery -->
+  <section class="sys-panel sys-panel--compact">
+    <h3 class="sys-panel-title sys-panel-title--violet">MASTERY</h3>
+    {% if mastery_rows %}
+      {% for row in mastery_rows %}
+      <div class="sys-mastery-row">
+        <span class="sys-mastery-row-label">{{ row.subject_name }}</span>
+        <div class="sys-progress{% if row.pct >= 70 %} sys-progress--emerald{% elif row.pct >= 50 %} sys-progress--cyan{% else %} sys-progress--violet{% endif %}">
+          <div class="sys-progress-fill" style="width: {{ row.pct }}%;"></div>
+        </div>
+        <span class="sys-mastery-row-value">{{ row.pct }}%</span>
+      </div>
+      {% endfor %}
+    {% else %}
+      <p class="sys-text-muted" style="font-size:0.8rem;">Mastery will appear after your first quest.</p>
+    {% endif %}
+  </section>
+
+  <!-- Daily Streak -->
+  <section class="sys-panel sys-panel--compact">
+    <h3 class="sys-panel-title sys-panel-title--gold">DAILY STREAK</h3>
+    <p class="sys-stat-value sys-stat-accent-gold">{{ profile.streak_days }}d</p>
+    <p class="sys-stat-label">Current run</p>
+    <div class="sys-streak-grid">
+      {% for d in streak_days %}
+      <div class="sys-streak-day{% if d.is_active %} sys-streak-day--active{% endif %}{% if d.is_today %} sys-streak-day--today{% endif %}" title="{{ d.date }}">{{ d.label }}</div>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+
+<!-- ===== Mission Brief ===== -->
+<section class="sys-panel sys-mb-lg">
+  <div class="sys-flex sys-justify-between sys-items-center sys-mb-md">
+    <h3 class="sys-panel-title">TODAY'S MISSION BRIEF</h3>
+    {% if brief.all_completed_at %}
+      <span class="sys-chip sys-chip--emerald">CLEARED</span>
+    {% else %}
+      <span class="sys-chip sys-chip--cyan">{{ items|length }} remaining</span>
+    {% endif %}
+  </div>
+
+  {% if brief.all_completed_at %}
+    <div class="sys-panel sys-panel--glow-gold" style="text-align:center; padding:2rem;">
+      <p class="sys-mono" style="letter-spacing:0.2em; color:var(--sys-gold); font-size:0.75rem; margin:0 0 0.5rem;">[ DAILY BRIEF CLEARED ]</p>
+      <p style="margin:0; color:var(--sys-text);">Streak extended. Rest well, Hunter — fresh missions deploy at midnight.</p>
+    </div>
+  {% elif items %}
+    {% for item in items %}
+      {% if item.status == 'completed' %}
+        <div class="sys-mission-item sys-mission-item--completed">
+          <span class="sys-mission-number">{{ forloop.counter|stringformat:"02d" }}</span>
+          <div>
+            <p class="sys-mission-title">{{ item.title }} <span style="color:var(--sys-emerald);">✓</span></p>
+            {% if item.description %}<p class="sys-mission-desc">{{ item.description }}</p>{% endif %}
+          </div>
+          <span class="sys-mission-reward">+{{ item.xp_reward }} XP</span>
+        </div>
+      {% elif item.status == 'expired' %}
+        {# Expired items are not shown in today's brief #}
+      {% else %}
+        <a class="sys-mission-item{% if item.kind == 'urgent_quest' %} sys-mission-item--urgent{% endif %}" href="{{ item.action_url|default:'#' }}">
+          <span class="sys-mission-number">{{ forloop.counter|stringformat:"02d" }}</span>
+          <div>
+            <p class="sys-mission-title">{{ item.title }}</p>
+            {% if item.description %}<p class="sys-mission-desc">{{ item.description }}</p>{% endif %}
+          </div>
+          <span class="sys-mission-reward">+{{ item.xp_reward }} XP</span>
+        </a>
+      {% endif %}
+    {% endfor %}
+  {% else %}
+    <p class="status-brief-empty">No missions generated yet. Refresh to try again.</p>
+  {% endif %}
+</section>
+
+<!-- ===== Active Quests + Active Hunts (placeholders for Phase B) ===== -->
+<div class="sys-grid-2 sys-anim-reveal">
+  <section class="sys-panel">
+    <div class="sys-flex sys-justify-between sys-items-center sys-mb-md">
+      <h3 class="sys-panel-title sys-panel-title--violet">ACTIVE QUESTS</h3>
+    </div>
+    <p class="sys-text-muted" style="font-size:0.85rem;">No active quests yet. When your teacher publishes an assignment, it appears here as a Quest.</p>
+  </section>
+
+  <section class="sys-panel">
+    <div class="sys-flex sys-justify-between sys-items-center sys-mb-md">
+      <h3 class="sys-panel-title sys-panel-title--gold">ACTIVE HUNTS</h3>
+      <a href="#" class="sys-btn-ghost" style="font-size:0.8rem; padding:0.3rem 0.8rem;" title="Coming in Phase B">+ Begin Hunt</a>
+    </div>
+    <p class="sys-text-muted" style="font-size:0.85rem;">Hunts are self-set learning goals with LLM-decomposed tasks. The forge opens in Phase B.</p>
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,172 @@
+{% extends 'student/_shell.html' %}
+{% load static %}
+
+{% block title %}Quest Results · {{ assignment.title }}{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+.results-banner {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 2rem;
+    align-items: center;
+}
+.results-eyebrow {
+    font-family: var(--sys-font-mono);
+    font-size: 0.75rem;
+    color: var(--sys-text-dim);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin: 0 0 0.25rem;
+}
+.results-title {
+    font-family: var(--sys-font-mono);
+    font-size: 1.4rem;
+    color: var(--sys-text);
+    margin: 0 0 0.25rem;
+    letter-spacing: 0.02em;
+}
+.results-subtitle { color: var(--sys-text-dim); margin: 0; font-size: 0.85rem; }
+.results-score {
+    font-family: var(--sys-font-mono);
+    font-size: 2.4rem;
+    color: var(--sys-text);
+    margin: 0;
+    line-height: 1;
+}
+.results-score-label {
+    font-family: var(--sys-font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--sys-text-dim);
+    text-align: right;
+}
+.results-xp {
+    font-family: var(--sys-font-mono);
+    color: var(--sys-gold);
+    font-size: 1.1rem;
+    margin-top: 0.5rem;
+    text-align: right;
+}
+.results-pct {
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.results-question {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 1rem;
+    align-items: start;
+}
+.results-q-num {
+    font-family: var(--sys-font-mono);
+    color: var(--sys-cyan);
+    font-weight: 600;
+    min-width: 2rem;
+}
+.results-q-text {
+    font-size: 0.95rem;
+    color: var(--sys-text);
+    margin: 0 0 0.5rem;
+}
+.results-q-answer {
+    font-size: 0.85rem;
+    color: var(--sys-text-dim);
+    margin: 0.25rem 0;
+}
+.results-q-answer strong { color: var(--sys-text); font-weight: 500; }
+.results-q-explanation {
+    margin-top: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: var(--sys-surface-3);
+    border-left: 3px solid var(--sys-cyan);
+    border-radius: 4px;
+    font-size: 0.85rem;
+    color: var(--sys-text-dim);
+}
+.results-q-correct { color: var(--sys-emerald); }
+.results-q-wrong { color: var(--sys-crimson); }
+
+.results-pending {
+    text-align: center;
+    padding: 3rem 2rem;
+}
+.results-pending-icon {
+    font-size: 3rem;
+    color: var(--sys-gold);
+    margin-bottom: 1rem;
+}
+</style>
+{% endblock %}
+
+{% block student_content %}
+{% if sa.status == 'graded' %}
+<section class="sys-panel sys-panel--glow-gold sys-mb-lg sys-anim-reveal">
+    <div class="results-banner">
+        <div>
+            <p class="results-eyebrow">[ QUEST COMPLETE ]</p>
+            <h1 class="results-title">{{ assignment.title }}</h1>
+            <p class="results-subtitle">Auto-graded &middot; {{ sa.graded_at|date:"M j, Y g:i A" }}</p>
+        </div>
+        <div>
+            <p class="results-score-label">SCORE</p>
+            <p class="results-score">{{ sa.score|default:0 }} <span class="sys-text-dim">/ {{ sa.max_score|default:assignment.total_marks }}</span></p>
+            <p class="results-xp">+{{ sa.xp_awarded|default:0 }} XP awarded</p>
+        </div>
+    </div>
+    <div class="results-pct">
+        <div class="sys-progress sys-progress--emerald">
+            <div class="sys-progress-fill" style="width: {{ sa.score_percent }}%;"></div>
+        </div>
+        <p class="sys-mono sys-text-dim" style="text-align:right; font-size:0.75rem; margin-top:0.4rem;">{{ sa.score_percent }}% correct</p>
+    </div>
+</section>
+
+<h3 class="sys-panel-title">QUESTION BREAKDOWN</h3>
+{% for row in decorated %}
+<section class="sys-panel sys-mb-md">
+    <div class="results-question">
+        <span class="results-q-num">{{ forloop.counter|stringformat:"02d" }}</span>
+        <div>
+            <p class="results-q-text">{{ row.question.question_text }}</p>
+            {% if row.question.question_type == 'mcq' %}
+                <p class="results-q-answer">Your answer: <strong>{{ row.selected_text|default:"(no answer)" }}</strong></p>
+                {% if not row.answer.is_correct %}
+                <p class="results-q-answer">Correct answer: <strong class="results-q-correct">{{ row.correct_text }}</strong></p>
+                {% endif %}
+            {% else %}
+                <p class="results-q-answer">Your answer: <strong>{{ row.answer.answer_text|default:"(no answer)" }}</strong></p>
+            {% endif %}
+            {% if row.question.explanation %}
+            <div class="results-q-explanation">{{ row.question.explanation }}</div>
+            {% endif %}
+        </div>
+        <div>
+            {% if row.answer.is_correct %}
+                <span class="sys-chip sys-chip--emerald">&#10003; {{ row.answer.marks_awarded|default:0 }} / {{ row.question.marks }}</span>
+            {% elif row.answer.is_correct is False %}
+                <span class="sys-chip sys-chip--crimson">&#10005; 0 / {{ row.question.marks }}</span>
+            {% else %}
+                <span class="sys-chip sys-chip--muted">pending</span>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endfor %}
+
+<a href="{% url 'student:quest_list' %}" class="sys-btn-ghost sys-mt-lg">&larr; Back to Quests</a>
+
+{% else %}
+<section class="sys-panel sys-panel--glow-cyan sys-anim-reveal">
+    <div class="results-pending">
+        <div class="results-pending-icon">&#8987;</div>
+        <h2 class="results-title">Awaiting Teacher Review</h2>
+        <p class="results-subtitle">Your submission for <strong>{{ assignment.title }}</strong> includes questions that need manual review. Check back soon.</p>
+        <a href="{% url 'student:quest_list' %}" class="sys-btn-ghost sys-mt-md">&larr; Back to Quests</a>
+    </div>
+</section>
+{% endif %}
+{% endblock %}

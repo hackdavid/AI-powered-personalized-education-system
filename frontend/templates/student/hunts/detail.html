@@ -1,0 +1,218 @@
+{% extends 'student/_shell.html' %}
+{% load static %}
+
+{% block title %}{{ goal.title }} · Hunt · EduAI{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+.dungeon-header { margin-bottom: 1.5rem; }
+.dungeon-eyebrow {
+    font-family: var(--sys-font-mono);
+    font-size: 0.75rem;
+    color: var(--sys-text-dim);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin: 0 0 0.25rem;
+}
+.dungeon-title {
+    font-family: var(--sys-font-mono);
+    font-size: 1.6rem;
+    color: var(--sys-text);
+    margin: 0 0 0.5rem;
+}
+.dungeon-meta {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+.dungeon-progress-row {
+    max-width: 420px;
+    margin-bottom: 2rem;
+}
+
+.dungeon-map {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    max-width: 560px;
+    margin: 0 auto;
+}
+.dungeon-node {
+    position: relative;
+    width: 100%;
+    max-width: 440px;
+    padding: 1rem 1.25rem;
+    border-radius: var(--sys-radius);
+    background: var(--sys-surface-2);
+    border: 1px solid var(--sys-border);
+    transition: all 0.2s;
+    z-index: 2;
+}
+.dungeon-node-done {
+    border-color: var(--sys-gold);
+    background: rgba(251, 191, 36, 0.08);
+    box-shadow: 0 0 16px rgba(251, 191, 36, 0.2);
+}
+.dungeon-node-current {
+    border-color: var(--sys-cyan);
+    background: var(--sys-cyan-soft);
+    box-shadow: 0 0 16px rgba(34, 211, 238, 0.35);
+    animation: sys-pulse 2s ease-in-out infinite;
+}
+.dungeon-node-boss {
+    border-color: var(--sys-violet);
+    background: rgba(167, 139, 250, 0.1);
+}
+.dungeon-node-boss.dungeon-node-done {
+    border-color: var(--sys-gold);
+    background: rgba(251, 191, 36, 0.1);
+}
+
+.dungeon-connector {
+    width: 2px;
+    height: 28px;
+    background: var(--sys-border);
+    margin: 0 auto;
+    z-index: 1;
+}
+.dungeon-connector-done {
+    background: linear-gradient(to bottom, var(--sys-gold), var(--sys-cyan));
+    box-shadow: 0 0 6px rgba(251, 191, 36, 0.35);
+}
+
+.dungeon-node-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+.dungeon-node-kind {
+    font-family: var(--sys-font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--sys-text-dim);
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    background: var(--sys-surface-3);
+}
+.dungeon-node-kind-boss { background: var(--sys-violet-soft); color: var(--sys-violet); }
+.dungeon-node-title {
+    font-family: var(--sys-font-mono);
+    color: var(--sys-text);
+    font-size: 0.95rem;
+    margin: 0;
+    flex: 1;
+}
+.dungeon-node-desc {
+    font-size: 0.8rem;
+    color: var(--sys-text-dim);
+    margin: 0.3rem 0 0.75rem;
+    line-height: 1.5;
+}
+.dungeon-node-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+.dungeon-node-xp {
+    font-family: var(--sys-font-mono);
+    color: var(--sys-gold);
+    font-size: 0.85rem;
+}
+
+.dungeon-node-done-chip {
+    color: var(--sys-gold);
+    font-family: var(--sys-font-mono);
+    font-size: 0.8rem;
+}
+
+.dungeon-cleared-banner {
+    margin-top: 2rem;
+    padding: 2rem;
+    text-align: center;
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.12), rgba(167, 139, 250, 0.12));
+    border: 1px solid var(--sys-gold);
+}
+</style>
+{% endblock %}
+
+{% block student_content %}
+<a href="{% url 'student:hunt_list' %}" class="sys-btn-ghost" style="margin-bottom:1rem; font-size:0.8rem;">&larr; All Hunts</a>
+
+<header class="dungeon-header">
+    <p class="dungeon-eyebrow">[ DUNGEON MAP ]</p>
+    <h1 class="dungeon-title">{{ goal.title }}</h1>
+    <div class="dungeon-meta">
+        <span class="sys-chip sys-chip--{% if goal.status == 'completed' %}emerald{% elif goal.status == 'active' %}cyan{% else %}muted{% endif %}">{{ goal.get_status_display|upper }}</span>
+        {% if goal.subject %}<span class="sys-chip sys-chip--cyan">{{ goal.subject.name }}</span>{% endif %}
+        {% if goal.status == 'active' %}<span class="sys-chip sys-chip--gold">{{ goal.days_remaining }}d remaining</span>{% endif %}
+        <span class="sys-chip sys-chip--violet">+{{ goal.xp_reward }} XP on clear</span>
+    </div>
+    {% if goal.description %}<p style="color:var(--sys-text-dim); margin:0 0 1rem; max-width:720px;">{{ goal.description }}</p>{% endif %}
+    <div class="dungeon-progress-row">
+        <div class="sys-progress sys-progress--violet">
+            <div class="sys-progress-fill" style="width: {{ goal.progress_pct }}%;"></div>
+        </div>
+        <p class="sys-mono sys-text-dim" style="font-size:0.75rem; text-align:right; margin-top:0.3rem;">{{ goal.progress_pct }}% cleared</p>
+    </div>
+</header>
+
+{% if not tasks %}
+<div class="sys-panel" style="text-align:center; padding:3rem 2rem;">
+    <p class="sys-text-dim">The System could not decompose this Hunt. {% if goal.decomposition_error %}Reason: {{ goal.decomposition_error }}{% endif %}</p>
+</div>
+{% else %}
+<section class="dungeon-map">
+    {% for task in tasks %}
+      {% if not forloop.first %}
+        <div class="dungeon-connector {% if task.is_completed or tasks|slice:forloop.counter0|last %}dungeon-connector-done{% endif %}"></div>
+      {% endif %}
+      <div class="dungeon-node{% if task.is_completed %} dungeon-node-done{% elif current_index == forloop.counter0 %} dungeon-node-current{% endif %}{% if task.kind == 'boss' %} dungeon-node-boss{% endif %}">
+        <div class="dungeon-node-header">
+            <span class="dungeon-node-kind{% if task.kind == 'boss' %} dungeon-node-kind-boss{% endif %}">{{ task.get_kind_display|upper }}</span>
+            <h3 class="dungeon-node-title">{{ task.title }}</h3>
+        </div>
+        {% if task.description %}<p class="dungeon-node-desc">{{ task.description }}</p>{% endif %}
+        <div class="dungeon-node-actions">
+            <span class="dungeon-node-xp">+{{ task.xp_reward }} XP</span>
+            {% if task.is_completed %}
+                <span class="dungeon-node-done-chip">
+                    &#10003; CLEARED{% if task.best_score_pct is not None %} &middot; {{ task.best_score_pct }}%{% endif %}
+                </span>
+            {% elif goal.status == 'active' %}
+                <a href="{% url 'student:hunt_task_quiz' task.id %}" class="sys-btn-primary" style="font-size:0.8rem; padding:0.4rem 0.85rem; text-decoration:none;">
+                    {{ task.action_label }}
+                </a>
+                {% if task.best_score_pct is not None %}
+                <span class="sys-mono sys-text-muted" style="font-size:0.7rem;">best: {{ task.best_score_pct }}%</span>
+                {% endif %}
+            {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+</section>
+
+{% if goal.status == 'completed' %}
+<div class="sys-panel dungeon-cleared-banner">
+    <p class="sys-mono" style="letter-spacing:0.2em; color:var(--sys-gold); font-size:0.75rem; margin:0 0 0.5rem;">[ HUNT CLEARED ]</p>
+    <p style="margin:0 0 1rem; color:var(--sys-text);">All nodes down. +{{ goal.xp_reward }} XP awarded.</p>
+    <a href="{% url 'student:hunt_list' %}" class="sys-btn-ghost">Back to Hunt Log</a>
+</div>
+{% endif %}
+
+{% if goal.status == 'active' %}
+<form method="post" action="{% url 'student:hunt_abandon' goal.id %}" style="margin-top:2rem; text-align:center;"
+      onsubmit="return confirm('Abandon this Hunt? Progress is kept but the Hunt closes and no bonus XP is awarded.');">
+    {% csrf_token %}
+    <button type="submit" class="sys-btn-ghost" style="color:var(--sys-crimson); border-color:rgba(244,63,94,0.3); font-size:0.8rem;">Abandon this Hunt</button>
+</form>
+{% endif %}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,89 @@
+{% extends 'student/_shell.html' %}
+{% load static %}
+
+{% block title %}Awakening · Aptitude · EduAI{% endblock %}
+
+{% block student_content %}
+<div class="awakening-hero" style="max-width: 720px; margin: 0 auto; padding: 2rem 0;">
+  {% include 'student/awakening/_progress.html' %}
+
+  <section class="sys-panel sys-bracket-corners sys-anim-reveal" style="padding: 2rem;">
+    <div class="sys-flex sys-items-center sys-justify-between sys-mb-md" style="flex-wrap: wrap; gap: 0.5rem;">
+      <h2 class="sys-panel-title" style="margin: 0;">APTITUDE PROBE</h2>
+      <span class="sys-mono sys-text-dim" style="font-size: 0.8rem;">
+        Question {{ question_number }} / {{ total_questions }}
+      </span>
+    </div>
+
+    {% if question %}
+    <div class="sys-flex sys-items-center sys-mb-md">
+      <span class="sys-chip sys-chip--violet">{{ question.subject_name }}</span>
+    </div>
+
+    <div class="awakening-question-text sys-mb-lg"
+         style="font-size: 1.1rem; line-height: 1.55; color: var(--sys-text);">
+      {{ question.question }}
+    </div>
+
+    <form method="post" novalidate id="aptitude-form">
+      {% csrf_token %}
+      <input type="hidden" name="selected" id="selected-input" value="">
+
+      <div class="awakening-options"
+           style="display:grid; grid-template-columns: 1fr; gap: 0.6rem; margin-bottom: 1.5rem;">
+        {% for option in question.options %}
+        <button type="button" class="awakening-option-card" data-role="apt-option"
+                data-value="{{ option }}"
+                style="cursor:pointer; display:block; padding: 0.9rem 1rem; border-radius: var(--sys-radius-sm); background: var(--sys-surface-2); border: 1px solid var(--sys-border); color: var(--sys-text); font-size: 0.95rem; text-align: left; font-family: var(--sys-font-sans); transition: border-color 0.15s, box-shadow 0.15s;">
+          {{ option }}
+        </button>
+        {% endfor %}
+      </div>
+
+      <div style="text-align:center;">
+        <button type="submit" id="submit-btn" class="sys-btn-primary sys-btn-lg" disabled
+                style="opacity: 0.5;">
+          Submit Answer &rarr;
+        </button>
+      </div>
+    </form>
+    {% else %}
+    <p class="sys-text-dim" style="text-align:center;">No questions available — continuing...</p>
+    {% endif %}
+  </section>
+</div>
+
+<script>
+(function() {
+  var options = document.querySelectorAll('[data-role="apt-option"]');
+  var hiddenInput = document.getElementById('selected-input');
+  var submitBtn = document.getElementById('submit-btn');
+
+  options.forEach(function(opt) {
+    opt.addEventListener('click', function() {
+      // Mark this option selected, unmark others.
+      options.forEach(function(o) {
+        o.style.borderColor = 'var(--sys-border)';
+        o.style.boxShadow = 'none';
+      });
+      opt.style.borderColor = 'var(--sys-cyan)';
+      opt.style.boxShadow = 'var(--sys-glow-cyan)';
+      if (hiddenInput) hiddenInput.value = opt.getAttribute('data-value') || '';
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '1';
+      }
+    });
+
+    // Keyboard accessibility: Enter / Space should activate the option.
+    opt.setAttribute('tabindex', '0');
+    opt.addEventListener('keydown', function(ev) {
+      if (ev.key === 'Enter' || ev.key === ' ') {
+        ev.preventDefault();
+        opt.click();
+      }
+    });
+  });
+})();
+</script>
+{% endblock %}

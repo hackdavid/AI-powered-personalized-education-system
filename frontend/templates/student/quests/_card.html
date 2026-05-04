@@ -1,0 +1,52 @@
+{% comment %}
+Single quest-card row. Expects `row` (with keys assignment, status, sa, due_chip, due_variant) and `mode` ('active', 'submitted', 'graded').
+{% endcomment %}
+{% if mode == 'graded' %}
+<a href="{% url 'student:quest_results' row.assignment.id %}" class="sys-panel quest-card">
+{% elif mode == 'submitted' %}
+<div class="sys-panel quest-card" style="cursor:default;">
+{% else %}
+<a href="{% url 'student:quest_chamber' row.assignment.id %}" class="sys-panel quest-card">
+{% endif %}
+
+    <div class="quest-card-subject">
+        {% if row.assignment.subject %}
+        <span class="sys-chip sys-chip--cyan">{{ row.assignment.subject.name }}</span>
+        {% else %}
+        <span class="sys-chip sys-chip--muted">General</span>
+        {% endif %}
+        <div class="quest-card-difficulty">
+            {% for i in "12345"|make_list %}{% if forloop.counter <= row.assignment.difficulty %}&#9733;{% else %}<span class="quest-card-difficulty-dim">&#9733;</span>{% endif %}{% endfor %}
+        </div>
+    </div>
+
+    <div class="quest-card-body">
+        <h3>{{ row.assignment.title }}</h3>
+        {% if row.assignment.description %}
+        <p>{{ row.assignment.description }}</p>
+        {% endif %}
+        <div class="quest-card-meta">
+            <span class="sys-chip sys-chip--{{ row.due_variant }}">{{ row.due_chip }}</span>
+            <span class="sys-mono">{{ row.assignment.total_marks }} marks &middot; {{ row.assignment.questions.count }} questions</span>
+        </div>
+    </div>
+
+    <div class="quest-card-right">
+        {% if mode == 'graded' %}
+            <span class="quest-card-score">{{ row.sa.score|default:0 }} / {{ row.sa.max_score|default:row.assignment.total_marks }}</span>
+            <span class="quest-card-xp">+{{ row.sa.xp_awarded|default:0 }} XP</span>
+            <span class="sys-chip sys-chip--emerald">VIEW RESULTS</span>
+        {% elif mode == 'submitted' %}
+            <span class="sys-chip sys-chip--muted">AWAITING GRADE</span>
+            <span class="quest-card-xp">+{{ row.assignment.reward_xp|default:0 }} XP possible</span>
+        {% else %}
+            <span class="quest-card-xp">+{{ row.assignment.reward_xp|default:0 }} XP</span>
+            <span class="sys-chip sys-chip--cyan">{% if row.status == 'in_progress' %}CONTINUE QUEST{% else %}ENTER CHAMBER{% endif %}</span>
+        {% endif %}
+    </div>
+
+{% if mode == 'submitted' %}
+</div>
+{% else %}
+</a>
+{% endif %}
