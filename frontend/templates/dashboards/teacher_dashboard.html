@@ -1,143 +1,219 @@
-{% extends 'base/dashboard_base.html' %}
+{% extends 'teacher/_shell.html' %}
+{% load static %}
 
-{% block dashboard_title %}Teacher Dashboard{% endblock %}
-{% block page_title %}Welcome, {{ user.first_name }}!{% endblock %}
+{% block title %}Dashboard · EduAI Teacher{% endblock %}
 
-{% block page_subtitle %}
-<p class="text-gray-600 mt-1">Manage your classes and students</p>
+{% block breadcrumbs %}
+<span class="tx-breadcrumbs-current">Dashboard</span>
 {% endblock %}
 
-{% block page_actions %}
-<button class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition flex items-center">
-    <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+{% block topbar_actions %}
+<a href="{% url 'teacher:quest_create' %}" class="tx-btn-primary tx-btn-sm">
+    <svg class="tx-icon-sm" fill="none" stroke="currentColor" stroke-width="2.2"
+         stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <line x1="12" y1="5" x2="12" y2="19"/>
+        <line x1="5" y1="12" x2="19" y2="12"/>
     </svg>
-    Create Assignment
-</button>
-{% endblock %}
-
-{% block sidebar_nav %}
-<a href="{% url 'web:dashboard' %}" class="flex items-center px-6 py-3 text-gray-700 bg-indigo-50 border-r-4 border-indigo-600 transition">
-    <svg class="h-5 w-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-    </svg>
-    Dashboard
-</a>
-
-<a href="#" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition">
-    <svg class="h-5 w-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-    </svg>
-    My Classes
-</a>
-
-<a href="#" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition">
-    <svg class="h-5 w-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-    </svg>
-    Assignments
-</a>
-
-<a href="#" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition">
-    <svg class="h-5 w-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-    </svg>
-    Students
-</a>
-
-<a href="#" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition">
-    <svg class="h-5 w-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-    </svg>
-    Student Analytics
-</a>
-
-<a href="#" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition">
-    <svg class="h-5 w-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-    </svg>
-    AI Question Generator
+    New Quest
 </a>
 {% endblock %}
 
-{% block dashboard_content %}
-<!-- Stats Grid -->
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-    <!-- Total Students Card -->
-    <div class="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition">
-        <div class="flex items-center justify-between mb-4">
-            <div class="p-3 bg-indigo-100 rounded-lg">
-                <svg class="h-8 w-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
-                </svg>
-            </div>
-        </div>
-        <h3 class="text-gray-600 text-sm font-medium mb-1">Total Students</h3>
-        <p class="text-3xl font-bold text-gray-800">0</p>
-        <p class="text-sm text-gray-500 mt-1">Across all classes</p>
-    </div>
+{% block teacher_content %}
 
-    <!-- Active Assignments Card -->
-    <div class="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition">
-        <div class="flex items-center justify-between mb-4">
-            <div class="p-3 bg-green-100 rounded-lg">
-                <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
-            </div>
-        </div>
-        <h3 class="text-gray-600 text-sm font-medium mb-1">Active Assignments</h3>
-        <p class="text-3xl font-bold text-gray-800 mb-4">0</p>
-        <button class="w-full px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition text-sm">
-            Create New
-        </button>
-    </div>
-
-    <!-- Pending Reviews Card -->
-    <div class="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition">
-        <div class="flex items-center justify-between mb-4">
-            <div class="p-3 bg-yellow-100 rounded-lg">
-                <svg class="h-8 w-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
-                </svg>
-            </div>
-        </div>
-        <h3 class="text-gray-600 text-sm font-medium mb-1">Pending Reviews</h3>
-        <p class="text-3xl font-bold text-gray-800 mb-4">0</p>
-        <button class="w-full px-4 py-2 bg-yellow-600 text-white rounded-lg font-semibold hover:bg-yellow-700 transition text-sm">
-            Review Now
-        </button>
+<!-- ===== Page header ===== -->
+<div class="tx-page-header">
+    <div>
+        <h1 class="tx-page-title">Welcome back, {{ user.first_name|default:user.email }}</h1>
+        <p class="tx-page-subtitle">
+            {% if stats.total_classes %}
+                {{ stats.total_classes }} class{{ stats.total_classes|pluralize:"es" }} ·
+                {{ stats.total_students }} active student{{ stats.total_students|pluralize }}
+            {% else %}
+                You're not assigned to any classes yet — contact your school administrator.
+            {% endif %}
+        </p>
     </div>
 </div>
 
-<!-- My Classes Card -->
-<div class="bg-white rounded-xl shadow-md overflow-hidden mb-8">
-    <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-        <h3 class="text-lg font-semibold text-gray-800">My Classes</h3>
-        <button class="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition">
-            View All
-        </button>
+<!-- ===== Stat cards ===== -->
+<div class="tx-grid-stats">
+    <div class="tx-stat-card">
+        <div class="tx-stat-icon tx-stat-icon--indigo">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+        </div>
+        <div class="tx-stat-label">Total Students</div>
+        <div class="tx-stat-value">{{ stats.total_students }}</div>
+        <div class="tx-stat-meta">
+            Across {{ stats.total_classes }} class{{ stats.total_classes|pluralize:"es" }}
+        </div>
     </div>
-    <div class="p-8 text-center">
-        <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-        </svg>
-        <p class="text-gray-600 font-medium">No classes assigned yet</p>
-        <p class="text-sm text-gray-500 mt-1">Contact your school administrator to get assigned to classes</p>
+
+    <div class="tx-stat-card">
+        <div class="tx-stat-icon tx-stat-icon--emerald">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <polyline points="9 13 12 16 17 11"/>
+            </svg>
+        </div>
+        <div class="tx-stat-label">Active Quests</div>
+        <div class="tx-stat-value">{{ stats.active_assignments }}</div>
+        <div class="tx-stat-meta">Published &amp; not yet due</div>
+    </div>
+
+    <div class="tx-stat-card">
+        <div class="tx-stat-icon tx-stat-icon--amber">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+            </svg>
+        </div>
+        <div class="tx-stat-label">Pending Reviews</div>
+        <div class="tx-stat-value">{{ stats.pending_reviews }}</div>
+        <div class="tx-stat-meta">Submissions awaiting grading</div>
+    </div>
+
+    <div class="tx-stat-card">
+        <div class="tx-stat-icon tx-stat-icon--sky">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <line x1="18" y1="20" x2="18" y2="10"/>
+                <line x1="12" y1="20" x2="12" y2="4"/>
+                <line x1="6" y1="20" x2="6" y2="14"/>
+            </svg>
+        </div>
+        <div class="tx-stat-label">Average Mastery</div>
+        <div class="tx-stat-value">{{ stats.avg_mastery_pct }}<span style="font-size:1rem;color:var(--tx-text-muted);font-weight:500;">%</span></div>
+        <div class="tx-stat-meta">Across all subjects you teach</div>
     </div>
 </div>
 
-<!-- Recent Activity Card -->
-<div class="bg-white rounded-xl shadow-md overflow-hidden">
-    <div class="px-6 py-4 border-b border-gray-200">
-        <h3 class="text-lg font-semibold text-gray-800">Recent Activity</h3>
-    </div>
-    <div class="p-8 text-center">
-        <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-        </svg>
-        <p class="text-gray-600">No recent activity</p>
-        <p class="text-sm text-gray-500 mt-1">Activity from your classes will appear here</p>
-    </div>
+<!-- ===== My Classes + Recent Activity ===== -->
+<div class="tx-grid-2col-7-3">
+
+    <!-- Left: My Classes -->
+    <section class="tx-card">
+        <div class="tx-card-header">
+            <div>
+                <h2 class="tx-card-title">My Classes</h2>
+                <p class="tx-card-subtitle">Where you teach right now</p>
+            </div>
+            <a href="#" class="tx-btn-ghost tx-btn-sm" aria-disabled="true" title="Coming next">View all</a>
+        </div>
+        <div class="tx-card-body">
+            {% if classes %}
+                <div class="tx-grid-classes">
+                    {% for c in classes %}
+                    <a href="#" class="tx-class-card" title="Class detail coming next">
+                        <div class="tx-class-card-row">
+                            <div>
+                                <h3 class="tx-class-name">{{ c.name }}</h3>
+                                <p class="tx-class-meta">
+                                    Grade {{ c.grade_level }} · Section {{ c.section }} · {{ c.academic_year }}
+                                </p>
+                            </div>
+                            {% if c.is_homeroom %}
+                            <span class="tx-chip tx-chip--info">
+                                <span class="tx-chip-dot"></span>
+                                Homeroom
+                            </span>
+                            {% endif %}
+                        </div>
+
+                        <div class="tx-class-stats">
+                            <div>
+                                <div class="tx-class-stat-label">Students</div>
+                                <div class="tx-class-stat-value">{{ c.student_count }}</div>
+                            </div>
+                            <div>
+                                <div class="tx-class-stat-label">Active quests</div>
+                                <div class="tx-class-stat-value">{{ c.active_quest_count }}</div>
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="tx-card-empty">
+                    <strong>No classes assigned yet</strong>
+                    <span>Ask your school administrator to assign you to a class.</span>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Right: Recent Activity -->
+    <section class="tx-card">
+        <div class="tx-card-header">
+            <div>
+                <h2 class="tx-card-title">Recent Activity</h2>
+                <p class="tx-card-subtitle">Last 10 events from your students</p>
+            </div>
+        </div>
+        <div class="tx-card-body" style="padding-top: 0.5rem;">
+            {% if recent_activity %}
+                {% for ev in recent_activity %}
+                <div class="tx-activity-row">
+                    <div class="tx-activity-icon tx-activity-icon--{{ ev.icon }}">
+                        {% if ev.icon == 'quest' %}
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                        </svg>
+                        {% elif ev.icon == 'hunt' %}
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10"/>
+                            <circle cx="12" cy="12" r="6"/>
+                            <circle cx="12" cy="12" r="2"/>
+                        </svg>
+                        {% elif ev.icon == 'daily' %}
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        {% elif ev.icon == 'streak' %}
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                            <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+                        </svg>
+                        {% else %}
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="12"/>
+                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                        {% endif %}
+                    </div>
+                    <div class="tx-activity-body">
+                        <div class="tx-activity-headline">
+                            <strong>{{ ev.student_name }}</strong> {{ ev.verb }}
+                        </div>
+                        <div class="tx-activity-meta">{{ ev.created_at|timesince }} ago</div>
+                    </div>
+                    {% if ev.amount %}
+                    <div class="tx-activity-amount">+{{ ev.amount }} XP</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="tx-card-empty">
+                    <strong>No activity yet</strong>
+                    <span>Once your students start completing quests, their progress lands here.</span>
+                </div>
+            {% endif %}
+        </div>
+    </section>
 </div>
+
 {% endblock %}

@@ -1,99 +1,152 @@
-{% extends 'base/dashboard_base.html' %}
+{% extends 'teacher/_shell.html' %}
+{% load static %}
 
-{% block dashboard_title %}Create Quest{% endblock %}
-{% block page_title %}Create Quest{% endblock %}
+{% block title %}New Quest · EduAI Teacher{% endblock %}
 
-{% block page_subtitle %}
-<p class="text-gray-600 mt-1">The System auto-generates MCQs from your topic. Review them as a draft, then publish.</p>
+{% block breadcrumbs %}
+<a href="{% url 'teacher:dashboard' %}">Dashboard</a>
+<span class="tx-breadcrumbs-sep">/</span>
+<a href="{% url 'teacher:quest_list' %}">Quests</a>
+<span class="tx-breadcrumbs-sep">/</span>
+<span class="tx-breadcrumbs-current">New Quest</span>
 {% endblock %}
 
-{% block sidebar_nav %}
-<a href="{% url 'web:dashboard' %}" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 transition">Dashboard</a>
-<a href="{% url 'teacher:quest_list' %}" class="flex items-center px-6 py-3 text-gray-700 bg-indigo-50 border-r-4 border-indigo-600 transition">Quests</a>
-{% endblock %}
+{% block teacher_content %}
 
-{% block dashboard_content %}
-<form method="post" class="bg-white rounded-xl shadow-md p-6 max-w-3xl">
-    {% csrf_token %}
-
-    {% if messages %}
-      {% for message in messages %}
-        <div class="mb-4 p-3 rounded-lg {% if message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200{% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
-          {{ message }}
-        </div>
-      {% endfor %}
-    {% endif %}
-
-    <div class="mb-5">
-        <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Title <span class="text-red-500">*</span></label>
-        <input type="text" id="title" name="title" required maxlength="200"
-               value="{{ prior.title|default:'' }}"
-               placeholder="e.g. Quadratic Equations Quiz"
-               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-    </div>
-
-    <div class="mb-5">
-        <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-        <textarea id="description" name="description" maxlength="2000" rows="2"
-                  placeholder="Shown to students in the Quest Log. Optional."
-                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">{{ prior.description|default:'' }}</textarea>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-        <div>
-            <label for="class_obj" class="block text-sm font-medium text-gray-700 mb-1">Class <span class="text-red-500">*</span></label>
-            <select id="class_obj" name="class_obj" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                <option value="">-- select --</option>
-                {% for c in classes %}
-                <option value="{{ c.id }}"{% if prior.class_id == c.id|stringformat:"s" %} selected{% endif %}>{{ c.name }} ({{ c.academic_year }})</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div>
-            <label for="subject" class="block text-sm font-medium text-gray-700 mb-1">Subject <span class="text-red-500">*</span></label>
-            <select id="subject" name="subject" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                <option value="">-- select --</option>
-                {% for s in subjects %}
-                <option value="{{ s.id }}"{% if prior.subject_id == s.id|stringformat:"s" %} selected{% endif %}>{{ s.name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
-        <div>
-            <label for="count" class="block text-sm font-medium text-gray-700 mb-1"># Questions</label>
-            <input type="number" id="count" name="count" min="1" max="20" value="{{ prior.count|default:5 }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
-        </div>
-        <div>
-            <label for="difficulty" class="block text-sm font-medium text-gray-700 mb-1">Difficulty</label>
-            <select id="difficulty" name="difficulty" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
-                {% for i in "12345"|make_list %}
-                <option value="{{ i }}"{% if prior.difficulty == i|add:0 %} selected{% endif %}>{{ i }} / 5</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div>
-            <label for="due_date" class="block text-sm font-medium text-gray-700 mb-1">Due</label>
-            <input type="datetime-local" id="due_date" name="due_date" required
-                   value="{{ prior.due_date|default:default_due }}"
-                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
-        </div>
-    </div>
-
-    <div class="p-4 bg-indigo-50 border border-indigo-200 rounded-lg mb-5">
-        <p class="text-sm text-indigo-900">
-            <strong>Note:</strong> The System will auto-generate multiple-choice questions from the title/subject using
-            the curriculum-grounded question generator. The quest is saved as a <strong>Draft</strong> &mdash;
-            review the questions on the next page, then publish when ready.
+<div class="tx-page-header">
+    <div>
+        <h1 class="tx-page-title">Create a Quest</h1>
+        <p class="tx-page-subtitle">
+            The System auto-generates MCQs from your topic. Review them as a draft, then publish when ready.
         </p>
     </div>
+</div>
 
-    <div class="flex justify-between items-center">
-        <a href="{% url 'teacher:quest_list' %}" class="px-4 py-2 text-gray-600 hover:text-gray-900 font-medium">&larr; Cancel</a>
-        <button type="submit" class="px-6 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition">
-            Generate Draft &rarr;
+{% if messages %}
+{% for message in messages %}
+<div class="tx-card tx-mb-md" style="border-color: var({% if message.tags == 'error' %}--tx-alert{% else %}--tx-info{% endif %});">
+    <div class="tx-card-body" style="padding: 0.75rem 1rem; font-size: 0.85rem; color: var({% if message.tags == 'error' %}--tx-alert{% else %}--tx-info{% endif %});">
+        {{ message }}
+    </div>
+</div>
+{% endfor %}
+{% endif %}
+
+<form method="post" style="max-width: 720px;">
+    {% csrf_token %}
+
+    <section class="tx-card tx-mb-md">
+        <div class="tx-card-header">
+            <div>
+                <h2 class="tx-card-title">Basics</h2>
+                <p class="tx-card-subtitle">Title, description, and where this quest lives.</p>
+            </div>
+        </div>
+        <div class="tx-card-body">
+            <div class="tx-field">
+                <label for="title" class="tx-label">Title <span style="color: var(--tx-alert);">*</span></label>
+                <input type="text" id="title" name="title" required maxlength="200"
+                       value="{{ prior.title|default:'' }}"
+                       placeholder="e.g. Quadratic Equations Quiz"
+                       class="tx-input">
+            </div>
+
+            <div class="tx-field">
+                <label for="description" class="tx-label">Description</label>
+                <textarea id="description" name="description" maxlength="2000" rows="3"
+                          placeholder="Shown to students in the Quest Log. Optional."
+                          class="tx-textarea">{{ prior.description|default:'' }}</textarea>
+                <p class="tx-help">Optional. Up to 2000 characters.</p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="tx-field">
+                    <label for="class_obj" class="tx-label">Class <span style="color: var(--tx-alert);">*</span></label>
+                    <select id="class_obj" name="class_obj" required class="tx-select">
+                        <option value="">— Pick one —</option>
+                        {% for c in classes %}
+                        <option value="{{ c.id }}"{% if prior.class_id == c.id|stringformat:"s" %} selected{% endif %}>
+                            {{ c.name }} ({{ c.academic_year }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="tx-field">
+                    <label for="subject" class="tx-label">Subject <span style="color: var(--tx-alert);">*</span></label>
+                    <select id="subject" name="subject" required class="tx-select">
+                        <option value="">— Pick one —</option>
+                        {% for s in subjects %}
+                        <option value="{{ s.id }}"{% if prior.subject_id == s.id|stringformat:"s" %} selected{% endif %}>{{ s.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="tx-card tx-mb-md">
+        <div class="tx-card-header">
+            <div>
+                <h2 class="tx-card-title">Generation settings</h2>
+                <p class="tx-card-subtitle">Tell the System how to draft your questions.</p>
+            </div>
+        </div>
+        <div class="tx-card-body">
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                <div class="tx-field">
+                    <label for="count" class="tx-label">Questions</label>
+                    <input type="number" id="count" name="count" min="1" max="20"
+                           value="{{ prior.count|default:5 }}" class="tx-input">
+                    <p class="tx-help">1–20</p>
+                </div>
+                <div class="tx-field">
+                    <label for="difficulty" class="tx-label">Difficulty</label>
+                    <select id="difficulty" name="difficulty" class="tx-select">
+                        {% for i in "12345"|make_list %}
+                        <option value="{{ i }}"{% if prior.difficulty == i|add:0 %} selected{% endif %}>
+                            Level {{ i }} / 5
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <p class="tx-help">Affects XP reward.</p>
+                </div>
+                <div class="tx-field">
+                    <label for="due_date" class="tx-label">Due <span style="color: var(--tx-alert);">*</span></label>
+                    <input type="datetime-local" id="due_date" name="due_date" required
+                           value="{{ prior.due_date|default:default_due }}"
+                           class="tx-input">
+                </div>
+            </div>
+
+            <div style="background: var(--tx-primary-soft); border: 1px solid var(--tx-primary); border-radius: var(--tx-radius-sm); padding: 0.85rem 1rem; margin-top: 0.5rem;">
+                <p style="margin: 0; font-size: 0.83rem; color: var(--tx-primary-hover); line-height: 1.55;">
+                    <strong>How it works:</strong> the System uses the curriculum-grounded question
+                    generator to draft multiple-choice questions from your title + subject. The quest
+                    is saved as a <strong>Draft</strong> so you can review (and edit) the questions
+                    on the next page before publishing.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
+        <a href="{% url 'teacher:quest_list' %}" class="tx-btn-ghost">
+            <svg class="tx-icon-sm" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <line x1="19" y1="12" x2="5" y2="12"/>
+                <polyline points="12 19 5 12 12 5"/>
+            </svg>
+            Cancel
+        </a>
+        <button type="submit" class="tx-btn-primary">
+            Generate draft
+            <svg class="tx-icon-sm" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <line x1="5" y1="12" x2="19" y2="12"/>
+                <polyline points="12 5 19 12 12 19"/>
+            </svg>
         </button>
     </div>
 </form>
+
 {% endblock %}

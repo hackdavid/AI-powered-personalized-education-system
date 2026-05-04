@@ -9,6 +9,7 @@ from apps.web.urls import (
     auth_patterns,
     school_admin_patterns,
     student_patterns,
+    teacher_patterns,
     public_patterns,
 )
 
@@ -17,6 +18,7 @@ urlpatterns = [
     path('auth/', include((auth_patterns, 'auth'))),
     path('school-admin/', include((school_admin_patterns, 'school_admin'))),
     path('student/', include((student_patterns, 'student'))),
+    path('teacher/', include((teacher_patterns, 'teacher'))),
     path('health/', include('apps.core.urls')),
     path('api/v1/', include('apps.service.api.urls')),
     path('', include((public_patterns, 'web'))),
