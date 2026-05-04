@@ -1,97 +1,155 @@
-{% extends 'base/dashboard_base.html' %}
+{% extends 'teacher/_shell.html' %}
+{% load static %}
 
-{% block dashboard_title %}{{ assignment.title }}{% endblock %}
-{% block page_title %}{{ assignment.title }}{% endblock %}
+{% block title %}{{ assignment.title }} · EduAI Teacher{% endblock %}
 
-{% block page_subtitle %}
-<div class="flex items-center gap-2 mt-1 text-sm text-gray-600 flex-wrap">
-    <span class="px-2 py-0.5 rounded-full
-        {% if assignment.status == 'draft' %}bg-yellow-100 text-yellow-800
-        {% elif assignment.status == 'published' %}bg-green-100 text-green-800
-        {% else %}bg-gray-100 text-gray-600{% endif %}">{{ assignment.get_status_display|upper }}</span>
-    <span>&middot;</span>
-    <span>{{ assignment.class_obj.name }}</span>
-    {% if assignment.subject %}<span>&middot;</span><span>{{ assignment.subject.name }}</span>{% endif %}
-    <span>&middot;</span>
-    <span>Due {{ assignment.due_date|date:"M j, Y g:i A" }}</span>
-    <span>&middot;</span>
-    <span>{{ assignment.questions.count }} questions &middot; {{ assignment.total_marks }} marks</span>
-    <span>&middot;</span>
-    <span class="text-amber-600 font-medium">+{{ assignment.reward_xp }} XP on 100%</span>
-</div>
+{% block breadcrumbs %}
+<a href="{% url 'teacher:dashboard' %}">Dashboard</a>
+<span class="tx-breadcrumbs-sep">/</span>
+<a href="{% url 'teacher:quest_list' %}">Quests</a>
+<span class="tx-breadcrumbs-sep">/</span>
+<span class="tx-breadcrumbs-current">{{ assignment.title|truncatechars:40 }}</span>
 {% endblock %}
 
-{% block page_actions %}
+{% block topbar_actions %}
 {% if assignment.status == 'draft' %}
-<form method="post" action="{% url 'teacher:quest_publish' assignment.id %}">
+<form method="post" action="{% url 'teacher:quest_publish' assignment.id %}" style="display: inline;">
     {% csrf_token %}
-    <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition">Publish Quest</button>
+    <button type="submit" class="tx-btn-primary tx-btn-sm">
+        <svg class="tx-icon-sm" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Publish quest
+    </button>
 </form>
 {% elif assignment.status == 'published' %}
-<form method="post" action="{% url 'teacher:quest_archive' assignment.id %}"
+<form method="post" action="{% url 'teacher:quest_archive' assignment.id %}" style="display: inline;"
       onsubmit="return confirm('Archive this quest? Students will no longer see it.');">
     {% csrf_token %}
-    <button type="submit" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg font-semibold hover:bg-gray-300 transition">Archive</button>
+    <button type="submit" class="tx-btn-secondary tx-btn-sm">Archive</button>
 </form>
 {% endif %}
 {% endblock %}
 
-{% block sidebar_nav %}
-<a href="{% url 'web:dashboard' %}" class="flex items-center px-6 py-3 text-gray-600 hover:bg-gray-50 transition">Dashboard</a>
-<a href="{% url 'teacher:quest_list' %}" class="flex items-center px-6 py-3 text-gray-700 bg-indigo-50 border-r-4 border-indigo-600 transition">Quests</a>
-{% endblock %}
+{% block teacher_content %}
 
-{% block dashboard_content %}
 {% if messages %}
-  {% for message in messages %}
-    <div class="mb-4 p-3 rounded-lg {% if message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200{% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
-      {{ message }}
+{% for message in messages %}
+<div class="tx-card tx-mb-md" style="border-color: var({% if message.tags == 'error' %}--tx-alert{% elif message.tags == 'success' %}--tx-success{% else %}--tx-info{% endif %});">
+    <div class="tx-card-body" style="padding: 0.75rem 1rem; font-size: 0.85rem; color: var({% if message.tags == 'error' %}--tx-alert{% elif message.tags == 'success' %}--tx-success{% else %}--tx-info{% endif %});">
+        {{ message }}
     </div>
-  {% endfor %}
+</div>
+{% endfor %}
 {% endif %}
+
+<!-- Header banner -->
+<div class="tx-page-header">
+    <div style="min-width: 0; flex: 1;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.4rem;">
+            <span class="tx-chip tx-chip--{{ assignment.status }}">{{ assignment.get_status_display }}</span>
+            {% if assignment.is_overdue %}<span class="tx-chip tx-chip--alert">Overdue</span>{% endif %}
+        </div>
+        <h1 class="tx-page-title">{{ assignment.title }}</h1>
+        <div class="tx-page-subtitle" style="display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin-top: 0.4rem;">
+            <span>{{ assignment.class_obj.name }}</span>
+            {% if assignment.subject %}
+            <span>·</span>
+            <span style="color: var(--tx-primary); font-weight: 500;">{{ assignment.subject.name }}</span>
+            {% endif %}
+            <span>·</span>
+            <span>Due {{ assignment.due_date|date:"M j, Y g:i A" }}</span>
+            <span>·</span>
+            <span>{{ assignment.questions.count }} question{{ assignment.questions.count|pluralize }}</span>
+            <span>·</span>
+            <span>{{ assignment.total_marks }} marks</span>
+            <span>·</span>
+            <span style="color: var(--tx-warn); font-weight: 500;">+{{ assignment.reward_xp }} XP on 100%</span>
+        </div>
+    </div>
+</div>
 
 {% if assignment.description %}
-<div class="bg-white rounded-xl shadow-md p-4 mb-4">
-    <h3 class="text-sm font-semibold text-gray-600 mb-1">DESCRIPTION</h3>
-    <p class="text-sm text-gray-800">{{ assignment.description }}</p>
-</div>
+<section class="tx-card tx-mb-md">
+    <div class="tx-card-header">
+        <div>
+            <h2 class="tx-card-title">Description</h2>
+            <p class="tx-card-subtitle">Shown to students in the quest list.</p>
+        </div>
+    </div>
+    <div class="tx-card-body">
+        <p style="margin: 0; font-size: 0.9rem; color: var(--tx-text-soft); line-height: 1.6;">{{ assignment.description }}</p>
+    </div>
+</section>
 {% endif %}
 
-<div class="bg-white rounded-xl shadow-md overflow-hidden">
-    <header class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-        <h3 class="text-lg font-semibold text-gray-800">Questions</h3>
-        <span class="text-xs text-gray-500">Review and confirm before publishing.</span>
-    </header>
-    <ol class="divide-y divide-gray-100">
+<!-- Questions list -->
+<section class="tx-card tx-mb-md">
+    <div class="tx-card-header">
+        <div>
+            <h2 class="tx-card-title">Questions</h2>
+            <p class="tx-card-subtitle">
+                {% if assignment.status == 'draft' %}
+                    Review and confirm before publishing.
+                {% else %}
+                    Read-only — published quests can't be edited.
+                {% endif %}
+            </p>
+        </div>
+        <span class="tx-chip">{{ assignment.questions.count }} item{{ assignment.questions.count|pluralize }}</span>
+    </div>
+    <div>
         {% for q in questions %}
-        <li class="p-5">
-            <div class="flex justify-between items-start mb-2">
-                <p class="font-medium text-gray-900">
-                    <span class="text-gray-400 font-mono mr-2">Q{{ forloop.counter|stringformat:"02d" }}</span>
+        <div style="padding: 1.1rem 1.25rem; border-bottom: 1px solid var(--tx-border);">
+            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 0.5rem;">
+                <p style="margin: 0; font-size: 0.92rem; color: var(--tx-text); line-height: 1.55;">
+                    <span style="font-family: ui-monospace, monospace; color: var(--tx-text-muted); font-size: 0.78rem; margin-right: 0.5rem;">
+                        Q{{ forloop.counter|stringformat:"02d" }}
+                    </span>
                     {{ q.question_text }}
                 </p>
-                <span class="ml-4 text-xs font-mono text-amber-600 whitespace-nowrap">{{ q.marks }} {{ q.marks|pluralize:"mark,marks" }}</span>
+                <span style="flex-shrink: 0; font-family: ui-monospace, monospace; font-size: 0.72rem; color: var(--tx-warn); font-weight: 600; white-space: nowrap;">
+                    {{ q.marks }} {{ q.marks|pluralize:"mark,marks" }}
+                </span>
             </div>
             {% if q.options %}
-            <ul class="pl-6 mt-2 space-y-1">
+            <ul style="list-style: none; padding: 0; margin: 0.5rem 0 0 1.5rem;">
                 {% for opt in q.options %}
-                <li class="flex items-start gap-2 text-sm">
-                    <span class="font-mono text-gray-500 mt-0.5">{{ opt.key }}.</span>
-                    <span class="{% if opt.key == q.correct_answer %}text-green-700 font-semibold{% else %}text-gray-700{% endif %}">{{ opt.text }}{% if opt.key == q.correct_answer %} &#10003;{% endif %}</span>
+                <li style="display: flex; align-items: flex-start; gap: 0.5rem; padding: 0.2rem 0; font-size: 0.85rem;">
+                    <span style="font-family: ui-monospace, monospace; color: var(--tx-text-muted); flex-shrink: 0; margin-top: 0.05rem;">{{ opt.key }}.</span>
+                    <span style="{% if opt.key == q.correct_answer %}color: var(--tx-success); font-weight: 600;{% else %}color: var(--tx-text-soft);{% endif %}">
+                        {{ opt.text }}
+                        {% if opt.key == q.correct_answer %}
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="3"
+                             stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"
+                             style="display: inline-block; vertical-align: middle; margin-left: 0.25rem;">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        {% endif %}
+                    </span>
                 </li>
                 {% endfor %}
             </ul>
             {% endif %}
             {% if q.explanation %}
-            <details class="mt-2">
-                <summary class="text-xs text-indigo-600 cursor-pointer hover:underline">Explanation</summary>
-                <p class="mt-1 text-xs text-gray-600 pl-4">{{ q.explanation }}</p>
+            <details style="margin-top: 0.6rem;">
+                <summary style="font-size: 0.78rem; color: var(--tx-primary); cursor: pointer; user-select: none;">
+                    Explanation
+                </summary>
+                <p style="margin: 0.4rem 0 0 1rem; font-size: 0.82rem; color: var(--tx-text-soft); line-height: 1.55;">
+                    {{ q.explanation }}
+                </p>
             </details>
             {% endif %}
-        </li>
+        </div>
         {% empty %}
-        <li class="p-6 text-center text-gray-500">No questions on this quest yet.</li>
+        <div class="tx-card-empty">
+            <strong>No questions yet</strong>
+            <span>Add questions before publishing this quest.</span>
+        </div>
         {% endfor %}
-    </ol>
-</div>
+    </div>
+</section>
+
 {% endblock %}

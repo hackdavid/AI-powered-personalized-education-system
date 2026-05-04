@@ -1,25 +1,28 @@
 {% comment %}Single row rendering for a teacher-owned assignment.{% endcomment %}
-<a href="{% url 'teacher:quest_detail' a.id %}" class="flex items-center justify-between p-4 hover:bg-gray-50 transition">
+<a href="{% url 'teacher:quest_detail' a.id %}"
+   class="flex items-center justify-between px-5 py-3.5 hover:bg-slate-50 transition border-b border-slate-100 last:border-b-0"
+   style="text-decoration:none;color:inherit;">
     <div class="flex-1 min-w-0">
-        <h3 class="text-base font-semibold text-gray-800 truncate">{{ a.title }}</h3>
-        <div class="flex items-center gap-2 mt-1 text-xs text-gray-500">
-            {% if a.subject %}<span class="px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-full">{{ a.subject.name }}</span>{% endif %}
+        <div class="flex items-center gap-2 mb-1">
+            <h3 class="text-sm font-semibold truncate" style="color:var(--tx-text);">{{ a.title }}</h3>
+            <span class="tx-chip tx-chip--{{ a.status }}">{{ a.get_status_display }}</span>
+        </div>
+        <div class="flex items-center gap-2 text-xs flex-wrap" style="color:var(--tx-text-muted);">
+            {% if a.subject %}<span style="color:var(--tx-primary);font-weight:500;">{{ a.subject.name }}</span><span>·</span>{% endif %}
             <span>{{ a.class_obj.name }}</span>
-            <span>&middot;</span>
+            <span>·</span>
             <span>Due {{ a.due_date|date:"M j, Y g:i A" }}</span>
-            <span>&middot;</span>
+            <span>·</span>
             <span>{{ a.questions.count }} question{{ a.questions.count|pluralize }}</span>
-            <span>&middot;</span>
+            <span>·</span>
             <span>{{ a.total_marks }} marks</span>
-            <span>&middot;</span>
-            <span>Lvl {{ a.difficulty }}/5</span>
+            <span>·</span>
+            <span>Difficulty {{ a.difficulty }}/5</span>
         </div>
     </div>
-    <div class="flex items-center gap-3 ml-4">
-        <span class="px-2 py-1 text-xs font-semibold rounded-full
-            {% if a.status == 'draft' %}bg-yellow-100 text-yellow-800
-            {% elif a.status == 'published' %}bg-green-100 text-green-800
-            {% else %}bg-gray-100 text-gray-600{% endif %}">{{ a.get_status_display|upper }}</span>
-        <span class="text-xs text-gray-400">&rarr;</span>
-    </div>
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"
+         style="color:var(--tx-text-muted);flex-shrink:0;margin-left:1rem;">
+        <polyline points="9 18 15 12 9 6"/>
+    </svg>
 </a>

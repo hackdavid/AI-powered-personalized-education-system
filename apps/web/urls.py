@@ -1,10 +1,11 @@
 """
 URL configuration for apps.web.
 
-Organized into four namespaces, all included in config/urls.py:
+Organized into five namespaces, all included in config/urls.py:
 - auth:           login / logout / password
 - school_admin:   school admin CRUD UIs
-- student:        student-only pages (chat / progress / goals)
+- student:        student-only pages (chat / quests / hunts / profile)
+- teacher:        teacher-only pages (dashboard / classes / quests / gradebook)
 - web:            home + dashboard
 """
 
@@ -27,6 +28,7 @@ from apps.web.views.student import (
     hunts as hunts_views,
     quests as quests_views,
 )
+from apps.web.views.teacher import quests as teacher_quest_views
 
 
 # --- public + dashboard (namespace 'web') ---
@@ -121,4 +123,21 @@ student_patterns = [
         TemplateView.as_view(template_name='student/_shell_preview.html'),
         name='shell_preview',
     ),
+]
+
+
+# --- teacher (namespace 'teacher') ---
+# Teacher-facing UI: dashboard overview + Quest (Assignment) authoring. The
+# `test_teacher_quests` suite binds its `reverse()` calls against this
+# namespace, so URL names here are stable contracts.
+teacher_patterns = [
+    # Dashboard lives here so the nav link can resolve to `teacher:dashboard`.
+    path('', dashboards.teacher_status_view, name='dashboard'),
+
+    # Quests (Assignments)
+    path('quests/', teacher_quest_views.quest_list_view, name='quest_list'),
+    path('quests/new/', teacher_quest_views.quest_create_view, name='quest_create'),
+    path('quests/<int:pk>/', teacher_quest_views.quest_detail_view, name='quest_detail'),
+    path('quests/<int:pk>/publish/', teacher_quest_views.quest_publish_view, name='quest_publish'),
+    path('quests/<int:pk>/archive/', teacher_quest_views.quest_archive_view, name='quest_archive'),
 ]

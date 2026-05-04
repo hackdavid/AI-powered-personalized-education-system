@@ -63,6 +63,7 @@ def quest_list_view(request):
         'user': request.user,
         'groups': groups,
         'counts': {k: len(v) for k, v in groups.items()},
+        'active_page': 'quests',
     })
 
 
@@ -216,6 +217,7 @@ def quest_create_view(request):
                     'topic_id': topic_id, 'count': count,
                     'difficulty': difficulty, 'due_date': due_date_raw,
                 },
+                'active_page': 'quests',
             })
 
         # Resolve topic title for prompt
@@ -275,6 +277,7 @@ def quest_create_view(request):
         'subjects': subjects,
         'default_due': default_due,
         'prior': {},
+        'active_page': 'quests',
     })
 
 
@@ -292,6 +295,7 @@ def quest_detail_view(request, pk):
         'user': request.user,
         'assignment': assignment,
         'questions': list(assignment.questions.all().order_by('order', 'id')),
+        'active_page': 'quests',
     })
 
 
