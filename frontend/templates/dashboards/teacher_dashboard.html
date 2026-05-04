@@ -106,13 +106,13 @@
                 <h2 class="tx-card-title">My Classes</h2>
                 <p class="tx-card-subtitle">Where you teach right now</p>
             </div>
-            <a href="#" class="tx-btn-ghost tx-btn-sm" aria-disabled="true" title="Coming next">View all</a>
+            <a href="{% url 'teacher:class_list' %}" class="tx-btn-ghost tx-btn-sm">View all</a>
         </div>
         <div class="tx-card-body">
             {% if classes %}
                 <div class="tx-grid-classes">
                     {% for c in classes %}
-                    <a href="#" class="tx-class-card" title="Class detail coming next">
+                    <a href="{% url 'teacher:class_detail' c.id %}" class="tx-class-card">
                         <div class="tx-class-card-row">
                             <div>
                                 <h3 class="tx-class-name">{{ c.name }}</h3>

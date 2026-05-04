@@ -1,0 +1,317 @@
+{% extends 'teacher/_shell.html' %}
+{% load static %}
+
+{% block title %}{{ student.get_full_name|default:student.email }} · EduAI Teacher{% endblock %}
+
+{% block breadcrumbs %}
+<a href="{% url 'teacher:dashboard' %}">Dashboard</a>
+<span class="tx-breadcrumbs-sep">/</span>
+<a href="{% url 'teacher:student_list' %}">Students</a>
+<span class="tx-breadcrumbs-sep">/</span>
+<span class="tx-breadcrumbs-current">{{ student.get_full_name|default:student.email|truncatechars:36 }}</span>
+{% endblock %}
+
+{% block teacher_content %}
+
+<!-- Header banner -->
+<div class="tx-card tx-mb-lg" style="background: linear-gradient(135deg, var(--tx-primary-soft) 0%, var(--tx-surface) 70%);">
+    <div class="tx-card-body" style="display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap;">
+        <div class="tx-sidebar-avatar" style="width: 64px; height: 64px; font-size: 1.25rem;" aria-hidden="true">
+            {% if student.avatar %}<img src="{{ student.avatar.url }}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+            {% else %}{{ student.first_name.0|upper }}{{ student.last_name.0|upper }}{% endif %}
+        </div>
+        <div style="min-width: 0; flex: 1;">
+            <div style="display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin-bottom: 0.3rem;">
+                <span class="tx-chip" style="background: var(--tx-text); color: white; font-family: ui-monospace, monospace;">{{ profile.rank }}</span>
+                <span class="tx-chip">Level {{ profile.level }}</span>
+                {% if profile.streak_days %}
+                <span class="tx-chip tx-chip--pending">
+                    <svg width="10" height="10" fill="var(--tx-warn)" viewBox="0 0 24 24" style="margin-right: 2px;">
+                        <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+                    </svg>
+                    {{ profile.streak_days }}-day streak
+                </span>
+                {% endif %}
+                {% if not profile.onboarding_complete %}
+                <span class="tx-chip tx-chip--alert">Onboarding incomplete</span>
+                {% endif %}
+            </div>
+            <h1 class="tx-page-title" style="margin: 0;">{{ student.get_full_name|default:student.email }}</h1>
+            <p class="tx-page-subtitle" style="margin: 0.25rem 0 0;">
+                {{ student.email }}
+                {% if student_classes %}
+                · In your class{{ student_classes|length|pluralize:"es" }}:
+                {% for c in student_classes %}
+                    <a href="{% url 'teacher:class_detail' c.id %}" style="color: var(--tx-primary); text-decoration: none; font-weight: 500;">{{ c.name }}</a>{% if not forloop.last %},{% endif %}
+                {% endfor %}
+                {% endif %}
+            </p>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.15rem; min-width: 100px;">
+            <div style="font-size: 1.5rem; font-weight: 700; color: var(--tx-text); font-family: ui-monospace, monospace;">{{ profile.total_xp }}</div>
+            <div style="font-size: 0.7rem; color: var(--tx-text-muted); text-transform: uppercase; letter-spacing: 0.05em;">Total XP</div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick stats grid -->
+<div class="tx-grid-stats">
+    <div class="tx-stat-card">
+        <div class="tx-stat-icon tx-stat-icon--emerald">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <polyline points="9 13 12 16 17 11"/>
+            </svg>
+        </div>
+        <div class="tx-stat-label">Quests Graded</div>
+        <div class="tx-stat-value">{{ quests_graded }}</div>
+        <div class="tx-stat-meta">
+            {% if avg_quest_pct is not None %}
+                Average score: {{ avg_quest_pct }}%
+            {% else %}
+                No graded quests yet
+            {% endif %}
+        </div>
+    </div>
+    <div class="tx-stat-card">
+        <div class="tx-stat-icon tx-stat-icon--sky">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10"/>
+                <circle cx="12" cy="12" r="6"/>
+                <circle cx="12" cy="12" r="2"/>
+            </svg>
+        </div>
+        <div class="tx-stat-label">Hunts</div>
+        <div class="tx-stat-value">{{ hunts_completed }}<span style="font-size:1rem;color:var(--tx-text-muted);font-weight:500;"> / {{ hunts_active|add:hunts_completed|add:hunts_expired }}</span></div>
+        <div class="tx-stat-meta">{{ hunts_active }} active · {{ hunts_expired }} expired</div>
+    </div>
+    <div class="tx-stat-card">
+        <div class="tx-stat-icon tx-stat-icon--amber">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <circle cx="12" cy="8" r="7"/>
+                <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>
+            </svg>
+        </div>
+        <div class="tx-stat-label">Badges Earned</div>
+        <div class="tx-stat-value">{{ earned_count }}<span style="font-size:1rem;color:var(--tx-text-muted);font-weight:500;"> / {{ total_badges }}</span></div>
+        <div class="tx-stat-meta">Achievements unlocked</div>
+    </div>
+    <div class="tx-stat-card">
+        <div class="tx-stat-icon tx-stat-icon--rose">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+            </svg>
+        </div>
+        <div class="tx-stat-label">Last Active</div>
+        <div class="tx-stat-value" style="font-size: 1.1rem; line-height: 1.2;">
+            {% if profile.last_active_date %}{{ profile.last_active_date|timesince }}{% else %}<span style="color: var(--tx-text-muted);">Never</span>{% endif %}
+        </div>
+        <div class="tx-stat-meta">{% if profile.last_active_date %}{{ profile.last_active_date|date:"M j, Y" }}{% else %}No activity recorded{% endif %}</div>
+    </div>
+</div>
+
+<!-- Two-column: Mastery + Recent activity (XP) -->
+<div class="tx-grid-2col-7-3">
+
+    <!-- LEFT: Mastery -->
+    <section class="tx-card tx-mb-md">
+        <div class="tx-card-header">
+            <div>
+                <h2 class="tx-card-title">Mastery by Subject</h2>
+                <p class="tx-card-subtitle">Updated each time a quest is graded.</p>
+            </div>
+        </div>
+        <div class="tx-card-body">
+            {% if mastery_rows %}
+            <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+                {% for m in mastery_rows %}
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.3rem;">
+                        <span style="font-size: 0.85rem; font-weight: 500; color: var(--tx-text);">{{ m.subject_name }}</span>
+                        <span style="font-family: ui-monospace, monospace; font-size: 0.78rem; color: var(--tx-text-soft);">{{ m.pct }}%</span>
+                    </div>
+                    <div style="height: 8px; background: var(--tx-surface-2); border-radius: 4px; overflow: hidden;">
+                        <div style="height: 100%; width: {{ m.pct }}%; background: linear-gradient(90deg, var(--tx-primary), var(--tx-info)); border-radius: 4px; transition: width 0.3s;"></div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="tx-card-empty" style="padding: 1rem;">
+                <strong>No mastery data yet</strong>
+                <span>Mastery is computed when this student starts completing quests.</span>
+            </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- RIGHT: XP feed -->
+    <section class="tx-card tx-mb-md">
+        <div class="tx-card-header">
+            <div>
+                <h2 class="tx-card-title">XP History</h2>
+                <p class="tx-card-subtitle">Last 15 events</p>
+            </div>
+        </div>
+        <div class="tx-card-body" style="padding-top: 0.5rem;">
+            {% if xp_events %}
+                {% for e in xp_events %}
+                <div class="tx-activity-row">
+                    <div class="tx-activity-icon">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"
+                             stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                        </svg>
+                    </div>
+                    <div class="tx-activity-body">
+                        <div class="tx-activity-headline" style="font-size: 0.8rem;">
+                            {{ e.description|default:e.get_source_display }}
+                        </div>
+                        <div class="tx-activity-meta">{{ e.created_at|timesince }} ago</div>
+                    </div>
+                    <div class="tx-activity-amount">+{{ e.amount }}</div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="tx-card-empty" style="padding: 1rem;">
+                    <strong>No XP yet</strong>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+</div>
+
+<!-- Recent quests -->
+<section class="tx-card tx-mb-md">
+    <div class="tx-card-header">
+        <div>
+            <h2 class="tx-card-title">Recent Quest Activity</h2>
+            <p class="tx-card-subtitle">Last 10 submitted or graded</p>
+        </div>
+    </div>
+    {% if recent_quests %}
+    <div style="overflow-x: auto;">
+        <table class="tx-table">
+            <thead>
+                <tr>
+                    <th>Quest</th>
+                    <th>Subject</th>
+                    <th>Status</th>
+                    <th>Score</th>
+                    <th>Submitted</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sa in recent_quests %}
+                <tr>
+                    <td>
+                        <a href="{% url 'teacher:quest_detail' sa.assignment_id %}"
+                           style="color: var(--tx-text); font-weight: 500; text-decoration: none;">
+                            {{ sa.assignment.title }}
+                        </a>
+                    </td>
+                    <td style="color: var(--tx-text-soft); font-size: 0.8rem;">
+                        {% if sa.assignment.subject %}{{ sa.assignment.subject.name }}{% else %}—{% endif %}
+                    </td>
+                    <td>
+                        {% if sa.status == 'graded' %}
+                            <span class="tx-chip tx-chip--published">Graded</span>
+                        {% elif sa.status == 'submitted' %}
+                            <span class="tx-chip tx-chip--pending">Submitted</span>
+                        {% else %}
+                            <span class="tx-chip">{{ sa.get_status_display }}</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-family: ui-monospace, monospace;">
+                        {% if sa.max_score %}
+                            <strong style="color: {% if sa.score_percent >= 70 %}var(--tx-success){% elif sa.score_percent >= 40 %}var(--tx-warn){% else %}var(--tx-alert){% endif %};">
+                                {{ sa.score|default:0 }}/{{ sa.max_score }}
+                            </strong>
+                            <span style="color: var(--tx-text-muted);">({{ sa.score_percent }}%)</span>
+                        {% else %}
+                            <span style="color: var(--tx-text-muted);">—</span>
+                        {% endif %}
+                    </td>
+                    <td style="color: var(--tx-text-soft); font-size: 0.78rem;">
+                        {% if sa.submitted_at %}{{ sa.submitted_at|timesince }} ago{% else %}<span style="color: var(--tx-text-muted);">—</span>{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="tx-card-empty">
+        <strong>No quest activity yet</strong>
+        <span>Once {{ student.first_name|default:'this student' }} submits a quest, it'll show up here.</span>
+    </div>
+    {% endif %}
+</section>
+
+<!-- Active hunts (compact) -->
+{% if hunts_active_list %}
+<section class="tx-card tx-mb-md">
+    <div class="tx-card-header">
+        <div>
+            <h2 class="tx-card-title">Active Hunts</h2>
+            <p class="tx-card-subtitle">Self-set goals in progress</p>
+        </div>
+    </div>
+    <div>
+        {% for g in hunts_active_list %}
+        <div style="padding: 0.85rem 1.25rem; border-bottom: 1px solid var(--tx-border); display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
+            <div style="min-width: 0; flex: 1;">
+                <div style="font-size: 0.88rem; font-weight: 500; color: var(--tx-text);">{{ g.title }}</div>
+                <div style="font-size: 0.75rem; color: var(--tx-text-muted); margin-top: 0.15rem;">
+                    {% if g.subject %}{{ g.subject.name }} · {% endif %}
+                    Target: {{ g.target_date|date:"M j, Y" }}
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0;">
+                <div style="width: 80px; height: 6px; background: var(--tx-surface-2); border-radius: 3px; overflow: hidden;">
+                    <div style="width: {{ g.progress_pct }}%; height: 100%; background: var(--tx-info); border-radius: 3px;"></div>
+                </div>
+                <span style="font-family: ui-monospace, monospace; font-size: 0.78rem; color: var(--tx-text-soft); min-width: 32px;">{{ g.progress_pct }}%</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<!-- Badges -->
+<section class="tx-card">
+    <div class="tx-card-header">
+        <div>
+            <h2 class="tx-card-title">Achievements</h2>
+            <p class="tx-card-subtitle">{{ earned_count }} of {{ total_badges }} badges earned</p>
+        </div>
+    </div>
+    <div class="tx-card-body">
+        {% if badge_rows %}
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.85rem;">
+            {% for row in badge_rows %}
+            <div style="padding: 0.85rem; border: 1px solid var(--tx-border); border-radius: var(--tx-radius-sm); text-align: center; opacity: {% if row.earned %}1{% else %}0.45{% endif %}; transition: opacity 0.12s;">
+                <div style="font-size: 1.5rem; margin-bottom: 0.4rem;">{% if row.badge.icon %}{{ row.badge.icon }}{% else %}🏅{% endif %}</div>
+                <div style="font-size: 0.78rem; font-weight: 600; color: var(--tx-text); margin-bottom: 0.2rem;">{{ row.badge.name }}</div>
+                <div style="font-size: 0.7rem; color: var(--tx-text-muted);">
+                    {% if row.earned %}Earned {{ row.earned_at|date:"M j" }}{% else %}Locked{% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="tx-card-empty" style="padding: 1rem;">
+            <strong>No badges configured</strong>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+{% endblock %}

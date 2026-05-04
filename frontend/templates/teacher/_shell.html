@@ -51,9 +51,8 @@
                 <span class="tx-nav-link-label">Quests</span>
             </a>
 
-            <a href="#"
-               class="tx-nav-link{% if active_page == 'classes' %} tx-nav-link--active{% endif %}"
-               aria-disabled="true" title="Coming next">
+            <a href="{% url 'teacher:class_list' %}"
+               class="tx-nav-link{% if active_page == 'classes' %} tx-nav-link--active{% endif %}">
                 <svg class="tx-nav-icon" fill="none" stroke="currentColor" stroke-width="2"
                      stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                     <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
@@ -64,9 +63,8 @@
                 <span class="tx-nav-link-label">Classes</span>
             </a>
 
-            <a href="#"
-               class="tx-nav-link{% if active_page == 'gradebook' %} tx-nav-link--active{% endif %}"
-               aria-disabled="true" title="Coming next">
+            <a href="{% url 'teacher:gradebook' %}"
+               class="tx-nav-link{% if active_page == 'gradebook' %} tx-nav-link--active{% endif %}">
                 <svg class="tx-nav-icon" fill="none" stroke="currentColor" stroke-width="2"
                      stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                     <line x1="18" y1="20" x2="18" y2="10"/>
@@ -92,9 +90,8 @@
                 {% endif %}
             </a>
 
-            <a href="#"
-               class="tx-nav-link{% if active_page == 'students' %} tx-nav-link--active{% endif %}"
-               aria-disabled="true" title="Coming next">
+            <a href="{% url 'teacher:student_list' %}"
+               class="tx-nav-link{% if active_page == 'students' %} tx-nav-link--active{% endif %}">
                 <svg class="tx-nav-icon" fill="none" stroke="currentColor" stroke-width="2"
                      stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
