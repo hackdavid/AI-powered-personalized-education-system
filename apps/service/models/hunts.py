@@ -65,6 +65,18 @@ class Goal(TimestampedModel):
     def is_overdue(self) -> bool:
         return self.status == self.STATUS_ACTIVE and self.target_date < timezone.localdate()
 
+    def close_as_expired(self) -> int:
+        """Mark an active Goal as expired. Returns the partial-XP amount the
+        caller should award (0 if already closed or no progress)."""
+        if self.completed_at is not None:
+            return 0
+        self.status = self.STATUS_EXPIRED
+        self.completed_at = timezone.now()
+        self.save(update_fields=['status', 'completed_at', 'updated_at'])
+        if self.progress_pct <= 0:
+            return 0
+        return int(round(self.xp_reward * self.progress_pct / 100))
+
 
 class Task(TimestampedModel):
     KIND_READ = 'read'

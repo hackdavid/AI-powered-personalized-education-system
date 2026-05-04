@@ -43,6 +43,8 @@ def chat_view(request, session_id: int | None = None):
 
     return render(request, 'student/chat.html', {
         'user': request.user,
+        'profile': getattr(request.user, 'profile', None),
         'sessions': sessions,
         'active_session': active_session,
+        'active_page': 'chat',
     })

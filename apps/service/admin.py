@@ -92,3 +92,24 @@ class ContentEmbeddingAdmin(admin.ModelAdmin):
 
     def has_change_permission(self, request, obj=None):
         return False
+
+
+# ===== Phase C — Badges =====
+
+from apps.service.models.badges import Badge, EarnedBadge
+
+
+@admin.register(Badge)
+class BadgeAdmin(admin.ModelAdmin):
+    list_display = ('code', 'name', 'icon', 'category', 'rarity', 'display_order', 'is_active')
+    list_filter = ('category', 'rarity', 'is_active')
+    search_fields = ('code', 'name', 'description')
+    ordering = ('display_order', 'name')
+
+
+@admin.register(EarnedBadge)
+class EarnedBadgeAdmin(admin.ModelAdmin):
+    list_display = ('student', 'badge', 'created_at')
+    list_filter = ('badge__category', 'badge__rarity')
+    search_fields = ('student__email', 'badge__code', 'badge__name')
+    readonly_fields = ('created_at', 'updated_at')

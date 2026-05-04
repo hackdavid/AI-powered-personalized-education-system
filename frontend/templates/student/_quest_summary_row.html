@@ -1,0 +1,32 @@
+{% comment %}
+  Shared "mini quest row" for the dashboard and the quests list.
+
+  Expected context:
+    row.assignment  — apps.service.models.Assignment
+    row.status      — StudentAssignment status string
+    row.due_chip    — human-friendly due string ('Overdue', 'Due today', ...)
+    row.due_variant — 'crimson' | 'gold' | 'cyan'
+{% endcomment %}
+<a href="{% url 'student:quest_chamber' row.assignment.id %}" class="sys-panel sys-panel--compact" style="display:block; margin-bottom:0.75rem; text-decoration:none; color:inherit;">
+  <div class="sys-flex sys-justify-between sys-items-center" style="gap:0.75rem; flex-wrap:wrap;">
+    <div style="min-width:0; flex:1;">
+      <div class="sys-flex sys-items-center" style="gap:0.5rem; margin-bottom:0.35rem; flex-wrap:wrap;">
+        {% if row.assignment.subject %}
+        <span class="sys-chip sys-chip--cyan">{{ row.assignment.subject.name }}</span>
+        {% endif %}
+        <span class="sys-chip sys-chip--{{ row.due_variant }}">{{ row.due_chip }}</span>
+      </div>
+      <p class="sys-mono" style="margin:0; font-size:0.95rem; color:var(--sys-text); word-break:break-word;">
+        {{ row.assignment.title }}
+      </p>
+    </div>
+    <div style="text-align:right; white-space:nowrap;">
+      <p class="sys-mono" style="margin:0 0 0.25rem; color:var(--sys-gold); font-size:0.85rem;">
+        +{{ row.assignment.reward_xp }} XP
+      </p>
+      <p class="sys-mono sys-text-dim" style="margin:0; font-size:0.7rem; letter-spacing:0.15em;">
+        ENTER CHAMBER &rarr;
+      </p>
+    </div>
+  </div>
+</a>

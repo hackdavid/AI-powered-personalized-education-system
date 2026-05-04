@@ -1,0 +1,414 @@
+{% extends 'student/_shell.html' %}
+{% load static %}
+
+{% block title %}Profile · EduAI{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+/* Scoped Hunter profile refinements */
+.profile-banner {
+    display: grid;
+    grid-template-columns: 80px 1fr auto;
+    gap: 1.5rem;
+    align-items: center;
+}
+.profile-banner-avatar {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--sys-cyan) 0%, var(--sys-violet) 100%);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--sys-font-mono); font-weight: 700;
+    font-size: 1.75rem; color: #050816;
+}
+.profile-banner-avatar img {
+    width: 100%; height: 100%; border-radius: 50%; object-fit: cover;
+}
+.profile-banner-eyebrow {
+    font-family: var(--sys-font-mono); font-size: 0.7rem;
+    color: var(--sys-text-dim); letter-spacing: 0.2em; text-transform: uppercase;
+    margin: 0 0 0.25rem;
+}
+.profile-banner-name {
+    font-family: var(--sys-font-mono); font-size: 1.6rem;
+    color: var(--sys-text); margin: 0 0 0.5rem;
+}
+.profile-banner-meta {
+    display: flex; align-items: center; gap: 0.75rem;
+    font-family: var(--sys-font-mono); font-size: 0.85rem;
+    color: var(--sys-text-dim); margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+}
+.profile-xp-bar-wrapper { max-width: 420px; }
+
+/* 5-col stats grid — drops to 1 on mobile */
+.profile-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1rem;
+}
+@media (max-width: 900px) {
+    .profile-stats-grid { grid-template-columns: 1fr; }
+}
+.profile-stat-panel {
+    text-align: left;
+}
+.profile-stat-panel .sys-stat-value {
+    font-size: 1.5rem;
+}
+.profile-shields {
+    display: inline-flex;
+    gap: 0.2rem;
+    margin-top: 0.4rem;
+}
+.profile-shield {
+    width: 14px;
+    height: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--sys-emerald);
+}
+
+/* XP history table */
+.profile-xp-table-wrap {
+    max-height: 500px;
+    overflow-y: auto;
+    border: 1px solid var(--sys-border-soft);
+    border-radius: var(--sys-radius-sm);
+}
+.profile-xp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+.profile-xp-table thead th {
+    position: sticky; top: 0;
+    background: rgba(5, 8, 22, 0.95);
+    backdrop-filter: blur(8px);
+    text-align: left;
+    padding: 0.6rem 0.9rem;
+    font-family: var(--sys-font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    color: var(--sys-text-dim);
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--sys-border);
+}
+.profile-xp-table tbody td {
+    padding: 0.55rem 0.9rem;
+    border-bottom: 1px solid var(--sys-border-soft);
+    color: var(--sys-text-dim);
+    vertical-align: top;
+}
+.profile-xp-table tbody tr:last-child td {
+    border-bottom: none;
+}
+.profile-xp-time {
+    font-family: var(--sys-font-mono);
+    font-size: 0.75rem;
+    white-space: nowrap;
+    color: var(--sys-text-muted);
+}
+.profile-xp-desc {
+    color: var(--sys-text);
+}
+.profile-xp-amount {
+    font-family: var(--sys-font-mono);
+    color: var(--sys-gold);
+    text-align: right;
+    white-space: nowrap;
+    font-weight: 600;
+}
+
+/* Empty-state micro styles */
+.profile-empty {
+    text-align: center;
+    padding: 2rem 1.25rem;
+    color: var(--sys-text-dim);
+    font-family: var(--sys-font-mono);
+    font-size: 0.85rem;
+    margin: 0;
+}
+
+/* Journey stat cards (reuse sys-stat-* but give the panel a little padding) */
+.profile-journey-value { font-size: 2rem; }
+</style>
+{% endblock %}
+
+{% block student_content %}
+<!-- ===== Hunter Status banner ===== -->
+<section class="sys-panel sys-panel--glow-cyan sys-bracket-corners sys-mb-lg sys-anim-reveal">
+  <div class="profile-banner">
+    <div class="profile-banner-avatar" aria-hidden="true">
+      {% if user.avatar %}<img src="{{ user.avatar.url }}" alt="">{% else %}{{ user.first_name.0|upper }}{{ user.last_name.0|upper }}{% endif %}
+    </div>
+    <div>
+      <p class="profile-banner-eyebrow">
+        HUNTER{% if profile.hunter_title %} · {{ profile.hunter_title|upper }}{% endif %}
+      </p>
+      <h1 class="profile-banner-name">{{ user.get_full_name|default:user.email }}</h1>
+      <div class="profile-banner-meta">
+        <span>Lv {{ profile.level }}</span>
+        <span>·</span>
+        <span>{{ profile.total_xp }} / {{ profile.xp_for_next_level }} XP</span>
+        {% if profile.streak_days > 0 %}
+        <span class="sys-chip sys-chip--emerald">{{ profile.streak_days }}-day streak</span>
+        {% endif %}
+      </div>
+      <div class="profile-xp-bar-wrapper">
+        <div class="sys-progress">
+          <div class="sys-progress-fill" style="width: {{ profile.xp_progress_pct|floatformat:1 }}%;"></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="sys-rank-badge sys-rank-badge--lg sys-rank-badge--{{ profile.rank|lower }}">{{ profile.rank }}</div>
+      <p class="sys-mono sys-text-dim" style="text-align:center; font-size:0.7rem; margin-top:0.4rem; letter-spacing:0.15em;">RANK</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== [ STATS ] 5-col grid ===== -->
+<section class="sys-mb-lg sys-anim-reveal">
+  <h2 class="sys-panel-title">STATS</h2>
+  <div class="profile-stats-grid sys-anim-reveal-stagger">
+    <div class="sys-panel sys-panel--compact profile-stat-panel">
+      <p class="sys-stat-value sys-stat-accent-gold">{{ profile.total_xp }}</p>
+      <p class="sys-stat-label">Total XP</p>
+    </div>
+    <div class="sys-panel sys-panel--compact profile-stat-panel">
+      <p class="sys-stat-value sys-stat-accent-cyan">{{ profile.level }}</p>
+      <p class="sys-stat-label">Level</p>
+    </div>
+    <div class="sys-panel sys-panel--compact profile-stat-panel">
+      <p class="sys-stat-value sys-stat-accent-violet">{{ profile.rank }}</p>
+      <p class="sys-stat-label">Rank</p>
+    </div>
+    <div class="sys-panel sys-panel--compact profile-stat-panel">
+      <p class="sys-stat-value" style="font-size:1.1rem; letter-spacing:0.05em;">
+        {% if profile.hunter_title %}{{ profile.hunter_title|title }}{% else %}<span class="sys-text-muted">—</span>{% endif %}
+      </p>
+      <p class="sys-stat-label">Hunter Title</p>
+    </div>
+    <div class="sys-panel sys-panel--compact profile-stat-panel">
+      <p class="sys-stat-value sys-stat-accent-gold">{{ profile.streak_days }}d</p>
+      <p class="sys-stat-label">Streak</p>
+      {% if profile.streak_shields_remaining > 0 %}
+      <div class="profile-shields" title="Streak shields remaining (1 free miss / week)">
+        {% for _ in "x"|rjust:profile.streak_shields_remaining %}
+        <svg class="profile-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        {% endfor %}
+        <span class="sys-mono" style="font-size:0.7rem; color:var(--sys-text-muted); margin-left:0.25rem;">{{ profile.streak_shields_remaining }}</span>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<!-- ===== [ MASTERY ] full list ===== -->
+<section class="sys-panel sys-mb-lg sys-anim-reveal">
+  <h3 class="sys-panel-title sys-panel-title--violet">MASTERY</h3>
+  {% if mastery_rows %}
+  <div class="sys-anim-reveal-stagger">
+    {% for row in mastery_rows %}
+    <div class="sys-mastery-row">
+      <span class="sys-mastery-row-label">{{ row.subject_name }}</span>
+      <div class="sys-progress{% if row.pct >= 70 %} sys-progress--emerald{% elif row.pct >= 50 %} sys-progress--cyan{% else %} sys-progress--violet{% endif %}">
+        <div class="sys-progress-fill" style="width: {{ row.pct }}%;"></div>
+      </div>
+      <span class="sys-mastery-row-value">{{ row.pct }}%</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="profile-empty">Mastery will appear once you clear your first Quest or Hunt.</p>
+  {% endif %}
+</section>
+
+<!-- ===== [ XP HISTORY ] last 15 ledger rows ===== -->
+<section class="sys-panel sys-mb-lg sys-anim-reveal">
+  <h3 class="sys-panel-title sys-panel-title--gold">XP HISTORY</h3>
+  {% if xp_events %}
+  <div class="profile-xp-table-wrap">
+    <table class="profile-xp-table">
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Source</th>
+          <th>Description</th>
+          <th style="text-align:right;">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ev in xp_events %}
+        <tr>
+          <td class="profile-xp-time">{{ ev.created_at|timesince }} ago</td>
+          <td>
+            {% if ev.source == 'quest' or ev.source == 'hunt_task' or ev.source == 'hunt_complete' %}
+              <span class="sys-chip sys-chip--violet">{{ ev.get_source_display }}</span>
+            {% elif ev.source == 'daily_quest' or ev.source == 'streak_milestone' or ev.source == 'awakening' %}
+              <span class="sys-chip sys-chip--gold">{{ ev.get_source_display }}</span>
+            {% elif ev.source == 'chat_activity' %}
+              <span class="sys-chip sys-chip--cyan">{{ ev.get_source_display }}</span>
+            {% else %}
+              <span class="sys-chip sys-chip--muted">{{ ev.get_source_display }}</span>
+            {% endif %}
+          </td>
+          <td class="profile-xp-desc">{{ ev.description|default:"—"|truncatechars:80 }}</td>
+          <td class="profile-xp-amount">
+            {% if ev.amount >= 0 %}+{{ ev.amount }}{% else %}{{ ev.amount }}{% endif %} XP
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="profile-empty">No XP gained yet. Clear a Quest or Hunt task to start building your ledger.</p>
+  {% endif %}
+</section>
+
+<!-- ===== [ JOURNEY ] counts ===== -->
+<section class="sys-mb-lg sys-anim-reveal">
+  <h2 class="sys-panel-title">JOURNEY</h2>
+  <div class="sys-grid-4 sys-anim-reveal-stagger">
+    <div class="sys-panel sys-panel--compact">
+      <p class="sys-stat-value sys-stat-accent-gold profile-journey-value">{{ hunts_completed }}</p>
+      <p class="sys-stat-label">Hunts Cleared</p>
+    </div>
+    <div class="sys-panel sys-panel--compact">
+      <p class="sys-stat-value sys-stat-accent-crimson profile-journey-value">{{ hunts_expired }}</p>
+      <p class="sys-stat-label">Hunts Expired</p>
+    </div>
+    <div class="sys-panel sys-panel--compact">
+      <p class="sys-stat-value sys-stat-accent-violet profile-journey-value">{{ quests_graded }}</p>
+      <p class="sys-stat-label">Quests Graded</p>
+    </div>
+    <div class="sys-panel sys-panel--compact">
+      <p class="sys-stat-value sys-stat-accent-cyan profile-journey-value">
+        {% if avg_quest_pct is None %}—{% else %}{{ avg_quest_pct }}%{% endif %}
+      </p>
+      <p class="sys-stat-label">Avg Quest %</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== [ ACHIEVEMENTS ] ===== -->
+<section class="sys-panel sys-anim-reveal">
+  <div class="sys-flex sys-justify-between sys-items-center sys-mb-md">
+    <h3 class="sys-panel-title">ACHIEVEMENTS</h3>
+    <span class="sys-mono sys-text-dim" style="font-size:0.75rem; letter-spacing:0.1em;">
+      {{ earned_count }} / {{ total_badges }} UNLOCKED
+    </span>
+  </div>
+
+  {% if badge_rows %}
+    <div class="badge-grid">
+      {% for row in badge_rows %}
+        <div class="badge-cell{% if not row.earned %} badge-cell--locked{% endif %} badge-rarity-{{ row.badge.rarity }}"
+             title="{{ row.badge.name }} ({{ row.badge.get_rarity_display }})">
+          <div class="badge-cell-icon">{{ row.badge.icon }}</div>
+          <div class="badge-cell-body">
+            <div class="badge-cell-name">{{ row.badge.name }}</div>
+            <div class="badge-cell-desc">{{ row.badge.description }}</div>
+            {% if row.earned %}
+              <div class="badge-cell-meta">
+                <span class="sys-chip sys-chip--emerald">&#10003; EARNED</span>
+                <span class="sys-mono sys-text-muted" style="font-size:0.65rem;">
+                  {{ row.earned_at|date:"M j, Y" }}
+                </span>
+              </div>
+            {% else %}
+              <div class="badge-cell-meta">
+                <span class="sys-chip sys-chip--muted">LOCKED</span>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="profile-empty">No badges in the catalog yet — have an admin run <code>python manage.py seed_badges</code>.</p>
+  {% endif %}
+</section>
+
+<style>
+.badge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+.badge-cell {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 0.75rem;
+  align-items: start;
+  padding: 0.9rem;
+  border-radius: var(--sys-radius-sm);
+  background: var(--sys-surface-2);
+  border: 1px solid var(--sys-border-soft);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.badge-cell-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  background: var(--sys-surface-3);
+  border: 1px solid var(--sys-border);
+  flex-shrink: 0;
+}
+.badge-cell--locked { opacity: 0.35; filter: grayscale(0.9); }
+.badge-rarity-common:not(.badge-cell--locked) {
+  border-color: rgba(148, 163, 184, 0.4);
+}
+.badge-rarity-rare:not(.badge-cell--locked) {
+  border-color: var(--sys-cyan);
+  box-shadow: 0 0 10px rgba(34, 211, 238, 0.15);
+}
+.badge-rarity-epic:not(.badge-cell--locked) {
+  border-color: var(--sys-violet);
+  box-shadow: 0 0 12px rgba(167, 139, 250, 0.2);
+}
+.badge-rarity-legendary:not(.badge-cell--locked) {
+  border-color: var(--sys-gold);
+  box-shadow: 0 0 14px rgba(251, 191, 36, 0.25);
+}
+.badge-rarity-rare:not(.badge-cell--locked) .badge-cell-icon {
+  background: var(--sys-cyan-soft);
+  border-color: var(--sys-cyan);
+}
+.badge-rarity-epic:not(.badge-cell--locked) .badge-cell-icon {
+  background: var(--sys-violet-soft);
+  border-color: var(--sys-violet);
+}
+.badge-rarity-legendary:not(.badge-cell--locked) .badge-cell-icon {
+  background: var(--sys-gold-soft);
+  border-color: var(--sys-gold);
+}
+.badge-cell-name {
+  font-family: var(--sys-font-mono);
+  font-size: 0.85rem;
+  color: var(--sys-text);
+  margin-bottom: 0.15rem;
+}
+.badge-cell-desc {
+  font-size: 0.75rem;
+  color: var(--sys-text-dim);
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+.badge-cell-meta {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  font-size: 0.7rem;
+}
+</style>
+{% endblock %}
