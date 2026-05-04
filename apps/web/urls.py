@@ -9,6 +9,7 @@ Organized into four namespaces, all included in config/urls.py:
 """
 
 from django.urls import path
+from django.views.generic import TemplateView
 
 from apps.web.views import public, dashboards, auth as auth_views
 from apps.web.views.school_admin import (
@@ -19,6 +20,13 @@ from apps.web.views.school_admin import (
     document_views,
 )
 from apps.web.views.student import chat as student_chat_views
+from apps.web.views.student import profile as profile_views
+from apps.web.views.student import (
+    awakening as awakening_views,
+    codex as codex_views,
+    hunts as hunts_views,
+    quests as quests_views,
+)
 
 
 # --- public + dashboard (namespace 'web') ---
@@ -78,4 +86,39 @@ school_admin_patterns = [
 student_patterns = [
     path('chat/', student_chat_views.chat_view, name='chat'),
     path('chat/<int:session_id>/', student_chat_views.chat_view, name='chat_session'),
+    path('profile/', profile_views.profile_view, name='profile'),
+
+    # Awakening (onboarding)
+    path('awakening/', awakening_views.welcome_view, name='awakening'),
+    path('awakening/identity/', awakening_views.identity_view, name='awakening_identity'),
+    path('awakening/learning-style/', awakening_views.learning_style_view, name='awakening_learning_style'),
+    path('awakening/goal/', awakening_views.goal_view, name='awakening_goal'),
+    path('awakening/aptitude/', awakening_views.aptitude_view, name='awakening_aptitude'),
+    path('awakening/complete/', awakening_views.complete_view, name='awakening_complete'),
+
+    # Quests (Assignments)
+    path('quests/', quests_views.quest_list_view, name='quest_list'),
+    path('quests/<int:pk>/', quests_views.quest_chamber_view, name='quest_chamber'),
+    path('quests/<int:pk>/save/', quests_views.quest_save_draft_view, name='quest_save_draft'),
+    path('quests/<int:pk>/submit/', quests_views.quest_submit_view, name='quest_submit'),
+    path('quests/<int:pk>/results/', quests_views.quest_results_view, name='quest_results'),
+
+    # Hunts (Goals)
+    path('hunts/', hunts_views.hunt_list_view, name='hunt_list'),
+    path('hunts/new/', hunts_views.hunt_new_view, name='hunt_new'),
+    path('hunts/<int:pk>/', hunts_views.hunt_detail_view, name='hunt_detail'),
+    path('hunts/<int:pk>/abandon/', hunts_views.hunt_abandon_view, name='hunt_abandon'),
+    path('hunts/tasks/<int:task_pk>/quiz/', hunts_views.hunt_task_quiz_view, name='hunt_task_quiz'),
+
+    # Codex (curriculum browser)
+    path('codex/', codex_views.codex_list_view, name='codex_list'),
+    path('codex/subject/<int:subject_id>/', codex_views.codex_subject_view, name='codex_subject'),
+    path('codex/node/<int:node_id>/', codex_views.codex_node_view, name='codex_node'),
+
+    # Dev preview route (the Phase A tests assert it exists). Harmless in prod.
+    path(
+        'shell-preview/',
+        TemplateView.as_view(template_name='student/_shell_preview.html'),
+        name='shell_preview',
+    ),
 ]

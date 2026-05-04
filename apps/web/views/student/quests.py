@@ -51,14 +51,22 @@ def _student_assignments_qs(user):
     return qs
 
 
-@login_required
-@role_required(['student'])
-def quest_list_view(request):
-    assignments = list(_student_assignments_qs(request.user))
+def build_quest_rows(user, assignments_qs):
+    """Return a list of dicts [{assignment, sa, status, due_chip, due_variant}, ...]
+    ordered by the input queryset. Safe for templates to iterate.
+
+    Enrichment:
+      - `sa`: the StudentAssignment for this (user, assignment) pair, or None
+      - `status`: StudentAssignment.status if sa exists else STATUS_PENDING
+      - `due_chip`: human-friendly due string ('Overdue', 'Due today',
+        'Due in 12h', 'Due in 3d', ...)
+      - `due_variant`: colour variant hint ('crimson' / 'gold' / 'cyan')
+    """
+    assignments = list(assignments_qs)
     sas = {
         sa.assignment_id: sa
         for sa in StudentAssignment.objects.filter(
-            student=request.user, assignment__in=assignments,
+            student=user, assignment__in=assignments,
         )
     }
 
@@ -87,6 +95,13 @@ def quest_list_view(request):
             'due_chip': due_chip,
             'due_variant': due_variant,
         })
+    return rows
+
+
+@login_required
+@role_required(['student'])
+def quest_list_view(request):
+    rows = build_quest_rows(request.user, _student_assignments_qs(request.user))
 
     tabs = {
         'active': [

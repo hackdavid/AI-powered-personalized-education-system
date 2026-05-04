@@ -135,6 +135,15 @@ def grade_student_assignment(sa: StudentAssignment) -> StudentAssignment:
                 related_object_id=sa.assignment_id,
             )
             sa.xp_awarded = res.awarded
+
+        # Nudge subject mastery toward the student's score on this quest.
+        try:
+            from apps.service.services.mastery import apply_mastery_update
+            profile = getattr(sa.student, 'profile', None)
+            if profile and sa.assignment.subject_id:
+                apply_mastery_update(profile, sa.assignment.subject_id, sa.score_percent)
+        except Exception as exc:  # pragma: no cover
+            logger.warning('Mastery update failed post-grade: %s', exc)
     sa.save(update_fields=['score', 'max_score', 'status', 'graded_at', 'xp_awarded', 'updated_at'])
 
     # After grading (and only if actually graded), mark any matching
@@ -150,5 +159,15 @@ def grade_student_assignment(sa: StudentAssignment) -> StudentAssignment:
                 'mark_item_completed_for_event failed after grading SA %s: %s',
                 sa.pk, exc,
             )
+
+        # Badges: Quest Novice / Quest Master / Perfectionist all trigger
+        # here. award_xp above already evaluates; this re-pass catches the
+        # case where XP was 0 (e.g. zero-score submission still counts
+        # toward `quest_count` for Quest Master).
+        try:
+            from apps.service.services.badges import evaluate_and_award
+            evaluate_and_award(sa.student, event_type='quest_graded')
+        except Exception:  # pragma: no cover — defensive
+            pass
 
     return sa

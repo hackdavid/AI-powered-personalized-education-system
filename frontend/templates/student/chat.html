@@ -1,209 +1,555 @@
-{% extends 'base/base.html' %}
+{% extends 'student/_shell.html' %}
 {% load static %}
 
-{% block title %}AI Tutor · EduAI{% endblock %}
+{% block title %}System Advisor · EduAI{% endblock %}
 
 {% block extra_css %}
+{{ block.super }}
+{% comment %}
+Inner chat surface still uses .chat-message / .chat-bubble / .chat-citation
+classes from chat.js — keep loading student.css for those. The outer
+chrome (sidebar, header, composer, empty state) is re-skinned below to
+match the Hunter System theme used by the rest of /student/.
+{% endcomment %}
 <link rel="stylesheet" href="{% static 'css/student.css' %}">
-<!-- KaTeX stylesheet for math rendering -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"
       integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
-<!-- highlight.js theme for fenced code blocks -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github-dark.min.css">
+
 <style>
-    /* The chat UI is a full-bleed two-column layout that replaces the default
-       top-navbar + marketing footer. Hide those and remove the default `main`
-       min-height so the chat shell can take the full viewport. */
-    body { margin: 0; padding: 0; overflow: hidden; }
-    body > nav.app-navbar,
-    body > footer,
-    main.min-h-screen > .max-w-7xl,
-    main > footer { display: none !important; }
-    main.min-h-screen { min-height: 0 !important; }
-    #toast-container { z-index: 9999; }
+  /* =====================================================================
+     System Advisor (chat) — claims the full main column height so the
+     composer can pin to the bottom. Override sys-main's normal padding
+     and max-width for this page only.
+     ===================================================================== */
+  .sys-main {
+    padding: 0;
+    max-width: 100%;
+    width: 100%;
+    /* CRITICAL: grid items default to min-width:auto (min-content size).
+       Without this, long unbreakable text pushes main beyond the grid track
+       and over the right rail. */
+    min-width: 0;
+    min-height: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* The outer .chat-app container is required by chat.js; collapse it
+     so it inherits the flex layout from sys-main.
+     Note: student.css defines .chat-app with display:grid + 1fr columns
+     for the OLD layout; we override here. */
+  .chat-app.sys-chat {
+    display: flex !important;
+    flex-direction: column !important;
+    grid-template-columns: none !important;
+    height: 100% !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    background: transparent !important;
+  }
+
+  /* ---- Header ---- */
+  .sys-chat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--sys-border);
+    background: var(--sys-surface-3);
+    backdrop-filter: blur(8px);
+  }
+  .sys-chat-header__text { min-width: 0; flex: 1; }
+  .sys-chat-title {
+    font-family: var(--sys-font-mono);
+    font-size: 1.05rem;
+    color: var(--sys-text);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .sys-chat-sub {
+    font-family: var(--sys-font-mono);
+    font-size: 0.7rem;
+    color: var(--sys-text-dim);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin: 0.25rem 0 0;
+  }
+  .sys-chat-header__icon-btn {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--sys-radius-sm);
+    border: 1px solid var(--sys-border);
+    background: var(--sys-surface);
+    color: var(--sys-text-dim);
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+  }
+  .sys-chat-header__icon-btn:hover {
+    border-color: var(--sys-cyan);
+    color: var(--sys-cyan);
+    background: var(--sys-surface-hover);
+  }
+
+  /* ---- Body (scrollable messages) ---- */
+  .sys-chat-body {
+    flex: 1;
+    min-height: 0;
+    min-width: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 1.5rem 1rem 0;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  /* When the body holds the empty state, center it horizontally + vertically. */
+  .sys-chat-body--empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .sys-chat-body::-webkit-scrollbar { width: 8px; }
+  .sys-chat-body::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.18);
+    border-radius: 4px;
+  }
+
+  /* ---- Composer ---- */
+  .sys-chat-composer {
+    padding: 1rem 1.5rem 1.25rem;
+    border-top: 1px solid var(--sys-border);
+    background: var(--sys-surface-3);
+    backdrop-filter: blur(8px);
+  }
+  .sys-chat-composer-wrapper {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.65rem;
+    background: var(--sys-surface);
+    border: 1px solid var(--sys-border-strong);
+    border-radius: var(--sys-radius);
+    padding: 0.6rem 0.75rem;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .sys-chat-composer-wrapper:focus-within {
+    border-color: var(--sys-cyan);
+    box-shadow: 0 0 0 3px var(--sys-cyan-soft);
+  }
+  .sys-chat-composer-input {
+    flex: 1;
+    background: transparent;
+    border: 0;
+    outline: 0;
+    resize: none;
+    max-height: 200px;
+    color: var(--sys-text);
+    font-family: var(--sys-font-sans);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    padding: 0.4rem 0.25rem;
+  }
+  .sys-chat-composer-input::placeholder { color: var(--sys-text-muted); }
+  .sys-chat-composer-send {
+    flex-shrink: 0;
+    width: 38px;
+    height: 38px;
+    border: 0;
+    border-radius: var(--sys-radius-sm);
+    background: var(--sys-cyan);
+    color: #050816;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: filter 0.15s, transform 0.05s;
+  }
+  .sys-chat-composer-send:hover:not(:disabled) { filter: brightness(1.1); }
+  .sys-chat-composer-send:active:not(:disabled) { transform: scale(0.95); }
+  .sys-chat-composer-send:disabled { opacity: 0.5; cursor: not-allowed; }
+  .sys-chat-composer-hint {
+    margin: 0.5rem 0.25rem 0;
+    font-family: var(--sys-font-mono);
+    font-size: 0.7rem;
+    color: var(--sys-text-muted);
+    letter-spacing: 0.05em;
+  }
+
+  /* ---- Empty state ---- */
+  .sys-chat-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 3rem 1.5rem;
+    max-width: min(520px, calc(100% - 3rem));
+    width: 100%;
+    margin: 0 auto;
+    box-sizing: border-box;
+  }
+  .sys-chat-empty-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--sys-cyan-soft);
+    color: var(--sys-cyan);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.25rem;
+    box-shadow: var(--sys-glow-cyan);
+  }
+  .sys-chat-empty-eyebrow {
+    font-family: var(--sys-font-mono);
+    font-size: 0.7rem;
+    color: var(--sys-cyan);
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    margin: 0 0 0.5rem;
+  }
+  .sys-chat-empty-title {
+    font-family: var(--sys-font-mono);
+    font-size: 1.4rem;
+    color: var(--sys-text);
+    margin: 0 0 0.5rem;
+    max-width: 100%;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    line-height: 1.3;
+  }
+  .sys-chat-empty-text {
+    color: var(--sys-text-dim);
+    margin: 0 0 1.5rem;
+    line-height: 1.6;
+    max-width: 460px;
+  }
+  .sys-chat-empty-suggestions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+    margin-top: 1.5rem;
+  }
+  .sys-chat-empty-suggestions-label {
+    font-family: var(--sys-font-mono);
+    font-size: 0.7rem;
+    color: var(--sys-text-muted);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+  /* Re-skin the existing .chat-app__empty-suggestion class so chat.js can
+     still bind to it. */
+  .chat-app__empty-suggestion {
+    width: 100%;
+    text-align: left;
+    background: var(--sys-surface);
+    border: 1px solid var(--sys-border);
+    border-radius: var(--sys-radius-sm);
+    padding: 0.65rem 0.85rem;
+    color: var(--sys-text-dim);
+    font-family: var(--sys-font-sans);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+  }
+  .chat-app__empty-suggestion:hover {
+    border-color: var(--sys-cyan);
+    color: var(--sys-text);
+    background: var(--sys-surface-2);
+  }
+
+  /* ---- Right rail: recent sessions ---- */
+  .sys-rail {
+    border-left: 1px solid var(--sys-border);
+    background: var(--sys-surface-3);
+    backdrop-filter: blur(8px);
+    padding: 1.25rem 1rem;
+    overflow-y: auto;
+    height: 100vh;
+  }
+  .sys-rail-title {
+    font-family: var(--sys-font-mono);
+    font-size: 0.7rem;
+    color: var(--sys-text-dim);
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    margin: 0 0 0.75rem;
+  }
+  .sys-rail-cta {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    padding: 0.6rem 0.85rem;
+    border: 0;
+    border-radius: var(--sys-radius-sm);
+    background: linear-gradient(135deg, var(--sys-cyan) 0%, var(--sys-violet) 100%);
+    color: #050816;
+    font-family: var(--sys-font-mono);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: filter 0.15s, transform 0.05s;
+  }
+  .sys-rail-cta:hover { filter: brightness(1.1); }
+  .sys-rail-cta:active { transform: translateY(1px); }
+  .sys-rail-cta svg { width: 14px; height: 14px; }
+  .sys-rail-list { list-style: none; margin: 0; padding: 0; }
+  .sys-rail-list li { margin-bottom: 0.35rem; }
+  .sys-rail-empty {
+    color: var(--sys-text-dim);
+    font-size: 0.85rem;
+    line-height: 1.55;
+    padding: 0.75rem;
+    background: var(--sys-surface);
+    border: 1px dashed var(--sys-border);
+    border-radius: var(--sys-radius-sm);
+  }
+  .sys-rail-empty strong { color: var(--sys-text); }
+
+  /* Re-skin .chat-session in the rail context. chat.js still needs the
+     class names to be present (it queries for them by class). */
+  .chat-session {
+    display: block;
+    padding: 0.65rem 0.75rem;
+    border-radius: var(--sys-radius-sm);
+    background: transparent;
+    color: var(--sys-text-dim);
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    border: 1px solid transparent;
+  }
+  .chat-session:hover {
+    background: var(--sys-surface-2);
+    color: var(--sys-text);
+  }
+  .chat-session--active {
+    background: var(--sys-cyan-soft);
+    border-color: rgba(34, 211, 238, 0.35);
+    color: var(--sys-text);
+  }
+  .chat-session__title {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .chat-session__meta {
+    display: block;
+    font-family: var(--sys-font-mono);
+    font-size: 0.7rem;
+    color: var(--sys-text-muted);
+    margin-top: 0.2rem;
+    letter-spacing: 0.03em;
+  }
+
+  /* ---- Inner bubble/citation/code colors for dark theme ----
+     student.css's --chat-* vars assume a light surface; remap to System
+     palette so prose, citations, code blocks, and the thinking pill all
+     read correctly on the dark background. */
+  .chat-app {
+    --chat-bg: transparent;
+    --chat-surface: var(--sys-surface);
+    --chat-surface-alt: var(--sys-surface-2);
+    --chat-border: var(--sys-border);
+    --chat-border-soft: var(--sys-border-soft);
+    --chat-text: var(--sys-text);
+    --chat-text-soft: var(--sys-text-dim);
+    --chat-text-muted: var(--sys-text-muted);
+    --chat-primary: var(--sys-cyan);
+    --chat-primary-hover: #0ea5e9;
+    --chat-primary-soft: var(--sys-cyan-soft);
+    --chat-accent: var(--sys-violet);
+    --chat-warn-bg: var(--sys-gold-soft);
+    --chat-warn-fg: var(--sys-gold);
+    --chat-notice-bg: rgba(251, 191, 36, 0.08);
+    --chat-notice-border: var(--sys-gold);
+    --chat-notice-fg: #fde68a;
+    --chat-code-bg: #020617;
+    --chat-code-fg: var(--sys-text);
+    --chat-shadow: 0 1px 2px rgba(0, 0, 0, 0.3),
+                   0 4px 12px rgba(0, 0, 0, 0.2);
+  }
+  /* Student bubble — darken slightly so it reads clearly on the gradient. */
+  .chat-message--student .chat-bubble {
+    background: linear-gradient(135deg, var(--sys-cyan) 0%, var(--sys-violet) 100%);
+    color: #050816;
+    box-shadow: 0 1px 2px rgba(34, 211, 238, 0.25);
+  }
+  /* Loading placeholder & thinking pill on dark bg. */
+  .chat-loading {
+    color: var(--sys-text-dim);
+    font-family: var(--sys-font-mono);
+    font-size: 0.85rem;
+    text-align: center;
+    padding: 2rem;
+  }
+  .chat-thinking {
+    background: var(--sys-surface);
+    border: 1px solid var(--sys-border);
+    color: var(--sys-text-dim);
+  }
+  .chat-citation-tooltip {
+    background: rgba(2, 6, 23, 0.95);
+    border: 1px solid var(--sys-border-strong);
+    color: var(--sys-text);
+  }
+
+  /* ---- Mobile ---- */
+  @media (max-width: 1100px) {
+    /* Drop the rail on smaller screens; collapse to standard 2-col. */
+    .sys-shell.sys-shell--with-rail {
+      grid-template-columns: var(--sys-sidebar-width) 1fr;
+    }
+    .sys-rail { display: none; }
+  }
+  @media (max-width: 900px) {
+    .sys-main {
+      height: 100vh;
+    }
+    .sys-chat-header { padding: 0.85rem 1rem; padding-left: 3.5rem; }
+    .sys-chat-composer { padding: 0.85rem 1rem 1rem; }
+  }
 </style>
 {% endblock %}
 
-{% block footer %}{% endblock %}
+{% block shell_modifier %}sys-shell--with-rail{% endblock %}
 
-{% block content %}
-<div class="chat-app"
+{% block student_content %}
+<div class="chat-app sys-chat"
      data-session-id="{{ active_session.id|default:'' }}"
      data-new-session-url="{% url 'student:chat' %}"
      data-session-detail-url="/student/chat/">
 
-    <!-- ============ Left panel: brand + nav + history + user ============ -->
-    <aside class="chat-app__sidebar" aria-label="Navigation and chat history">
+  {% if active_session %}
+  <header class="sys-chat-header">
+    <div class="sys-chat-header__text">
+      <h1 class="sys-chat-title" id="chat-title">{{ active_session.title|default:"New conversation" }}</h1>
+      <p class="sys-chat-sub">System Advisor · grounded in your curriculum</p>
+    </div>
+    <button type="button" class="sys-chat-header__icon-btn" id="btn-scroll-bottom"
+            title="Scroll to latest" aria-label="Scroll to latest">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+      </svg>
+    </button>
+  </header>
 
-        <!-- Brand row -->
-        <div class="chat-app__brand">
-            <a href="{% url 'web:dashboard' %}" class="chat-app__brand-link" title="Back to dashboard">
-                <span class="chat-app__brand-logo" aria-hidden="true">🎓</span>
-                <span class="chat-app__brand-text">EduAI</span>
-            </a>
-        </div>
+  <div class="sys-chat-body" id="messages-body">
+    <div class="chat-loading" id="messages-loading">Loading conversation…</div>
+  </div>
 
-        <!-- Primary navigation -->
-        <nav class="chat-app__nav" aria-label="Primary navigation">
-            <a href="{% url 'web:dashboard' %}" class="chat-app__nav-link">
-                <svg class="chat-app__nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-                </svg>
-                <span>Dashboard</span>
-            </a>
-            <a href="{% url 'student:chat' %}" class="chat-app__nav-link chat-app__nav-link--active" aria-current="page">
-                <svg class="chat-app__nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
-                </svg>
-                <span>AI Tutor</span>
-            </a>
-            <a href="#" class="chat-app__nav-link">
-                <svg class="chat-app__nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
-                <span>Assignments</span>
-            </a>
-            <a href="#" class="chat-app__nav-link">
-                <svg class="chat-app__nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
-                </svg>
-                <span>Progress</span>
-            </a>
-        </nav>
+  <form class="sys-chat-composer" id="composer" autocomplete="off">
+    <div class="sys-chat-composer-wrapper">
+      <textarea
+        id="composer-input"
+        class="sys-chat-composer-input"
+        rows="1"
+        placeholder="Ask anything from your books…  (Enter to send · Shift+Enter for a new line)"
+        required></textarea>
+      <button type="submit" class="sys-chat-composer-send" id="composer-send"
+              title="Send" aria-label="Send message">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12l14-7-7 14-2-5-5-2z"/>
+        </svg>
+      </button>
+    </div>
+    <p class="sys-chat-composer-hint">Answers are grounded in your school's curriculum and cite their sources.</p>
+  </form>
+  {% else %}
+  <div class="sys-chat-body sys-chat-body--empty">
+    <div class="sys-chat-empty">
+      <div class="sys-chat-empty-icon" aria-hidden="true">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="32" height="32">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+        </svg>
+      </div>
+      <p class="sys-chat-empty-eyebrow">SYSTEM ADVISOR // ONLINE</p>
+      <h2 class="sys-chat-empty-title">Ask the Advisor anything</h2>
+      <p class="sys-chat-empty-text">
+        Curriculum-grounded answers. The Advisor finds the right subject,
+        cites the source from your school's books, and explains it at your
+        grade level.
+      </p>
+      <button type="button" class="sys-btn-primary sys-btn-lg" id="btn-empty-new-session">
+        Start new chat
+      </button>
 
-        <!-- New chat CTA -->
-        <button type="button" class="chat-app__new-btn" id="btn-new-session" title="Start a new conversation">
-            <svg class="chat-app__new-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-            </svg>
-            <span>New chat</span>
+      <div class="sys-chat-empty-suggestions">
+        <span class="sys-chat-empty-suggestions-label">Try asking</span>
+        <button type="button" class="chat-app__empty-suggestion" data-suggestion="Explain the quadratic formula with a worked example.">
+          Explain the quadratic formula with a worked example.
         </button>
-
-        <div class="chat-app__history-heading">
-            <span>Recent</span>
-            <span class="chat-app__history-count" id="session-count">{{ sessions|length }}</span>
-        </div>
-
-        <!-- Scrollable history list -->
-        <ul class="chat-app__history" id="session-list">
-            {% for session in sessions %}
-                <li>
-                    <a href="{% url 'student:chat_session' session.id %}"
-                       class="chat-session {% if active_session and active_session.id == session.id %}chat-session--active{% endif %}"
-                       data-session-id="{{ session.id }}">
-                        <span class="chat-session__title">
-                            {{ session.title|default:"Untitled chat" }}
-                        </span>
-                        <span class="chat-session__meta">
-                            {% if session.last_message_at %}{{ session.last_message_at|timesince }} ago{% else %}just now{% endif %}
-                        </span>
-                    </a>
-                </li>
-            {% empty %}
-                <li class="chat-app__history-empty">
-                    No conversations yet. Click <strong>New chat</strong> to start one.
-                </li>
-            {% endfor %}
-        </ul>
-
-        <!-- User strip -->
-        <footer class="chat-app__user">
-            <div class="chat-app__avatar" aria-hidden="true">
-                {{ user.first_name.0|upper }}{{ user.last_name.0|upper }}
-            </div>
-            <div class="chat-app__user-info">
-                <div class="chat-app__user-name">{{ user.get_full_name|default:user.email }}</div>
-                <div class="chat-app__user-role">
-                    {% if user.grade_level %}Grade {{ user.grade_level }} ·{% endif %}
-                    {{ user.role.display_name|default:"Student" }}
-                </div>
-            </div>
-            <a href="{% url 'auth:logout' %}" class="chat-app__logout" title="Sign out" aria-label="Sign out">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="18" height="18">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                </svg>
-            </a>
-        </footer>
-    </aside>
-
-    <!-- ============ Right panel: full-height chat surface ============ -->
-    <main class="chat-app__main" role="main">
-        {% if active_session %}
-            <header class="chat-app__main-header">
-                <div class="chat-app__main-header-text">
-                    <h1 class="chat-app__main-title" id="chat-title">{{ active_session.title|default:"New conversation" }}</h1>
-                    <p class="chat-app__main-sub">Grounded in your school's curriculum · sources cited inline</p>
-                </div>
-                <button type="button" class="chat-app__icon-btn" id="btn-scroll-bottom"
-                        title="Scroll to latest" aria-label="Scroll to latest">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
-                    </svg>
-                </button>
-            </header>
-
-            <div class="chat-app__body" id="messages-body">
-                <div class="chat-loading" id="messages-loading">Loading conversation…</div>
-            </div>
-
-            <form class="chat-app__composer" id="composer" autocomplete="off">
-                <div class="chat-app__composer-wrapper">
-                    <textarea
-                        id="composer-input"
-                        class="chat-app__composer-input"
-                        rows="1"
-                        placeholder="Ask anything from your books…  (Enter to send · Shift+Enter for a new line)"
-                        required></textarea>
-                    <button type="submit" class="chat-app__composer-send" id="composer-send"
-                            title="Send" aria-label="Send message">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12l14-7-7 14-2-5-5-2z"/>
-                        </svg>
-                    </button>
-                </div>
-                <div class="chat-app__composer-hint">
-                    Answers are grounded in your school's curriculum and cite their sources.
-                </div>
-            </form>
-        {% else %}
-            <div class="chat-app__empty">
-                <div class="chat-app__empty-icon" aria-hidden="true">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="48" height="48">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
-                    </svg>
-                </div>
-                <h2 class="chat-app__empty-title">Welcome to your AI tutor</h2>
-                <p class="chat-app__empty-text">
-                    Ask anything from your curriculum. The tutor will find the right
-                    subject, cite the source, and explain it at your grade level.
-                </p>
-                <button type="button" class="chat-app__empty-cta" id="btn-empty-new-session">
-                    Start new chat
-                </button>
-
-                <div class="chat-app__empty-suggestions">
-                    <span class="chat-app__empty-suggestions-label">Try asking</span>
-                    <button type="button" class="chat-app__empty-suggestion" data-suggestion="Explain the quadratic formula with a worked example.">
-                        Explain the quadratic formula with a worked example.
-                    </button>
-                    <button type="button" class="chat-app__empty-suggestion" data-suggestion="Summarise photosynthesis in 5 bullet points.">
-                        Summarise photosynthesis in 5 bullet points.
-                    </button>
-                    <button type="button" class="chat-app__empty-suggestion" data-suggestion="What is the difference between simile and metaphor? Give examples.">
-                        Difference between simile and metaphor, with examples.
-                    </button>
-                </div>
-            </div>
-        {% endif %}
-    </main>
+        <button type="button" class="chat-app__empty-suggestion" data-suggestion="Summarise photosynthesis in 5 bullet points.">
+          Summarise photosynthesis in 5 bullet points.
+        </button>
+        <button type="button" class="chat-app__empty-suggestion" data-suggestion="What is the difference between simile and metaphor? Give examples.">
+          Difference between simile and metaphor, with examples.
+        </button>
+      </div>
+    </div>
+  </div>
+  {% endif %}
 </div>
 
 <!-- Citation hover preview singleton (positioned at runtime by chat.js) -->
 <div class="chat-citation-tooltip" id="citation-tooltip" role="tooltip" aria-hidden="true"></div>
 {% endblock %}
 
-{% block extra_js %}
-<!-- Markdown + sanitizer + math + code highlighting -->
+{% block right_rail %}
+<aside class="sys-rail" aria-label="Chat history">
+  <h2 class="sys-rail-title">RECENT // <span id="session-count">{{ sessions|length }}</span></h2>
+
+  <button type="button" class="sys-rail-cta" id="btn-new-session" title="Start a new conversation">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+    </svg>
+    <span>New chat</span>
+  </button>
+
+  <ul class="sys-rail-list" id="session-list">
+    {% for session in sessions %}
+      <li>
+        <a href="{% url 'student:chat_session' session.id %}"
+           class="chat-session {% if active_session and active_session.id == session.id %}chat-session--active{% endif %}"
+           data-session-id="{{ session.id }}">
+          <span class="chat-session__title">
+            {{ session.title|default:"Untitled chat" }}
+          </span>
+          <span class="chat-session__meta">
+            {% if session.last_message_at %}{{ session.last_message_at|timesince }} ago{% else %}just now{% endif %}
+          </span>
+        </a>
+      </li>
+    {% empty %}
+      <li class="sys-rail-empty">
+        No conversations yet. Tap <strong>New chat</strong> to start one.
+      </li>
+    {% endfor %}
+  </ul>
+</aside>
+{% endblock %}
+
+{% block student_extra_js %}
+<!-- Markdown + sanitizer + math + code highlighting (unchanged pipeline) -->
 <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.9/dist/purify.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"
@@ -212,7 +558,6 @@
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
         integrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05"
         crossorigin="anonymous"></script>
-<!-- highlight.js: pre-built browser bundle with common languages. -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"
         crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 

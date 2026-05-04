@@ -42,4 +42,13 @@ def complete_awakening(student) -> StudentProfile:
     # Seed today's mission brief via the real generator.
     ensure_todays_brief(student)
 
+    # Badges: First Steps fires on awakening complete + rank badges if
+    # calibration landed the student at D or C. Wrapped so any failure
+    # never blocks the Awakening → redirect-to-dashboard flow.
+    try:
+        from apps.service.services.badges import evaluate_and_award
+        evaluate_and_award(student, event_type='awakening_complete')
+    except Exception:  # pragma: no cover — defensive
+        pass
+
     return profile

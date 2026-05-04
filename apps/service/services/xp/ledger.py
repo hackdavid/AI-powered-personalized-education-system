@@ -88,6 +88,15 @@ def award_xp(
         profile.recalculate_rank()
         profile.save()
 
+    # Badges hook: level-up / rank-up / new streak thresholds / hunt cleared
+    # can all meet badge criteria after an award. Wrapped so a badge rule
+    # failure never breaks the primary XP event.
+    try:
+        from apps.service.services.badges import evaluate_and_award
+        evaluate_and_award(student, event_type=source or 'xp_awarded')
+    except Exception as exc:  # pragma: no cover — defensive
+        logger.warning('Badge evaluation failed after award_xp: %s', exc)
+
     return XPAwardResult(
         awarded=actual,
         requested=requested,
