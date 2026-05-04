@@ -1,0 +1,370 @@
+{% extends 'student/_shell.html' %}
+{% load static %}
+
+{% block title %}Task Quiz · {{ task.title }}{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+.quiz-wrap { max-width: 760px; margin: 0 auto; }
+
+.quiz-header { margin-bottom: 1.5rem; }
+.quiz-breadcrumb {
+    font-family: var(--sys-font-mono);
+    font-size: 0.7rem;
+    color: var(--sys-text-dim);
+    letter-spacing: 0.15em;
+    margin: 0 0 0.5rem;
+    text-transform: uppercase;
+}
+.quiz-breadcrumb a { color: var(--sys-cyan); text-decoration: none; }
+.quiz-breadcrumb a:hover { text-decoration: underline; }
+
+.quiz-eyebrow {
+    font-family: var(--sys-font-mono);
+    font-size: 0.75rem;
+    color: var(--sys-cyan);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin: 0 0 0.25rem;
+}
+.quiz-title {
+    font-family: var(--sys-font-mono);
+    font-size: 1.35rem;
+    color: var(--sys-text);
+    margin: 0 0 0.5rem;
+    letter-spacing: 0.03em;
+}
+.quiz-meta {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    font-family: var(--sys-font-mono);
+    font-size: 0.75rem;
+    color: var(--sys-text-dim);
+}
+
+.quiz-instructions {
+    color: var(--sys-text-dim);
+    font-size: 0.9rem;
+    margin: 1rem 0 0;
+    line-height: 1.6;
+}
+
+.quiz-question {
+    margin-bottom: 1rem;
+}
+.quiz-question-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+.quiz-question-number {
+    font-family: var(--sys-font-mono);
+    font-size: 0.75rem;
+    color: var(--sys-cyan);
+    letter-spacing: 0.15em;
+}
+.quiz-question-text {
+    font-size: 0.95rem;
+    color: var(--sys-text);
+    margin: 0;
+    line-height: 1.6;
+}
+
+.quiz-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.6rem;
+}
+.quiz-option-label {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.75rem 1rem;
+    background: var(--sys-surface-2);
+    border: 1px solid var(--sys-border);
+    border-radius: var(--sys-radius-sm);
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--sys-text);
+}
+.quiz-option-label:hover {
+    border-color: var(--sys-cyan);
+    background: var(--sys-surface);
+}
+.quiz-option-label input[type="radio"] {
+    accent-color: var(--sys-cyan);
+    margin: 0;
+    flex-shrink: 0;
+}
+.quiz-option-key {
+    font-family: var(--sys-font-mono);
+    font-weight: 700;
+    color: var(--sys-cyan);
+    width: 18px;
+    text-align: center;
+    font-size: 0.9rem;
+}
+.quiz-option-text {
+    flex: 1;
+    font-size: 0.9rem;
+}
+.quiz-option-label input[type="radio"]:checked + .quiz-option-key {
+    color: var(--sys-gold);
+}
+/* Visually highlight the selected option's wrapper */
+.quiz-option-label:has(input:checked) {
+    border-color: var(--sys-cyan);
+    background: var(--sys-cyan-soft);
+    box-shadow: 0 0 12px rgba(34, 211, 238, 0.25);
+}
+
+.quiz-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2rem;
+}
+
+/* ================= RESULT VIEW ================= */
+
+.quiz-result-banner {
+    padding: 1.75rem;
+    border-radius: var(--sys-radius);
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+.quiz-result-banner--passed {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(251, 191, 36, 0.12));
+    border: 1px solid var(--sys-emerald);
+    box-shadow: 0 0 24px rgba(16, 185, 129, 0.15);
+}
+.quiz-result-banner--failed {
+    background: rgba(244, 63, 94, 0.08);
+    border: 1px solid rgba(244, 63, 94, 0.35);
+}
+.quiz-result-label {
+    font-family: var(--sys-font-mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.2em;
+    margin: 0 0 0.5rem;
+}
+.quiz-result-banner--passed .quiz-result-label { color: var(--sys-emerald); }
+.quiz-result-banner--failed .quiz-result-label { color: var(--sys-crimson); }
+.quiz-result-score {
+    font-family: var(--sys-font-mono);
+    font-size: 2.2rem;
+    color: var(--sys-text);
+    margin: 0 0 0.25rem;
+    line-height: 1;
+}
+.quiz-result-pct {
+    font-family: var(--sys-font-mono);
+    font-size: 0.9rem;
+    color: var(--sys-text-dim);
+    margin: 0 0 0.75rem;
+}
+.quiz-result-xp {
+    font-family: var(--sys-font-mono);
+    color: var(--sys-gold);
+    font-size: 1rem;
+    margin: 0.5rem 0 0;
+}
+.quiz-result-levelup,
+.quiz-result-rankup,
+.quiz-result-bonus {
+    font-family: var(--sys-font-mono);
+    font-size: 0.85rem;
+    margin: 0.4rem 0;
+    letter-spacing: 0.1em;
+}
+.quiz-result-levelup { color: var(--sys-cyan); }
+.quiz-result-rankup { color: var(--sys-violet); }
+.quiz-result-bonus { color: var(--sys-gold); }
+
+.quiz-review-heading {
+    margin-top: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.quiz-review-q {
+    padding: 1rem 1.25rem;
+    margin-bottom: 0.75rem;
+    border-left: 3px solid var(--sys-border);
+    background: var(--sys-surface-2);
+    border-radius: var(--sys-radius-sm);
+}
+.quiz-review-q--correct { border-left-color: var(--sys-emerald); }
+.quiz-review-q--wrong { border-left-color: var(--sys-crimson); }
+
+.quiz-review-q-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+}
+.quiz-review-q-num {
+    font-family: var(--sys-font-mono);
+    color: var(--sys-cyan);
+    font-weight: 600;
+}
+.quiz-review-q-verdict {
+    font-family: var(--sys-font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+}
+.quiz-review-q-verdict--correct { color: var(--sys-emerald); }
+.quiz-review-q-verdict--wrong { color: var(--sys-crimson); }
+
+.quiz-review-q-text {
+    margin: 0 0 0.5rem;
+    color: var(--sys-text);
+    font-size: 0.9rem;
+}
+.quiz-review-answer {
+    font-size: 0.8rem;
+    color: var(--sys-text-dim);
+    margin: 0.25rem 0;
+}
+.quiz-review-answer strong { color: var(--sys-text); }
+.quiz-review-explanation {
+    margin-top: 0.6rem;
+    padding: 0.6rem 0.9rem;
+    background: rgba(34, 211, 238, 0.05);
+    border-left: 2px solid var(--sys-cyan);
+    font-size: 0.8rem;
+    color: var(--sys-text-dim);
+    border-radius: 4px;
+}
+</style>
+{% endblock %}
+
+{% block student_content %}
+<div class="quiz-wrap">
+    <header class="quiz-header">
+        <p class="quiz-breadcrumb">
+            <a href="{% url 'student:hunt_list' %}">Hunts</a> /
+            <a href="{% url 'student:hunt_detail' goal.id %}">{{ goal.title }}</a>
+        </p>
+        <p class="quiz-eyebrow">[ {% if task.kind == 'boss' %}BOSS ENCOUNTER{% else %}TASK QUIZ{% endif %} ]</p>
+        <h1 class="quiz-title">{{ task.title }}</h1>
+        <div class="quiz-meta">
+            <span class="sys-chip sys-chip--violet">{{ task.get_kind_display|upper }}</span>
+            <span class="sys-chip sys-chip--cyan">{{ required_count }} question{{ required_count|pluralize }}</span>
+            <span class="sys-chip sys-chip--gold">{{ pass_threshold }}% to clear · +{{ task.xp_reward }} XP</span>
+            {% if task.best_score_pct is not None %}
+            <span class="sys-chip sys-chip--muted">best: {{ task.best_score_pct }}%</span>
+            {% endif %}
+        </div>
+        {% if task.description %}
+        <p class="quiz-instructions">{{ task.description }}</p>
+        {% endif %}
+    </header>
+
+    {% if show_result %}
+      {# ================== RESULT VIEW ================== #}
+      <div class="quiz-result-banner {% if grade.passed %}quiz-result-banner--passed{% else %}quiz-result-banner--failed{% endif %} sys-anim-reveal">
+          {% if grade.passed %}
+              <p class="quiz-result-label">[ TASK CLEARED ]</p>
+              <p class="quiz-result-score">{{ grade.correct }} / {{ grade.total }}</p>
+              <p class="quiz-result-pct">{{ grade.pct }}% correct &middot; threshold {{ grade.threshold }}%</p>
+              {% if xp_awarded > 0 %}
+              <p class="quiz-result-xp">+{{ xp_awarded }} XP</p>
+              {% endif %}
+              {% if leveled_up %}
+              <p class="quiz-result-levelup">[ LEVEL UP! Now Lv {{ profile.level }} ]</p>
+              {% endif %}
+              {% if ranked_up %}
+              <p class="quiz-result-rankup">[ RANK UP! Now Rank {{ profile.rank }} ]</p>
+              {% endif %}
+              {% if goal_bonus > 0 %}
+              <p class="quiz-result-bonus">[ HUNT CLEARED! +{{ goal_bonus }} XP BONUS ]</p>
+              {% endif %}
+          {% else %}
+              <p class="quiz-result-label">[ NOT YET — STUDY &amp; RETRY ]</p>
+              <p class="quiz-result-score">{{ grade.correct }} / {{ grade.total }}</p>
+              <p class="quiz-result-pct">{{ grade.pct }}% correct &middot; need {{ grade.threshold }}% to clear</p>
+          {% endif %}
+      </div>
+
+      <div class="quiz-actions" style="margin-top:0;">
+          {% if grade.passed %}
+              <a href="{% url 'student:hunt_detail' goal.id %}" class="sys-btn-primary sys-btn-lg">Back to Dungeon Map &rarr;</a>
+          {% else %}
+              <a href="{% url 'student:hunt_detail' goal.id %}" class="sys-btn-ghost">&larr; Back to Map</a>
+              <a href="{% url 'student:hunt_task_quiz' task.id %}" class="sys-btn-primary">Retry this Quiz</a>
+          {% endif %}
+      </div>
+
+      <h3 class="sys-panel-title quiz-review-heading">REVIEW</h3>
+      {% for d in grade.details %}
+      <section class="quiz-review-q {% if d.is_correct %}quiz-review-q--correct{% else %}quiz-review-q--wrong{% endif %}">
+          <div class="quiz-review-q-header">
+              <span class="quiz-review-q-num">Q{{ forloop.counter|stringformat:"02d" }}</span>
+              <span class="quiz-review-q-verdict {% if d.is_correct %}quiz-review-q-verdict--correct{% else %}quiz-review-q-verdict--wrong{% endif %}">
+                  {% if d.is_correct %}&#10003; CORRECT{% else %}&#10005; WRONG{% endif %}
+              </span>
+          </div>
+          <p class="quiz-review-q-text">{{ d.question }}</p>
+          <p class="quiz-review-answer">Your answer:
+              <strong>
+                  {% if d.selected %}
+                      {% for opt in d.options %}{% if opt.key == d.selected %}{{ opt.key }}) {{ opt.text }}{% endif %}{% endfor %}
+                  {% else %}
+                      (no answer)
+                  {% endif %}
+              </strong>
+          </p>
+          {% if not d.is_correct %}
+          <p class="quiz-review-answer">Correct answer:
+              <strong style="color:var(--sys-emerald);">
+                  {% for opt in d.options %}{% if opt.key == d.correct_answer %}{{ opt.key }}) {{ opt.text }}{% endif %}{% endfor %}
+              </strong>
+          </p>
+          {% endif %}
+          {% if d.explanation %}
+          <div class="quiz-review-explanation">{{ d.explanation }}</div>
+          {% endif %}
+      </section>
+      {% endfor %}
+
+    {% else %}
+      {# ================== QUIZ FORM VIEW ================== #}
+      <p class="quiz-instructions">
+          Answer all {{ required_count }} question{{ required_count|pluralize }} below. Score <strong>{{ pass_threshold }}%</strong> or higher to clear the task and earn <strong>+{{ task.xp_reward }} XP</strong>. If you don't pass, you can retry — the same questions stay so you can learn from the feedback.
+      </p>
+
+      <form method="post" action="{% url 'student:hunt_task_quiz' task.id %}">
+          {% csrf_token %}
+          {% for q in questions %}
+          <section class="sys-panel quiz-question">
+              <header class="quiz-question-header">
+                  <span class="quiz-question-number">Q {{ forloop.counter }} / {{ questions|length }}</span>
+              </header>
+              <p class="quiz-question-text">{{ q.question }}</p>
+              <div class="quiz-options">
+                  {% for opt in q.options %}
+                  <label class="quiz-option-label">
+                      <input type="radio" name="q_{{ forloop.parentloop.counter0 }}" value="{{ opt.key }}" required>
+                      <span class="quiz-option-key">{{ opt.key }}</span>
+                      <span class="quiz-option-text">{{ opt.text }}</span>
+                  </label>
+                  {% endfor %}
+              </div>
+          </section>
+          {% endfor %}
+
+          <div class="quiz-actions">
+              <a href="{% url 'student:hunt_detail' goal.id %}" class="sys-btn-ghost">&larr; Cancel</a>
+              <button type="submit" class="sys-btn-primary sys-btn-lg">
+                  {% if task.kind == 'boss' %}Submit Boss Answers{% else %}Submit Answers{% endif %}
+              </button>
+          </div>
+      </form>
+    {% endif %}
+</div>
+{% endblock %}

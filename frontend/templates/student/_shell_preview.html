@@ -1,0 +1,283 @@
+{% extends 'student/_shell.html' %}
+{% load static %}
+
+{% block title %}Shell Preview · EduAI{% endblock %}
+
+{% block student_content %}
+{% comment %}
+Shell preview — dummy data for visual regression.
+active_page is intentionally left unset (would be 'preview', which
+does NOT match any sidebar item), so nothing in the nav gets highlighted.
+{% endcomment %}
+
+<!-- Hunter Status banner -->
+<section class="sys-panel sys-panel--glow-cyan sys-bracket-corners sys-mb-lg sys-anim-reveal"
+         style="padding: 2rem;">
+    <div class="sys-flex sys-items-center sys-gap-lg" style="flex-wrap: wrap;">
+        <div class="sys-sidebar-hunter-avatar"
+             style="width: 80px; height: 80px; font-size: 1.5rem;"
+             aria-hidden="true">DD</div>
+
+        <div style="flex: 1; min-width: 240px;">
+            <div class="sys-mono sys-text-dim sys-mb-sm"
+                 style="font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase;">
+                HUNTER · SHADOW MONARCH CANDIDATE
+            </div>
+            <h1 class="sys-mono"
+                style="font-size: 2rem; font-weight: 700; color: var(--sys-text); margin: 0 0 0.5rem;">
+                Daud Dewan
+            </h1>
+            <div class="sys-flex sys-items-center sys-gap-md" style="flex-wrap: wrap;">
+                <span class="sys-mono sys-text-dim" style="font-size: 0.85rem;">Lv 4 · 640 / 1000 XP</span>
+                <span class="sys-chip sys-chip--emerald">7-day streak</span>
+            </div>
+            <div class="sys-progress sys-mt-md" aria-label="XP progress">
+                <div class="sys-progress-fill" style="width: 64%;"></div>
+            </div>
+        </div>
+
+        <div class="sys-flex-col sys-items-center" style="gap: 0.5rem; text-align: center;">
+            <div class="sys-rank-badge sys-rank-badge--e sys-rank-badge--lg">E</div>
+            <span class="sys-mono sys-text-dim" style="font-size: 0.7rem; letter-spacing: 0.1em;">RANK</span>
+        </div>
+    </div>
+</section>
+
+<!-- 3-col panel row -->
+<div class="sys-grid-3 sys-mb-lg sys-anim-reveal-stagger">
+    <!-- Active Quests count -->
+    <div class="sys-panel">
+        <h2 class="sys-panel-title">ACTIVE QUESTS</h2>
+        <div class="sys-flex sys-items-center sys-gap-md">
+            <div>
+                <div class="sys-stat-value sys-stat-accent-cyan">2</div>
+                <div class="sys-stat-label">In progress</div>
+            </div>
+            <div style="flex: 1;"></div>
+            <span class="sys-chip sys-chip--crimson">1 OVERDUE</span>
+        </div>
+    </div>
+
+    <!-- Mastery -->
+    <div class="sys-panel">
+        <h2 class="sys-panel-title sys-panel-title--violet">MASTERY</h2>
+        <div class="sys-mastery-row">
+            <span class="sys-mastery-row-label">Math</span>
+            <div class="sys-progress sys-progress--cyan">
+                <div class="sys-progress-fill" style="width: 62%;"></div>
+            </div>
+            <span class="sys-mastery-row-value">62%</span>
+        </div>
+        <div class="sys-mastery-row">
+            <span class="sys-mastery-row-label">Science</span>
+            <div class="sys-progress sys-progress--emerald">
+                <div class="sys-progress-fill" style="width: 74%;"></div>
+            </div>
+            <span class="sys-mastery-row-value">74%</span>
+        </div>
+        <div class="sys-mastery-row">
+            <span class="sys-mastery-row-label">English</span>
+            <div class="sys-progress sys-progress--violet">
+                <div class="sys-progress-fill" style="width: 41%;"></div>
+            </div>
+            <span class="sys-mastery-row-value">41%</span>
+        </div>
+    </div>
+
+    <!-- Daily Streak -->
+    <div class="sys-panel">
+        <h2 class="sys-panel-title sys-panel-title--gold">DAILY STREAK</h2>
+        <div class="sys-flex sys-items-center sys-gap-md">
+            <div>
+                <div class="sys-stat-value sys-stat-accent-gold">7d</div>
+                <div class="sys-stat-label">Current</div>
+            </div>
+            <div style="flex: 1;"></div>
+            <span class="sys-chip sys-chip--gold">+100 XP at 7d</span>
+        </div>
+        <div class="sys-streak-grid" aria-label="This week">
+            <div class="sys-streak-day sys-streak-day--active">M</div>
+            <div class="sys-streak-day sys-streak-day--active">T</div>
+            <div class="sys-streak-day sys-streak-day--active">W</div>
+            <div class="sys-streak-day sys-streak-day--active">T</div>
+            <div class="sys-streak-day sys-streak-day--active">F</div>
+            <div class="sys-streak-day sys-streak-day--today">S</div>
+            <div class="sys-streak-day">S</div>
+        </div>
+    </div>
+</div>
+
+<!-- Mission Brief panel -->
+<section class="sys-panel sys-mb-lg sys-anim-reveal">
+    <div class="sys-flex sys-items-center sys-justify-between sys-mb-md">
+        <h2 class="sys-panel-title" style="margin: 0;">TODAY'S MISSION BRIEF</h2>
+        <span class="sys-chip sys-chip--cyan">3 / 4 remaining</span>
+    </div>
+
+    <a href="#" class="sys-mission-item sys-mission-item--urgent">
+        <span class="sys-mission-number">01</span>
+        <div>
+            <div class="sys-mission-title">Submit Math Quest: Quadratic Equations</div>
+            <p class="sys-mission-desc">Due in 3 hours · Ms. Patel · 5 questions remaining</p>
+        </div>
+        <span class="sys-mission-reward">+150 XP</span>
+    </a>
+
+    <a href="#" class="sys-mission-item">
+        <span class="sys-mission-number">02</span>
+        <div>
+            <div class="sys-mission-title">Practice weakest subject: English</div>
+            <p class="sys-mission-desc">Mastery 41% — +20% after 10 quest items</p>
+        </div>
+        <span class="sys-mission-reward">+50 XP</span>
+    </a>
+
+    <a href="#" class="sys-mission-item">
+        <span class="sys-mission-number">03</span>
+        <div>
+            <div class="sys-mission-title">Advance Hunt: "Finish Year 10 Algebra"</div>
+            <p class="sys-mission-desc">Next task — Factorising trinomials (dungeon node 3 / 8)</p>
+        </div>
+        <span class="sys-mission-reward">+30 XP</span>
+    </a>
+
+    <div class="sys-mission-item sys-mission-item--completed">
+        <span class="sys-mission-number">04</span>
+        <div>
+            <div class="sys-mission-title">Visit System Advisor</div>
+            <p class="sys-mission-desc">Completed at 08:14 — Topic: Newton's first law</p>
+        </div>
+        <span class="sys-mission-reward">+10 XP ✓</span>
+    </div>
+</section>
+
+<!-- 2-col lower row: Active Quests + Active Hunts -->
+<div class="sys-grid-2 sys-anim-reveal">
+    <!-- Active Quests list -->
+    <section class="sys-panel">
+        <div class="sys-flex sys-items-center sys-justify-between sys-mb-md">
+            <h2 class="sys-panel-title sys-panel-title--violet" style="margin: 0;">ACTIVE QUESTS</h2>
+            <a href="#" class="sys-btn-ghost" style="font-size: 0.75rem; padding: 0.3rem 0.7rem;">View all</a>
+        </div>
+
+        <a href="#" class="sys-mission-item sys-mission-item--urgent"
+           style="display: block; padding: 1rem; grid-template-columns: none;">
+            <div class="sys-flex sys-items-center sys-justify-between sys-mb-sm">
+                <span class="sys-chip sys-chip--crimson">Due 3h</span>
+                <span class="sys-mono sys-text-gold" style="font-size: 0.8rem;">+150 XP</span>
+            </div>
+            <div class="sys-mission-title" style="margin-bottom: 0.3rem;">Quadratic Equations</div>
+            <p class="sys-mission-desc sys-mb-sm">Ms. Patel · Year 10 Math</p>
+            <div class="sys-mono sys-text-gold" style="font-size: 0.75rem; letter-spacing: 0.1em;">★★★☆☆</div>
+        </a>
+
+        <a href="#" class="sys-mission-item"
+           style="display: block; padding: 1rem; grid-template-columns: none;">
+            <div class="sys-flex sys-items-center sys-justify-between sys-mb-sm">
+                <span class="sys-chip sys-chip--cyan">Due 4d</span>
+                <span class="sys-mono sys-text-gold" style="font-size: 0.8rem;">+80 XP</span>
+            </div>
+            <div class="sys-mission-title" style="margin-bottom: 0.3rem;">Photosynthesis lab write-up</div>
+            <p class="sys-mission-desc sys-mb-sm">Mr. Okafor · Year 10 Science</p>
+            <div class="sys-mono sys-text-gold" style="font-size: 0.75rem; letter-spacing: 0.1em;">★★☆☆☆</div>
+        </a>
+    </section>
+
+    <!-- Active Hunts list -->
+    <section class="sys-panel">
+        <div class="sys-flex sys-items-center sys-justify-between sys-mb-md">
+            <h2 class="sys-panel-title sys-panel-title--gold" style="margin: 0;">ACTIVE HUNTS</h2>
+            <a href="#" class="sys-btn-ghost" style="font-size: 0.75rem; padding: 0.3rem 0.7rem;">View all</a>
+        </div>
+
+        <div class="sys-mission-item"
+             style="display: block; padding: 1rem; grid-template-columns: none; cursor: default;">
+            <div class="sys-flex sys-items-center sys-justify-between sys-mb-sm">
+                <div class="sys-mission-title" style="margin: 0;">Finish Year 10 Algebra</div>
+                <span class="sys-chip sys-chip--gold">12d left</span>
+            </div>
+            <p class="sys-mission-desc sys-mb-sm">Node 3 / 8 · Boss: mixed factorisation quiz</p>
+            <div class="sys-progress sys-progress--violet">
+                <div class="sys-progress-fill" style="width: 38%;"></div>
+            </div>
+            <div class="sys-flex sys-items-center sys-justify-between sys-mt-sm">
+                <span class="sys-mono sys-text-dim" style="font-size: 0.7rem;">38%</span>
+                <span class="sys-mono sys-text-gold" style="font-size: 0.7rem;">+500 XP on clear</span>
+            </div>
+        </div>
+
+        <div class="sys-mission-item"
+             style="display: block; padding: 1rem; grid-template-columns: none; cursor: default;">
+            <div class="sys-flex sys-items-center sys-justify-between sys-mb-sm">
+                <div class="sys-mission-title" style="margin: 0;">Read 1 novel this term</div>
+                <span class="sys-chip sys-chip--cyan">28d left</span>
+            </div>
+            <p class="sys-mission-desc sys-mb-sm">Node 1 / 5 · Boss: book report</p>
+            <div class="sys-progress sys-progress--cyan">
+                <div class="sys-progress-fill" style="width: 20%;"></div>
+            </div>
+            <div class="sys-flex sys-items-center sys-justify-between sys-mt-sm">
+                <span class="sys-mono sys-text-dim" style="font-size: 0.7rem;">20%</span>
+                <span class="sys-mono sys-text-gold" style="font-size: 0.7rem;">+400 XP on clear</span>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Rank badge showcase (developer reference) -->
+<section class="sys-panel sys-mt-lg">
+    <h2 class="sys-panel-title sys-panel-title--violet">RANK LADDER</h2>
+    <div class="sys-flex sys-items-center sys-gap-lg" style="flex-wrap: wrap;">
+        <div class="sys-flex-col sys-items-center" style="gap: 0.4rem;">
+            <div class="sys-rank-badge sys-rank-badge--e">E</div>
+            <span class="sys-mono sys-text-muted" style="font-size: 0.7rem;">L1-9</span>
+        </div>
+        <div class="sys-flex-col sys-items-center" style="gap: 0.4rem;">
+            <div class="sys-rank-badge sys-rank-badge--d">D</div>
+            <span class="sys-mono sys-text-muted" style="font-size: 0.7rem;">L10-19</span>
+        </div>
+        <div class="sys-flex-col sys-items-center" style="gap: 0.4rem;">
+            <div class="sys-rank-badge sys-rank-badge--c">C</div>
+            <span class="sys-mono sys-text-muted" style="font-size: 0.7rem;">L20-34</span>
+        </div>
+        <div class="sys-flex-col sys-items-center" style="gap: 0.4rem;">
+            <div class="sys-rank-badge sys-rank-badge--b">B</div>
+            <span class="sys-mono sys-text-muted" style="font-size: 0.7rem;">L35-54</span>
+        </div>
+        <div class="sys-flex-col sys-items-center" style="gap: 0.4rem;">
+            <div class="sys-rank-badge sys-rank-badge--a">A</div>
+            <span class="sys-mono sys-text-muted" style="font-size: 0.7rem;">L55-79</span>
+        </div>
+        <div class="sys-flex-col sys-items-center" style="gap: 0.4rem;">
+            <div class="sys-rank-badge sys-rank-badge--s">S</div>
+            <span class="sys-mono sys-text-muted" style="font-size: 0.7rem;">L80+</span>
+        </div>
+    </div>
+</section>
+
+<!-- Button / chip showcase -->
+<section class="sys-panel sys-mt-lg">
+    <h2 class="sys-panel-title sys-panel-title--gold">CONTROLS &amp; CHIPS</h2>
+    <div class="sys-flex sys-items-center sys-gap-md sys-mb-md" style="flex-wrap: wrap;">
+        <button type="button" class="sys-btn-primary">Begin Quest</button>
+        <button type="button" class="sys-btn-primary sys-btn-lg">Start Awakening</button>
+        <button type="button" class="sys-btn-ghost">View Codex</button>
+        <button type="button" class="sys-btn-ghost sys-btn-lg">Cancel</button>
+    </div>
+    <div class="sys-flex sys-items-center sys-gap-md" style="flex-wrap: wrap;">
+        <span class="sys-chip sys-chip--cyan">System</span>
+        <span class="sys-chip sys-chip--violet">Quest</span>
+        <span class="sys-chip sys-chip--gold">XP</span>
+        <span class="sys-chip sys-chip--crimson">Urgent</span>
+        <span class="sys-chip sys-chip--emerald">Completed</span>
+        <span class="sys-chip sys-chip--muted">Draft</span>
+    </div>
+</section>
+
+<!-- Preview note -->
+<div class="sys-panel sys-panel--compact sys-mt-lg" style="text-align: center;">
+    <p class="sys-text-muted sys-mono" style="font-size: 0.75rem; margin: 0;">
+        SHELL PREVIEW · dummy data · Status &amp; System Advisor nav links route for real; others are stubs until Phase A routes ship.
+    </p>
+</div>
+{% endblock %}

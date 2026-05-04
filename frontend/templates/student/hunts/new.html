@@ -1,0 +1,159 @@
+{% extends 'student/_shell.html' %}
+{% load static %}
+
+{% block title %}Begin Hunt · EduAI{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+.hunt-new-wrapper { max-width: 680px; margin: 0 auto; }
+.hunt-new-eyebrow {
+    font-family: var(--sys-font-mono);
+    font-size: 0.75rem;
+    color: var(--sys-cyan);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin: 0 0 0.25rem;
+}
+.hunt-new-title {
+    font-family: var(--sys-font-mono);
+    font-size: 1.4rem;
+    color: var(--sys-text);
+    margin: 0 0 0.5rem;
+}
+.hunt-new-sub { color: var(--sys-text-dim); margin: 0 0 2rem; font-size: 0.9rem; }
+
+.hunt-field { margin-bottom: 1.25rem; }
+.hunt-field-label {
+    display: block;
+    font-family: var(--sys-font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    color: var(--sys-text-dim);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+}
+.hunt-field-hint {
+    font-size: 0.75rem;
+    color: var(--sys-text-muted);
+    margin-top: 0.3rem;
+}
+.hunt-field-input,
+.hunt-field-select,
+.hunt-field-textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: var(--sys-surface-2);
+    border: 1px solid var(--sys-border);
+    border-radius: var(--sys-radius-sm);
+    color: var(--sys-text);
+    font-family: var(--sys-font-sans);
+    font-size: 0.95rem;
+}
+.hunt-field-input:focus,
+.hunt-field-select:focus,
+.hunt-field-textarea:focus {
+    outline: none;
+    border-color: var(--sys-cyan);
+    box-shadow: 0 0 14px rgba(34, 211, 238, 0.25);
+}
+.hunt-field-textarea { min-height: 100px; resize: vertical; }
+
+.hunt-template-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.hunt-template-chip {
+    background: var(--sys-surface-3);
+    border: 1px solid var(--sys-border);
+    color: var(--sys-text-dim);
+    padding: 0.5rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.hunt-template-chip:hover {
+    border-color: var(--sys-cyan);
+    color: var(--sys-text);
+}
+</style>
+{% endblock %}
+
+{% block student_content %}
+<div class="hunt-new-wrapper">
+    <p class="hunt-new-eyebrow">[ DECLARE A HUNT ]</p>
+    <h1 class="hunt-new-title">Set your goal. The System decomposes the path.</h1>
+    <p class="hunt-new-sub">Give the System a learning target. It generates 6-8 tasks plus a final Boss check. Clear them before your target date to earn the full XP payoff.</p>
+
+    {% if messages %}
+      {% for msg in messages %}
+        <div class="sys-panel sys-panel--urgent sys-mb-md" style="color:var(--sys-crimson);">{{ msg }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="post" class="sys-panel sys-bracket-corners" action="{% url 'student:hunt_new' %}">
+        {% csrf_token %}
+
+        <div class="hunt-field">
+            <label class="hunt-field-label" for="hunt-title">Title</label>
+            <input type="text" id="hunt-title" name="title" class="hunt-field-input" maxlength="200"
+                   required placeholder="e.g. Master quadratic equations"
+                   value="{{ prior.title|default:'' }}">
+            <p class="hunt-field-hint">Short, specific, future-you will know exactly what it meant.</p>
+        </div>
+
+        <div class="hunt-field">
+            <label class="hunt-field-label">Quick templates</label>
+            <div class="hunt-template-chips" id="hunt-templates">
+                <button type="button" class="hunt-template-chip" data-template="Improve in my weakest subject">Improve in my weakest subject</button>
+                <button type="button" class="hunt-template-chip" data-template="Pass this term confidently">Pass this term confidently</button>
+                <button type="button" class="hunt-template-chip" data-template="Top of the class">Top of the class</button>
+                <button type="button" class="hunt-template-chip" data-template="Master one specific topic">Master one specific topic</button>
+            </div>
+        </div>
+
+        <div class="hunt-field">
+            <label class="hunt-field-label" for="hunt-subject">Subject (optional)</label>
+            <select id="hunt-subject" name="subject" class="hunt-field-select">
+                <option value="">— any / cross-subject —</option>
+                {% for s in subjects %}
+                <option value="{{ s.id }}"{% if prior.subject_id == s.id|stringformat:"s" %} selected{% endif %}>{{ s.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="hunt-field">
+            <label class="hunt-field-label" for="hunt-target-date">Target date</label>
+            <input type="date" id="hunt-target-date" name="target_date" class="hunt-field-input"
+                   value="{{ prior.target_date|default:default_target }}" required>
+            <p class="hunt-field-hint">2-4 weeks out is usually realistic for a Hunt.</p>
+        </div>
+
+        <div class="hunt-field">
+            <label class="hunt-field-label" for="hunt-description">Describe the outcome (optional)</label>
+            <textarea id="hunt-description" name="description" class="hunt-field-textarea"
+                      maxlength="2000" placeholder="What does success look like?">{{ prior.description|default:'' }}</textarea>
+            <p class="hunt-field-hint">A sentence or two helps the System decompose better.</p>
+        </div>
+
+        <div class="sys-flex sys-justify-between sys-items-center sys-mt-lg">
+            <a href="{% url 'student:hunt_list' %}" class="sys-btn-ghost">&larr; Cancel</a>
+            <button type="submit" class="sys-btn-primary sys-btn-lg">[ DEPLOY HUNT ]</button>
+        </div>
+    </form>
+</div>
+
+<script>
+(function () {
+    const chips = document.querySelectorAll('.hunt-template-chip');
+    const title = document.getElementById('hunt-title');
+    if (!title) return;
+    chips.forEach(chip => chip.addEventListener('click', () => {
+        title.value = chip.dataset.template || '';
+        title.focus();
+    }));
+})();
+</script>
+{% endblock %}

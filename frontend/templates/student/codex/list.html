@@ -1,0 +1,162 @@
+{% extends 'student/_shell.html' %}
+{% load static %}
+
+{% block title %}Codex · EduAI{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+.codex-intro {
+    margin-bottom: 2rem;
+}
+.codex-intro-eyebrow {
+    font-family: var(--sys-font-mono);
+    font-size: 0.75rem;
+    color: var(--sys-text-dim);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin: 0 0 0.25rem;
+}
+.codex-intro-title {
+    font-family: var(--sys-font-mono);
+    font-size: 1.5rem;
+    color: var(--sys-text);
+    margin: 0 0 0.5rem;
+    letter-spacing: 0.03em;
+}
+.codex-intro-sub {
+    color: var(--sys-text-dim);
+    font-size: 0.9rem;
+    max-width: 620px;
+    margin: 0;
+}
+
+.codex-subjects {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.codex-subject-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1.25rem;
+    text-decoration: none;
+    color: var(--sys-text);
+    border-left: 3px solid transparent;
+    transition: all 0.15s;
+    min-height: 180px;
+}
+.codex-subject-card:hover {
+    border-left-color: var(--sys-cyan);
+    transform: translateY(-2px);
+}
+.codex-subject-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--sys-radius-sm);
+    background: var(--sys-cyan-soft);
+    color: var(--sys-cyan);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--sys-font-mono);
+    font-weight: 700;
+    font-size: 1rem;
+}
+.codex-subject-name {
+    font-family: var(--sys-font-mono);
+    font-size: 1.1rem;
+    color: var(--sys-text);
+    margin: 0;
+    letter-spacing: 0.03em;
+}
+.codex-subject-code {
+    font-family: var(--sys-font-mono);
+    font-size: 0.75rem;
+    color: var(--sys-text-muted);
+    letter-spacing: 0.1em;
+}
+.codex-subject-desc {
+    flex: 1;
+    font-size: 0.85rem;
+    color: var(--sys-text-dim);
+    margin: 0;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+.codex-subject-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--sys-border-soft);
+    font-family: var(--sys-font-mono);
+    font-size: 0.75rem;
+}
+.codex-subject-meta-counts {
+    color: var(--sys-text-dim);
+}
+.codex-subject-meta-open {
+    color: var(--sys-cyan);
+}
+
+.codex-subject-empty {
+    color: var(--sys-text-muted);
+    font-size: 0.75rem;
+    font-style: italic;
+    font-family: var(--sys-font-sans);
+}
+</style>
+{% endblock %}
+
+{% block student_content %}
+<header class="codex-intro">
+    <p class="codex-intro-eyebrow">[ CURRICULUM CODEX ]</p>
+    <h1 class="codex-intro-title">Know Your World</h1>
+    <p class="codex-intro-sub">Your school's curriculum, organized as an atlas. Drill from subject → chapter → topic, read the source content the Advisor cites, then launch a Hunt or ask a question.</p>
+</header>
+
+{% if subjects %}
+<div class="codex-subjects sys-anim-reveal-stagger">
+    {% for s in subjects %}
+        {% if s.first_chapter %}
+            <a href="{% url 'student:codex_subject' s.id %}" class="sys-panel codex-subject-card">
+        {% else %}
+            <div class="sys-panel codex-subject-card" style="cursor:default; opacity:0.55;">
+        {% endif %}
+        <div class="codex-subject-icon">
+            {{ s.code|slice:":3"|upper }}
+        </div>
+        <div>
+            <h3 class="codex-subject-name">{{ s.name }}</h3>
+            <p class="codex-subject-code">{{ s.code }}</p>
+        </div>
+        {% if s.description %}
+        <p class="codex-subject-desc">{{ s.description }}</p>
+        {% elif s.chapter_count %}
+        <p class="codex-subject-desc">Open to explore {{ s.chapter_count }} chapter{{ s.chapter_count|pluralize }} and {{ s.topic_count }} topic{{ s.topic_count|pluralize }}.</p>
+        {% else %}
+        <p class="codex-subject-desc codex-subject-empty">No curriculum uploaded yet for this subject.</p>
+        {% endif %}
+        <div class="codex-subject-meta">
+            <span class="codex-subject-meta-counts">{{ s.chapter_count }}ch &middot; {{ s.topic_count }}tp</span>
+            {% if s.first_chapter %}
+            <span class="codex-subject-meta-open">OPEN &rarr;</span>
+            {% else %}
+            <span class="codex-subject-meta-counts">&mdash;</span>
+            {% endif %}
+        </div>
+        {% if s.first_chapter %}</a>{% else %}</div>{% endif %}
+    {% endfor %}
+</div>
+{% else %}
+<div class="sys-panel" style="text-align:center; padding:3rem 2rem; color:var(--sys-text-dim);">
+    <p class="sys-mono" style="letter-spacing:0.1em; color:var(--sys-text);">[ CODEX EMPTY ]</p>
+    <p style="margin-top:0.5rem;">Your school hasn't indexed any curriculum yet. Once a textbook is uploaded, chapters will appear here automatically.</p>
+</div>
+{% endif %}
+{% endblock %}
