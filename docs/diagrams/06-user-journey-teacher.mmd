@@ -1,0 +1,27 @@
+flowchart TD
+    Start([Teacher Login]) --> Dashboard[View Dashboard<br/>Classes & Stats]
+    Dashboard --> Choice{What to do?}
+
+    Choice -->|Create| Quest[Create Quest<br/>AI or Manual]
+    Choice -->|Monitor| Gradebook[Open Gradebook<br/>View Submissions]
+    Choice -->|Analyze| Insights[View Insights<br/>Student Performance]
+    Choice -->|Manage| Classes[Manage Classes<br/>View Students]
+
+    Quest --> Publish[Publish to Class<br/>Set Due Date]
+    Gradebook --> Grade[Grade Submissions<br/>Question by Question]
+    Insights --> Identify[Identify Struggling Students<br/>View Top Performers<br/>Check Mastery Heatmap]
+    Classes --> Details[View Class Details<br/>Student Roster]
+
+    Publish --> Monitor[Monitor Progress<br/>Track Submissions]
+    Grade --> Feedback[Provide Feedback<br/>Update Gradebook]
+    Identify --> Intervene[Plan Interventions<br/>Adjust Teaching]
+    Details --> Monitor
+
+    Monitor --> End([Logout])
+    Feedback --> End
+    Intervene --> End
+
+    style Start fill:#3b82f6,color:#fff
+    style Dashboard fill:#10b981,color:#fff
+    style Insights fill:#f59e0b,color:#fff
+    style End fill:#8b5cf6,color:#fff

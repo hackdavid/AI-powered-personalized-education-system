@@ -1,0 +1,35 @@
+graph LR
+    subgraph Internet
+        Users[End Users<br/>Students/Teachers/Admins]
+    end
+
+    subgraph Render["Render.com - Docker Runtime"]
+        App[Django Application<br/>Gunicorn WSGI<br/>Port 8000]
+        Static[WhiteNoise<br/>Static Assets]
+    end
+
+    subgraph HF["HuggingFace Spaces"]
+        Embed[Embedding Service<br/>FastAPI<br/>sentence-transformers]
+    end
+
+    subgraph Supabase["Supabase - Managed Postgres"]
+        DB[(PostgreSQL 17<br/>Connection Pooler<br/>Port 6543)]
+        PGVector[(pgvector Extension<br/>HNSW Index)]
+    end
+
+    subgraph External["External Services"]
+        OpenAI[OpenAI API<br/>GPT Models]
+    end
+
+    Users -->|HTTPS| App
+    App --> Static
+    App -->|HTTP POST /embed| Embed
+    App -->|SQL + pgvector| DB
+    DB -.-> PGVector
+    App -->|Chat Completions| OpenAI
+
+    style Users fill:#3b82f6,color:#fff
+    style App fill:#10b981,color:#fff
+    style Embed fill:#8b5cf6,color:#fff
+    style DB fill:#336791,color:#fff
+    style OpenAI fill:#f59e0b,color:#fff

@@ -1,0 +1,25 @@
+flowchart TD
+    Start([School Admin Login]) --> Dashboard[View Dashboard<br/>Stats & Alerts]
+    Dashboard --> Choice{What to do?}
+
+    Choice -->|Manage| Teachers[Invite Teachers<br/>Assign Classes]
+    Choice -->|Manage| Students[Invite Students<br/>Enroll in Classes]
+    Choice -->|Setup| Curriculum[Upload Documents<br/>Define Subjects]
+    Choice -->|Monitor| Analytics[View Analytics<br/>Performance Metrics]
+
+    Teachers --> Assign[Assign to Classes<br/>Set Permissions]
+    Students --> Enroll[Bulk Enrollment<br/>Class Assignment]
+    Curriculum --> Process[Auto-Process<br/>Chunk & Embed]
+    Analytics --> Insights[Teacher Utilization<br/>Class Performance<br/>Subject Distribution]
+
+    Assign --> Review[Review Dashboard<br/>Check Alerts]
+    Enroll --> Review
+    Process --> Review
+    Insights --> Review
+
+    Review --> End([Logout])
+
+    style Start fill:#3b82f6,color:#fff
+    style Dashboard fill:#10b981,color:#fff
+    style Analytics fill:#f59e0b,color:#fff
+    style End fill:#8b5cf6,color:#fff

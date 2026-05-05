@@ -1,0 +1,19 @@
+graph TB
+    TENANT[TENANT] --> USER[USER]
+    TENANT --> CLASS[CLASS]
+    TENANT --> SUBJECT[SUBJECT]
+    TENANT --> DOCUMENT[DOCUMENT]
+    TENANT --> EMBEDDING[EMBEDDING]
+
+    USER --> SESSION[SESSION]
+    USER --> ENROLL[ENROLLMENT]
+
+    CLASS --> ENROLL
+    CLASS --> ASSIGN[ASSIGNMENT]
+
+    SUBJECT --> CLASSSUB[CLASS_SUBJECT]
+    DOCUMENT --> EMBEDDING
+
+    style TENANT fill:#3b82f6,color:#fff
+    style USER fill:#10b981,color:#fff
+    style EMBEDDING fill:#f59e0b,color:#fff

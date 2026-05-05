@@ -1,0 +1,21 @@
+flowchart TD
+    Start([Student Question]) --> Embed[Embed Query - 384-dim vector]
+    Embed --> Search[Vector Search pgvector HNSW]
+    Search --> Filter[Filter by Tenant Top 5]
+    Filter --> Retrieve[Retrieve Source Chunks]
+    Retrieve --> Context[Build Context]
+    Context --> LLM{LLM Available?}
+
+    LLM -->|Yes| Generate[Generate Answer OpenAI]
+    LLM -->|No| Fallback[Return Sources]
+
+    Generate --> Citations[Add Citations]
+    Fallback --> Response[Response]
+    Citations --> Response
+
+    Response --> End([Display])
+
+    style Start fill:#3b82f6,color:#fff
+    style Search fill:#10b981,color:#fff
+    style LLM fill:#f59e0b,color:#fff
+    style End fill:#8b5cf6,color:#fff

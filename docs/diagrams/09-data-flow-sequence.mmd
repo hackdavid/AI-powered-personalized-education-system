@@ -1,0 +1,28 @@
+sequenceDiagram
+    participant Student
+    participant Django
+    participant pgvector
+    participant Embedder
+    participant LLM
+
+    Student->>Django: Ask question via chat
+    Django->>Embedder: POST /embed<br/>{text: "question"}
+    Embedder-->>Django: 384-dim vector
+
+    Django->>pgvector: SELECT * WHERE<br/>tenant_id = X<br/>ORDER BY embedding <=> query<br/>LIMIT 5
+    pgvector-->>Django: Top 5 matching chunks
+
+    Django->>Django: Build context:<br/>sources + question
+
+    alt LLM Available
+        Django->>LLM: Chat completion<br/>(context + question)
+        LLM-->>Django: Natural language answer
+        Django->>Django: Add citations [1][2][3]
+    else Offline Mode
+        Django->>Django: Return sources verbatim
+    end
+
+    Django-->>Student: Display answer + sources
+
+    Student->>Django: Click citation [1]
+    Django-->>Student: Show source document<br/>+ highlighted passage

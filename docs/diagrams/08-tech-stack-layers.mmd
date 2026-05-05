@@ -1,0 +1,50 @@
+graph LR
+    subgraph Presentation["Presentation Layer"]
+        Browser[Web Browser]
+        Templates[Django Templates<br/>63 HTML files]
+        Static[Static Assets<br/>CSS + Vanilla JS]
+    end
+
+    subgraph Application["Application Layer"]
+        Views[Views Layer<br/>Auth/Dashboard/CRUD]
+        API[REST API<br/>Django REST Framework]
+        Services[Business Logic<br/>Tutoring/Grading/Analytics]
+    end
+
+    subgraph Domain["Domain Layer"]
+        Models[Django Models<br/>User/Class/Assignment/etc]
+        RBAC[RBAC System<br/>4 Roles + Permissions]
+        MultiTenant[Multi-Tenant<br/>Tenant Middleware]
+    end
+
+    subgraph External["External Adapters"]
+        LLMClient[LLM Client<br/>OpenAI Compatible]
+        EmbedClient[Embedding Client<br/>HF Space/Local]
+        VectorClient[Vector Store<br/>pgvector Facade]
+    end
+
+    subgraph Data["Data Layer"]
+        Postgres[(PostgreSQL 17<br/>ORM Data)]
+        Vector[(pgvector<br/>Embeddings)]
+    end
+
+    Browser --> Templates
+    Templates --> Views
+    Static --> Browser
+    Views --> API
+    Views --> Services
+    API --> Services
+    Services --> Models
+    Models --> RBAC
+    Models --> MultiTenant
+    Services --> LLMClient
+    Services --> EmbedClient
+    Services --> VectorClient
+    Models --> Postgres
+    VectorClient --> Vector
+    Postgres -.-> Vector
+
+    style Browser fill:#3b82f6,color:#fff
+    style API fill:#10b981,color:#fff
+    style Services fill:#f59e0b,color:#fff
+    style Postgres fill:#336791,color:#fff

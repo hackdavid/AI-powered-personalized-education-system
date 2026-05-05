@@ -1,0 +1,32 @@
+flowchart TD
+    Start([Student Login]) --> Dashboard[View Dashboard<br/>Status Window]
+    Dashboard --> Choice{What to do?}
+
+    Choice -->|Learn| Tutor[Chat with AI Tutor<br/>Ask Questions]
+    Choice -->|Complete| Quests[View Active Quests<br/>Assignments]
+    Choice -->|Track| Progress[View Progress<br/>XP & Mastery]
+    Choice -->|Explore| Codex[Browse Codex<br/>Curriculum Tree]
+
+    Tutor --> Ask[Ask Question<br/>Get Cited Answer]
+    Quests --> Attempt[Attempt Quest<br/>Answer Questions]
+    Progress --> Review[Review Mastery<br/>Check Streak]
+    Codex --> Learn[Explore Topics<br/>Related Concepts]
+
+    Ask --> Sources[View Sources<br/>Verify Citations]
+    Attempt --> Submit[Submit Answers<br/>Wait for Grading]
+    Review --> Goals[Set New Goals<br/>Track Achievements]
+    Learn --> Ask
+
+    Sources --> Continue{Continue Learning?}
+    Submit --> Feedback[View Feedback<br/>Check Score]
+    Goals --> Continue
+    Feedback --> Continue
+
+    Continue -->|Yes| Choice
+    Continue -->|No| End([Logout])
+
+    style Start fill:#3b82f6,color:#fff
+    style Tutor fill:#10b981,color:#fff
+    style Quests fill:#f59e0b,color:#fff
+    style Progress fill:#8b5cf6,color:#fff
+    style End fill:#6b7280,color:#fff
