@@ -1,0 +1,85 @@
+{% extends 'teacher/_shell.html' %}
+{% load static %}
+
+{% block title %}Classes · EduAI Teacher{% endblock %}
+
+{% block breadcrumbs %}
+<a href="{% url 'teacher:dashboard' %}">Dashboard</a>
+<span class="tx-breadcrumbs-sep">/</span>
+<span class="tx-breadcrumbs-current">Classes</span>
+{% endblock %}
+
+{% block teacher_content %}
+
+<div class="tx-page-header">
+    <div>
+        <h1 class="tx-page-title">My Classes</h1>
+        <p class="tx-page-subtitle">
+            {% if classes %}
+                {{ classes|length }} class{{ classes|length|pluralize:"es" }} you teach this year.
+            {% else %}
+                You're not assigned to any classes yet.
+            {% endif %}
+        </p>
+    </div>
+</div>
+
+{% if classes %}
+<div class="tx-grid-classes" style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));">
+    {% for c in classes %}
+    <a href="{% url 'teacher:class_detail' c.id %}" class="tx-class-card">
+        <div class="tx-class-card-row">
+            <div>
+                <h3 class="tx-class-name">{{ c.name }}</h3>
+                <p class="tx-class-meta">
+                    Grade {{ c.grade_level }} · Section {{ c.section }} · {{ c.academic_year }}
+                </p>
+            </div>
+            {% if c.is_homeroom %}
+            <span class="tx-chip tx-chip--info">
+                <span class="tx-chip-dot"></span>
+                Homeroom
+            </span>
+            {% endif %}
+        </div>
+
+        <div class="tx-class-stats">
+            <div>
+                <div class="tx-class-stat-label">Students</div>
+                <div class="tx-class-stat-value">{{ c.student_count }}</div>
+            </div>
+            <div>
+                <div class="tx-class-stat-label">Active quests</div>
+                <div class="tx-class-stat-value">{{ c.active_quest_count }}</div>
+            </div>
+            <div>
+                <div class="tx-class-stat-label">Avg mastery</div>
+                <div class="tx-class-stat-value">{{ c.avg_mastery_pct }}<span style="font-size:0.7rem;color:var(--tx-text-muted);font-weight:500;margin-left:1px;">%</span></div>
+            </div>
+        </div>
+
+        {% if c.top_performer %}
+        <div style="margin-top: 0.85rem; padding-top: 0.65rem; border-top: 1px solid var(--tx-border); display: flex; align-items: center; gap: 0.5rem;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--tx-warn)" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+            <span style="font-size: 0.78rem; color: var(--tx-text-soft);">
+                <strong style="color: var(--tx-text); font-weight: 600;">{{ c.top_performer.name }}</strong>
+                · Lv {{ c.top_performer.level }} · Rank {{ c.top_performer.rank }}
+            </span>
+        </div>
+        {% endif %}
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<div class="tx-card">
+    <div class="tx-card-empty">
+        <strong>No classes assigned yet</strong>
+        <span>Ask your school administrator to assign you to a class.</span>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

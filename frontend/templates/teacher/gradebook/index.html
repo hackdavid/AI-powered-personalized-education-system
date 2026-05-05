@@ -1,0 +1,259 @@
+{% extends 'teacher/_shell.html' %}
+{% load static %}
+
+{% block title %}Gradebook · EduAI Teacher{% endblock %}
+
+{% block breadcrumbs %}
+<a href="{% url 'teacher:dashboard' %}">Dashboard</a>
+<span class="tx-breadcrumbs-sep">/</span>
+<span class="tx-breadcrumbs-current">Gradebook</span>
+{% endblock %}
+
+{% block topbar_actions %}
+{% if selected_class %}
+<a href="{% url 'teacher:gradebook_export' selected_class.id %}" class="tx-btn-secondary tx-btn-sm">
+    <svg class="tx-icon-sm" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+    </svg>
+    Export CSV
+</a>
+{% endif %}
+{% endblock %}
+
+{% block teacher_content %}
+
+<style>
+/* Sticky-header gradebook table — keeps the column titles in view as you scroll
+   a long roster. Scoped to this page only. */
+.gb-wrap {
+    position: relative;
+    max-height: calc(100vh - 280px);
+    overflow: auto;
+    border: 1px solid var(--tx-border);
+    border-radius: var(--tx-radius);
+    background: var(--tx-surface);
+}
+.gb-table {
+    width: max-content;
+    min-width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.84rem;
+}
+.gb-table thead th {
+    position: sticky;
+    top: 0;
+    background: var(--tx-surface-2);
+    z-index: 2;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--tx-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.7rem 0.85rem;
+    border-bottom: 1px solid var(--tx-border);
+    text-align: left;
+    white-space: nowrap;
+}
+.gb-table tbody td {
+    padding: 0.6rem 0.85rem;
+    border-bottom: 1px solid var(--tx-border);
+    color: var(--tx-text);
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+.gb-table tbody tr:last-child td { border-bottom: 0; }
+.gb-table tbody tr:hover { background: var(--tx-surface-2); }
+.gb-table .gb-name-col {
+    text-align: left;
+    position: sticky;
+    left: 0;
+    background: var(--tx-surface);
+    z-index: 1;
+    border-right: 1px solid var(--tx-border);
+    min-width: 220px;
+}
+.gb-table tbody tr:hover .gb-name-col { background: var(--tx-surface-2); }
+.gb-table thead .gb-name-col {
+    z-index: 3;
+    background: var(--tx-surface-3);
+}
+.gb-cell {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 56px;
+    padding: 0.18rem 0.45rem;
+    border-radius: var(--tx-radius-sm);
+    font-family: ui-monospace, monospace;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+.gb-cell--ok        { background: var(--tx-success-soft); color: var(--tx-success); }
+.gb-cell--mid       { background: var(--tx-warn-soft); color: var(--tx-warn); }
+.gb-cell--low       { background: var(--tx-alert-soft); color: var(--tx-alert); }
+.gb-cell--empty     { color: var(--tx-text-muted); font-weight: 400; }
+.gb-quest-head {
+    text-align: center !important;
+    min-width: 110px;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.gb-quest-head a { color: inherit; text-decoration: none; }
+.gb-quest-head a:hover { color: var(--tx-text); }
+.gb-quest-archived { opacity: 0.6; }
+.gb-summary-col {
+    background: var(--tx-surface-2);
+    border-left: 1px solid var(--tx-border);
+}
+</style>
+
+<div class="tx-page-header">
+    <div>
+        <h1 class="tx-page-title">Gradebook</h1>
+        <p class="tx-page-subtitle">
+            {% if selected_class %}
+                {{ rows|length }} student{{ rows|length|pluralize }} · {{ quests|length }} quest{{ quests|length|pluralize }} in <strong>{{ selected_class.name }}</strong>.
+            {% else %}
+                Pick a class to see the matrix.
+            {% endif %}
+        </p>
+    </div>
+</div>
+
+{% if classes %}
+<!-- Class picker -->
+<div class="tx-card tx-mb-md">
+    <div class="tx-card-body" style="padding: 0.75rem 1.25rem; display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+        <span style="font-size: 0.8rem; font-weight: 500; color: var(--tx-text-soft);">Class:</span>
+        {% for c in classes %}
+        <a href="?class={{ c.id }}{% if sort != 'name' %}&sort={{ sort }}{% endif %}"
+           class="tx-chip{% if selected_class.id == c.id %} tx-chip--info{% endif %}"
+           style="text-decoration: none;">{{ c.name }}</a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% if not selected_class %}
+<div class="tx-card">
+    <div class="tx-card-empty">
+        <strong>No classes yet</strong>
+        <span>Ask your school administrator to assign you to a class.</span>
+    </div>
+</div>
+{% elif not rows or not quests %}
+<div class="tx-card">
+    <div class="tx-card-empty">
+        <strong>
+            {% if not rows %}No students enrolled in {{ selected_class.name }}.
+            {% else %}No published quests for {{ selected_class.name }} yet.
+            {% endif %}
+        </strong>
+        <span>
+            {% if not quests %}<a href="{% url 'teacher:quest_create' %}" style="color: var(--tx-primary); text-decoration: none;">Create one</a> to start scoring this class.{% endif %}
+        </span>
+    </div>
+</div>
+{% else %}
+
+<!-- Sort toggle -->
+<div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; font-size: 0.8rem;">
+    <span style="color: var(--tx-text-muted);">Sort:</span>
+    <a href="?class={{ selected_class.id }}&sort=name" class="tx-chip{% if sort == 'name' %} tx-chip--info{% endif %}" style="text-decoration: none;">Name</a>
+    <a href="?class={{ selected_class.id }}&sort=avg" class="tx-chip{% if sort == 'avg' %} tx-chip--info{% endif %}" style="text-decoration: none;">Average %</a>
+    <a href="?class={{ selected_class.id }}&sort=submitted" class="tx-chip{% if sort == 'submitted' %} tx-chip--info{% endif %}" style="text-decoration: none;">Submitted count</a>
+</div>
+
+<div class="gb-wrap">
+    <table class="gb-table">
+        <thead>
+            <tr>
+                <th class="gb-name-col">Student</th>
+                {% for q in quests %}
+                <th class="gb-quest-head{% if q.status == 'archived' %} gb-quest-archived{% endif %}" title="{{ q.title }}">
+                    <a href="{% url 'teacher:quest_detail' q.id %}">
+                        {{ q.title|truncatechars:18 }}
+                    </a>
+                </th>
+                {% endfor %}
+                <th class="gb-summary-col">Submitted</th>
+                <th class="gb-summary-col">Avg %</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in rows %}
+            <tr>
+                <td class="gb-name-col">
+                    <a href="{% url 'teacher:student_detail' r.student_id %}"
+                       style="color: var(--tx-text); font-weight: 500; text-decoration: none;">
+                        {{ r.name }}
+                    </a>
+                </td>
+                {% for cell in r.cells %}
+                <td>
+                    {% if cell.student_assignment_id and cell.status == 'submitted' %}
+                        {# Clickable cell for submitted (needs grading) #}
+                        <a href="{% url 'teacher:grading_view' cell.student_assignment_id %}"
+                           class="gb-cell gb-cell--mid"
+                           style="text-decoration: none; cursor: pointer; display: inline-flex;"
+                           title="Click to grade">
+                            {{ cell.pct|default:"0" }}% <span style="font-size: 0.65rem; margin-left: 3px;">✎</span>
+                        </a>
+                    {% elif cell.student_assignment_id and cell.status == 'graded' %}
+                        {# Clickable cell for graded (can re-grade) #}
+                        <a href="{% url 'teacher:grading_view' cell.student_assignment_id %}"
+                           {% if cell.pct >= 70 %}
+                               class="gb-cell gb-cell--ok"
+                           {% elif cell.pct >= 40 %}
+                               class="gb-cell gb-cell--mid"
+                           {% else %}
+                               class="gb-cell gb-cell--low"
+                           {% endif %}
+                           style="text-decoration: none; cursor: pointer; display: inline-flex;"
+                           title="Click to view/edit grade">
+                            {{ cell.pct }}%
+                        </a>
+                    {% elif cell.pct is None %}
+                        <span class="gb-cell gb-cell--empty">—</span>
+                    {% else %}
+                        {# Fallback - show percentage without link #}
+                        {% if cell.pct >= 70 %}
+                            <span class="gb-cell gb-cell--ok">{{ cell.pct }}%</span>
+                        {% elif cell.pct >= 40 %}
+                            <span class="gb-cell gb-cell--mid">{{ cell.pct }}%</span>
+                        {% else %}
+                            <span class="gb-cell gb-cell--low">{{ cell.pct }}%</span>
+                        {% endif %}
+                    {% endif %}
+                </td>
+                {% endfor %}
+                <td class="gb-summary-col" style="font-family: ui-monospace, monospace; color: var(--tx-text-soft);">
+                    {{ r.submitted_count }}/{{ quests|length }}
+                </td>
+                <td class="gb-summary-col" style="font-family: ui-monospace, monospace;">
+                    {% if r.avg_pct is not None %}<strong>{{ r.avg_pct }}%</strong>
+                    {% else %}<span style="color: var(--tx-text-muted);">—</span>{% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<p style="margin-top: 0.85rem; font-size: 0.75rem; color: var(--tx-text-muted);">
+    Cells show each student's best attempt as a percentage.
+    <span class="gb-cell gb-cell--ok" style="margin: 0 0.25rem;">≥ 70%</span>
+    <span class="gb-cell gb-cell--mid" style="margin: 0 0.25rem;">40&ndash;69%</span>
+    <span class="gb-cell gb-cell--low" style="margin: 0 0.25rem;">&lt; 40%</span>
+    &nbsp;·&nbsp; <span style="color: var(--tx-text-muted);">— = no submission yet</span>
+</p>
+
+{% endif %}
+
+{% endblock %}

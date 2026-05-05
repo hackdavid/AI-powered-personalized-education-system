@@ -69,3 +69,12 @@ logs/
 *.tmp
 *.bak
 *.swp
+
+# Node (only used locally for Mermaid CLI rendering of report figures)
+node_modules/
+package.json
+package-lock.json
+.claude
+.devin
+.cursor
+

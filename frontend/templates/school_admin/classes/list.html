@@ -1,20 +1,26 @@
-{% extends 'base/dashboard_base.html' %}
+{% extends "school_admin/_shell.html" %}
 {% load static %}
 
-{% block dashboard_title %}Classes{% endblock %}
-{% block page_title %}Manage Classes{% endblock %}
-{% block page_subtitle %}<p class="text-gray-600 mt-1">Create classes and assign subjects with teachers in one go</p>{% endblock %}
+{% block title %}Classes · EduAI Admin{% endblock %}
 
-{% block page_actions %}
-<button onclick="openPanel('add-class-panel')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition flex items-center">
-    <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+{% block breadcrumbs %}
+<a href="{% url 'school_admin:dashboard' %}">Dashboard</a>
+<span class="tx-breadcrumbs-sep">/</span>
+<span class="tx-breadcrumbs-current">Classes</span>
+{% endblock %}
+
+{% block topbar_actions %}
+<button onclick="openPanel('add-class-panel')" class="tx-btn tx-btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+    </svg>
     Add Class
 </button>
 {% endblock %}
 
-{% block sidebar_nav %}{% include 'school_admin/includes/sidebar_nav.html' %}{% endblock %}
-
-{% block dashboard_content %}
+{% block admin_content %}
+<div style="max-width: 1600px; margin: 0 auto;">
+    <h1 style="font-size: 1.75rem; margin-bottom: 1.5rem;">Manage Classes</h1>
 <link rel="stylesheet" href="{% static 'css/school_admin.css' %}">
 
 {% if classes %}
@@ -152,9 +158,9 @@
         </div>
     </form>
 </div>
+</div>
 {% endblock %}
 
-{% block dashboard_modals %}
 <script>
 const SUBJECT_OPTIONS = [
     {% for s in subjects %}{value: "{{ s.id }}", label: "{{ s.name|escapejs }} ({{ s.code|escapejs }})"}{% if not forloop.last %},{% endif %}{% endfor %}
@@ -240,4 +246,3 @@ function openEditClass(pk, name, grade, section, year, teacherId, maxStudents) {
     openPanel('edit-class');
 }
 </script>
-{% endblock %}

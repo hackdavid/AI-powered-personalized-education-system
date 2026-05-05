@@ -1,0 +1,101 @@
+{% extends 'teacher/_shell.html' %}
+{% load static %}
+
+{% block title %}Students · EduAI Teacher{% endblock %}
+
+{% block breadcrumbs %}
+<a href="{% url 'teacher:dashboard' %}">Dashboard</a>
+<span class="tx-breadcrumbs-sep">/</span>
+<span class="tx-breadcrumbs-current">Students</span>
+{% endblock %}
+
+{% block teacher_content %}
+
+<div class="tx-page-header">
+    <div>
+        <h1 class="tx-page-title">Students</h1>
+        <p class="tx-page-subtitle">{{ rows|length }} student{{ rows|length|pluralize }} across {{ classes|length }} class{{ classes|length|pluralize:"es" }} you teach.</p>
+    </div>
+</div>
+
+<!-- Class filter -->
+{% if classes %}
+<div class="tx-card tx-mb-md">
+    <div class="tx-card-body" style="padding: 0.75rem 1.25rem; display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+        <span style="font-size: 0.8rem; font-weight: 500; color: var(--tx-text-soft);">Filter by class:</span>
+        <a href="{% url 'teacher:student_list' %}"
+           class="tx-chip{% if not selected_class_id %} tx-chip--info{% endif %}"
+           style="text-decoration: none;">All classes</a>
+        {% for c in classes %}
+        <a href="?class={{ c.id }}"
+           class="tx-chip{% if selected_class_id == c.id %} tx-chip--info{% endif %}"
+           style="text-decoration: none;">{{ c.name }}</a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<section class="tx-card">
+    {% if rows %}
+    <div style="overflow-x: auto;">
+        <table class="tx-table">
+            <thead>
+                <tr>
+                    <th><a href="?{% if selected_class_id %}class={{ selected_class_id }}&{% endif %}sort=name" style="color: inherit; text-decoration: none;">Student</a></th>
+                    <th>Class{{ rows|length|pluralize:"es" }}</th>
+                    <th><a href="?{% if selected_class_id %}class={{ selected_class_id }}&{% endif %}sort=rank" style="color: inherit; text-decoration: none;">Rank</a></th>
+                    <th><a href="?{% if selected_class_id %}class={{ selected_class_id }}&{% endif %}sort=level" style="color: inherit; text-decoration: none;">Level</a></th>
+                    <th><a href="?{% if selected_class_id %}class={{ selected_class_id }}&{% endif %}sort=xp" style="color: inherit; text-decoration: none;">XP</a></th>
+                    <th><a href="?{% if selected_class_id %}class={{ selected_class_id }}&{% endif %}sort=streak" style="color: inherit; text-decoration: none;">Streak</a></th>
+                    <th><a href="?{% if selected_class_id %}class={{ selected_class_id }}&{% endif %}sort=last_active" style="color: inherit; text-decoration: none;">Last active</a></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in rows %}
+                <tr>
+                    <td>
+                        <a href="{% url 'teacher:student_detail' r.student_id %}"
+                           style="color: var(--tx-text); font-weight: 500; text-decoration: none;">
+                            {{ r.name }}
+                        </a>
+                        {% if not r.onboarding_complete %}
+                        <span class="tx-chip tx-chip--pending" style="margin-left: 0.4rem;">Onboarding</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size: 0.78rem; color: var(--tx-text-soft);">
+                        {{ r.class_names|join:", " }}
+                    </td>
+                    <td>
+                        <span class="tx-chip" style="background: var(--tx-surface-2); color: var(--tx-text); font-family: ui-monospace, monospace;">{{ r.rank }}</span>
+                    </td>
+                    <td style="font-family: ui-monospace, monospace;">{{ r.level }}</td>
+                    <td style="font-family: ui-monospace, monospace; color: var(--tx-text-soft);">{{ r.total_xp }}</td>
+                    <td>
+                        {% if r.streak_days %}
+                        <span style="display: inline-flex; align-items: center; gap: 0.25rem; font-family: ui-monospace, monospace;">
+                            <svg width="12" height="12" fill="var(--tx-warn)" stroke="var(--tx-warn)" stroke-width="0" viewBox="0 0 24 24">
+                                <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+                            </svg>
+                            {{ r.streak_days }}d
+                        </span>
+                        {% else %}
+                        <span style="color: var(--tx-text-muted);">—</span>
+                        {% endif %}
+                    </td>
+                    <td style="color: var(--tx-text-soft); font-size: 0.78rem;">
+                        {% if r.last_active %}{{ r.last_active|timesince }} ago{% else %}<span style="color: var(--tx-text-muted);">never</span>{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="tx-card-empty">
+        <strong>No students yet</strong>
+        <span>Once your school admin enrols students in your classes, they'll show up here.</span>
+    </div>
+    {% endif %}
+</section>
+
+{% endblock %}

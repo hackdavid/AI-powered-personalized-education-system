@@ -1,0 +1,34 @@
+%%{init: {'theme':'default','flowchart':{'curve':'basis','htmlLabels':true,'nodeSpacing':40,'rankSpacing':70}}}%%
+flowchart TB
+    subgraph Ingestion["<b>① Ingestion pipeline</b> — runs once per book upload"]
+        direction LR
+        A([PDF / YAML<br/>upload]):::start
+        B[PDFRenderer<br/>text + images]:::stage
+        C[TOCDiscovery +<br/>PageCalibration]:::stage
+        D[ChapterOutliner +<br/>ContentStructurer<br/>vision LLM]:::stage
+        E[ImageLinker]:::stage
+        F[ContentStorage<br/>embed via HF Space]:::stage
+        G[CrossRefBuilder]:::stage
+        A ==> B ==> C ==> D ==> E ==> F ==> G
+    end
+
+    H[("<b>Postgres + pgvector</b><br/>HNSW cosine · 148 ContentEmbedding rows")]:::db
+
+    subgraph Inference["<b>② Inference pipeline</b> — runs per student query"]
+        direction LR
+        Q([Student query]):::start
+        R[QueryRouter<br/>1 LLM call · JSON mode]:::stage
+        S[CurriculumRetriever<br/>tenant + subject filter]:::stage
+        T[GPT-4o<br/>generate_with_context]:::stage
+        U[ChatMessage +<br/>routing metadata persisted]:::stage
+        Q ==> R ==> S ==> T ==> U
+    end
+
+    F ==>|upsert| H
+    S ==>|"top-k cosine"| H
+    H ==>|chunks| S
+
+    classDef start fill:#dbeafe,stroke:#1e3a8a,stroke-width:2px,color:#0f172a
+    classDef stage fill:#ede9fe,stroke:#5b21b6,stroke-width:2px,color:#0f172a
+    classDef db fill:#dcfce7,stroke:#14532d,stroke-width:2.5px,color:#0f172a
+    linkStyle default stroke:#0f172a,stroke-width:2.5px

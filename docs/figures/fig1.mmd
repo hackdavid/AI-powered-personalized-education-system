@@ -1,0 +1,22 @@
+%%{init: {'theme':'default','flowchart':{'curve':'basis','htmlLabels':true,'nodeSpacing':50,'rankSpacing':90}}}%%
+flowchart LR
+    Browser([Browser<br/>HTTPS]):::client
+
+    subgraph Render["<b>Render</b> — Docker / Gunicorn (Frankfurt)"]
+        direction TB
+        Django["<b>Django 5 + DRF</b><br/>TutorService · QueryRouter<br/>CurriculumRetriever<br/>RBAC · TenantMiddleware<br/>AppSetting · /health/"]
+    end
+
+    HFSpace["<b>HuggingFace Space</b><br/>FastAPI + sentence-transformers<br/>all-MiniLM-L6-v2 (384-d)"]:::external
+    Supabase[("<b>Supabase Postgres 17.6</b> (eu-west-1)<br/>ORM data · ContentEmbedding<br/>HNSW cosine index<br/>AppSetting runtime config")]:::db
+    LLM["<b>OpenAI-compatible LLM</b><br/>GPT-4o (production)<br/>stub fallback (offline)"]:::external
+
+    Browser ==>|HTTPS| Django
+    Django ==>|"HTTP + X-API-Key<br/>embed query"| HFSpace
+    Django ==>|"SQL + pgvector<br/>cosine search"| Supabase
+    Django ==>|"HTTPS<br/>chat completions"| LLM
+
+    classDef client fill:#dbeafe,stroke:#1e3a8a,stroke-width:2px,color:#0f172a
+    classDef external fill:#fef3c7,stroke:#92400e,stroke-width:2px,color:#0f172a
+    classDef db fill:#dcfce7,stroke:#14532d,stroke-width:2px,color:#0f172a
+    linkStyle default stroke:#0f172a,stroke-width:2.5px

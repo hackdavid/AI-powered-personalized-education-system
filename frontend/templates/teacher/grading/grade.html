@@ -1,0 +1,230 @@
+{% extends "teacher/_shell.html" %}
+{% load static %}
+
+{% block title %}Grade Submission - {{ assignment.title }}{% endblock %}
+
+{% block teacher_content %}
+<div class="container mx-auto px-4 py-6 max-w-5xl">
+    <!-- Header -->
+    <div class="mb-6">
+        <div class="flex items-center justify-between mb-2">
+            <h1 class="text-2xl font-bold text-gray-900">Grade Submission</h1>
+            <a href="{% url 'teacher:gradebook' %}" class="text-sm text-blue-600 hover:text-blue-800">
+                ← Back to Gradebook
+            </a>
+        </div>
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div>
+                    <span class="font-semibold text-gray-700">Student:</span>
+                    <span class="text-gray-900">{{ student.get_full_name }}</span>
+                </div>
+                <div>
+                    <span class="font-semibold text-gray-700">Quest:</span>
+                    <span class="text-gray-900">{{ assignment.title }}</span>
+                </div>
+                <div>
+                    <span class="font-semibold text-gray-700">Status:</span>
+                    <span class="px-2 py-1 rounded text-xs font-medium
+                        {% if student_assignment.status == 'graded' %}bg-green-100 text-green-800
+                        {% elif student_assignment.status == 'submitted' %}bg-yellow-100 text-yellow-800
+                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                        {{ student_assignment.get_status_display }}
+                    </span>
+                </div>
+            </div>
+            <div class="mt-3 text-sm text-gray-600">
+                <span class="font-semibold">Submitted:</span>
+                {{ student_assignment.submitted_at|date:"M d, Y g:i A"|default:"Not submitted" }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Grading Form -->
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+
+        <!-- Questions and Answers -->
+        {% for item in grading_items %}
+        <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+            <!-- Question Header -->
+            <div class="flex items-start justify-between mb-4">
+                <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-1 rounded">
+                            Question {{ forloop.counter }}
+                        </span>
+                        <span class="text-xs text-gray-500">
+                            {{ item.question.get_question_type_display }}
+                        </span>
+                        <span class="text-xs font-medium text-gray-700">
+                            {{ item.question.marks }} {{ item.question.marks|pluralize:"mark,marks" }}
+                        </span>
+                    </div>
+                    <p class="text-gray-900 font-medium">{{ item.question.question_text }}</p>
+                </div>
+            </div>
+
+            <!-- MCQ Options (if applicable) -->
+            {% if item.question.question_type == 'mcq' %}
+            <div class="mb-4 pl-4 border-l-2 border-gray-200">
+                <p class="text-sm text-gray-600 mb-2">Options:</p>
+                <ul class="space-y-1">
+                    {% for option in item.question.options %}
+                    <li class="text-sm">
+                        <span class="font-medium">{{ option.key }}:</span> {{ option.text }}
+                        {% if option.key == item.correct_answer %}
+                        <span class="ml-2 text-xs text-green-600 font-semibold">✓ Correct</span>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <!-- Student's Answer -->
+            <div class="mb-4 bg-gray-50 rounded p-4">
+                <p class="text-sm font-semibold text-gray-700 mb-2">Student's Answer:</p>
+                {% if item.student_response.type == 'no_answer' %}
+                    <p class="text-sm text-gray-400 italic">{{ item.student_response.display }}</p>
+                {% elif item.student_response.type == 'mcq' %}
+                    <p class="text-sm font-medium
+                        {% if item.student_response.is_correct %}text-green-700{% else %}text-red-700{% endif %}">
+                        {{ item.student_response.display }}
+                        {% if item.student_response.is_correct %}
+                            <span class="ml-2 text-xs">✓ Correct</span>
+                        {% else %}
+                            <span class="ml-2 text-xs">✗ Incorrect</span>
+                        {% endif %}
+                    </p>
+                {% elif item.student_response.type == 'upload' %}
+                    {% if item.student_response.url %}
+                    <a href="{{ item.student_response.url }}" target="_blank"
+                       class="text-sm text-blue-600 hover:text-blue-800 underline">
+                        📎 {{ item.student_response.display }}
+                    </a>
+                    {% else %}
+                    <p class="text-sm text-gray-400 italic">{{ item.student_response.display }}</p>
+                    {% endif %}
+                {% else %}
+                    <p class="text-sm text-gray-900 whitespace-pre-wrap">{{ item.student_response.display }}</p>
+                {% endif %}
+            </div>
+
+            <!-- Correct Answer (for reference, non-MCQ) -->
+            {% if item.question.question_type != 'mcq' and item.question.correct_answer %}
+            <div class="mb-4 pl-4 border-l-2 border-green-200 bg-green-50 rounded p-3">
+                <p class="text-sm font-semibold text-green-800 mb-1">Model Answer:</p>
+                <p class="text-sm text-green-900 whitespace-pre-wrap">{{ item.question.correct_answer }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Grading Inputs -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Marks Input -->
+                <div>
+                    <label for="marks_{{ item.question.id }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        Marks Awarded
+                    </label>
+                    <div class="flex items-center gap-2">
+                        <input
+                            type="number"
+                            id="marks_{{ item.question.id }}"
+                            name="marks_{{ item.question.id }}"
+                            value="{{ item.marks_awarded|default:'' }}"
+                            min="0"
+                            max="{{ item.question.marks }}"
+                            step="1"
+                            class="w-24 px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="0">
+                        <span class="text-sm text-gray-600">/ {{ item.question.marks }}</span>
+                    </div>
+                </div>
+
+                <!-- Feedback Input -->
+                <div>
+                    <label for="feedback_{{ item.question.id }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        Feedback (optional)
+                    </label>
+                    <textarea
+                        id="feedback_{{ item.question.id }}"
+                        name="feedback_{{ item.question.id }}"
+                        rows="2"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 text-sm"
+                        placeholder="Add feedback for the student...">{{ item.feedback }}</textarea>
+                </div>
+            </div>
+
+            <!-- Explanation (if available) -->
+            {% if item.question.explanation %}
+            <div class="mt-4 pl-4 border-l-2 border-blue-200 bg-blue-50 rounded p-3">
+                <p class="text-sm font-semibold text-blue-800 mb-1">Explanation:</p>
+                <p class="text-sm text-blue-900">{{ item.question.explanation }}</p>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        <!-- Summary and Submit -->
+        <div class="bg-white border-2 border-blue-300 rounded-lg p-6 sticky bottom-4 shadow-lg">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-gray-600 mb-1">Current Total:</p>
+                    <p class="text-2xl font-bold text-gray-900">
+                        <span id="current-total">{{ total_marks_awarded }}</span> / {{ total_possible }}
+                        <span class="text-sm text-gray-500 ml-2">
+                            (<span id="current-percent">{{ student_assignment.score_percent }}</span>%)
+                        </span>
+                    </p>
+                </div>
+                <div class="flex gap-3">
+                    <a href="{% url 'teacher:gradebook' %}"
+                       class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium">
+                        Cancel
+                    </a>
+                    <button type="submit"
+                            class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium shadow">
+                        Save Grade
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="mt-4">
+        {% for message in messages %}
+        <div class="rounded-md p-4 {% if message.tags == 'error' %}bg-red-50 text-red-800{% else %}bg-green-50 text-green-800{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// Optional: Live calculation of total as teacher enters marks
+document.addEventListener('DOMContentLoaded', function() {
+    const marksInputs = document.querySelectorAll('input[name^="marks_"]');
+    const totalDisplay = document.getElementById('current-total');
+    const percentDisplay = document.getElementById('current-percent');
+    const totalPossible = {{ total_possible }};
+
+    marksInputs.forEach(input => {
+        input.addEventListener('input', updateTotal);
+    });
+
+    function updateTotal() {
+        let total = 0;
+        marksInputs.forEach(input => {
+            const val = parseInt(input.value) || 0;
+            total += val;
+        });
+        totalDisplay.textContent = total;
+        const percent = totalPossible > 0 ? Math.round((total / totalPossible) * 100) : 0;
+        percentDisplay.textContent = percent;
+    }
+});
+</script>
+{% endblock %}

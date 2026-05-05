@@ -1,0 +1,167 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/teacher.css' %}">
+<script>
+    document.documentElement.classList.add('tx-light');
+</script>
+{% endblock %}
+
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="tx-mobile-backdrop" id="tx-mobile-backdrop"></div>
+
+<div class="tx-shell">
+    <aside class="tx-sidebar" id="tx-sidebar" aria-label="School admin navigation">
+        <div class="tx-sidebar-brand">
+            <span class="tx-sidebar-brand-mark">E</span>
+            <div>
+                <div>EduAI</div>
+                <div class="tx-sidebar-brand-sub">Admin</div>
+            </div>
+        </div>
+
+        <nav class="tx-sidebar-nav" aria-label="Primary">
+            <div class="tx-sidebar-nav-section">Overview</div>
+            <a href="{% url 'school_admin:dashboard' %}"
+               class="tx-nav-link{% if active_page == 'dashboard' %} tx-nav-link--active{% endif %}">
+                <svg class="tx-nav-icon" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <rect x="3" y="3" width="7" height="9" rx="1"/>
+                    <rect x="14" y="3" width="7" height="5" rx="1"/>
+                    <rect x="14" y="12" width="7" height="9" rx="1"/>
+                    <rect x="3" y="16" width="7" height="5" rx="1"/>
+                </svg>
+                <span class="tx-nav-link-label">Dashboard</span>
+            </a>
+
+            <a href="{% url 'school_admin:analytics' %}"
+               class="tx-nav-link{% if active_page == 'analytics' %} tx-nav-link--active{% endif %}"
+               style="cursor: pointer; position: relative; z-index: 10;">
+                <svg class="tx-nav-icon" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <line x1="18" y1="20" x2="18" y2="10"/>
+                    <line x1="12" y1="20" x2="12" y2="4"/>
+                    <line x1="6" y1="20" x2="6" y2="14"/>
+                </svg>
+                <span class="tx-nav-link-label">Analytics</span>
+            </a>
+
+            <div class="tx-sidebar-nav-section">Management</div>
+            <a href="{% url 'school_admin:class_list' %}"
+               class="tx-nav-link{% if active_page == 'classes' %} tx-nav-link--active{% endif %}">
+                <svg class="tx-nav-icon" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                <span class="tx-nav-link-label">Classes</span>
+            </a>
+
+            <a href="{% url 'school_admin:teacher_list' %}"
+               class="tx-nav-link{% if active_page == 'teachers' %} tx-nav-link--active{% endif %}">
+                <svg class="tx-nav-icon" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                </svg>
+                <span class="tx-nav-link-label">Teachers</span>
+            </a>
+
+            <a href="{% url 'school_admin:student_list' %}"
+               class="tx-nav-link{% if active_page == 'students' %} tx-nav-link--active{% endif %}">
+                <svg class="tx-nav-icon" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="8.5" cy="7" r="4"/>
+                    <polyline points="17 11 19 13 23 9"/>
+                </svg>
+                <span class="tx-nav-link-label">Students</span>
+            </a>
+
+            <a href="{% url 'school_admin:enrollment' %}"
+               class="tx-nav-link{% if active_page == 'enrollment' %} tx-nav-link--active{% endif %}"
+               style="cursor: pointer; position: relative; z-index: 10;">
+                <svg class="tx-nav-icon" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="9" y1="15" x2="15" y2="15"/>
+                </svg>
+                <span class="tx-nav-link-label">Enrollment</span>
+            </a>
+
+            <a href="{% url 'school_admin:subject_list' %}"
+               class="tx-nav-link{% if active_page == 'subjects' %} tx-nav-link--active{% endif %}">
+                <svg class="tx-nav-icon" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                </svg>
+                <span class="tx-nav-link-label">Subjects</span>
+            </a>
+
+            <a href="{% url 'school_admin:document_list' %}"
+               class="tx-nav-link{% if active_page == 'documents' %} tx-nav-link--active{% endif %}">
+                <svg class="tx-nav-icon" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/>
+                    <polyline points="13 2 13 9 20 9"/>
+                </svg>
+                <span class="tx-nav-link-label">Documents</span>
+            </a>
+        </nav>
+
+        <div class="tx-sidebar-footer">
+            <div class="tx-sidebar-user">
+                <div class="tx-sidebar-user-avatar">{{ user.first_name.0|default:"A" }}</div>
+                <div class="tx-sidebar-user-info">
+                    <div class="tx-sidebar-user-name">{{ user.get_full_name }}</div>
+                    <div class="tx-sidebar-user-role">Administrator</div>
+                </div>
+            </div>
+            <a href="{% url 'auth:logout' %}" class="tx-sidebar-logout" title="Logout">
+                <svg fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                    <polyline points="16 17 21 12 16 7"/>
+                    <line x1="21" y1="12" x2="9" y2="12"/>
+                </svg>
+            </a>
+        </div>
+    </aside>
+
+    <div class="tx-main-wrapper">
+        <header class="tx-topbar">
+            <button class="tx-mobile-toggle" id="tx-mobile-toggle" aria-label="Toggle sidebar">
+                <svg fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <line x1="3" y1="12" x2="21" y2="12"/>
+                    <line x1="3" y1="6" x2="21" y2="6"/>
+                    <line x1="3" y1="18" x2="21" y2="18"/>
+                </svg>
+            </button>
+
+            <div class="tx-breadcrumbs" aria-label="Breadcrumb">
+                {% block breadcrumbs %}
+                <span class="tx-breadcrumbs-current">Dashboard</span>
+                {% endblock %}
+            </div>
+
+            <div class="tx-topbar-actions">
+                {% block topbar_actions %}{% endblock %}
+            </div>
+        </header>
+
+        <main class="tx-content" id="tx-content">
+            {% block admin_content %}{% endblock %}
+        </main>
+    </div>
+</div>
+
+<script src="{% static 'js/teacher.js' %}"></script>
+{% endblock %}
