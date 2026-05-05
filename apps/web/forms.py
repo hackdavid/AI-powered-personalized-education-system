@@ -101,6 +101,29 @@ class StudentInviteForm(forms.Form):
     student_id = forms.CharField(max_length=50, required=False, widget=forms.TextInput(attrs={
         'class': 'form-input', 'placeholder': 'Student ID'
     }))
+    class_obj = forms.ModelChoiceField(
+        queryset=Class.objects.none(),
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-input'}),
+        label='Enroll in Class',
+        help_text='Assign student to a class (optional)'
+    )
+    password = forms.CharField(
+        max_length=128,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-input',
+            'placeholder': 'Leave blank to auto-generate'
+        }),
+        help_text='Leave blank to auto-generate a secure password'
+    )
+
+    def __init__(self, *args, tenant=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if tenant:
+            self.fields['class_obj'].queryset = Class.objects.filter(
+                tenant=tenant, is_active=True
+            ).order_by('grade_level', 'section')
 
 
 # ── Document Upload ──────────────────────────────────────
