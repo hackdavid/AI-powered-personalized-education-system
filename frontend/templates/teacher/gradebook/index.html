@@ -197,14 +197,39 @@
                 </td>
                 {% for cell in r.cells %}
                 <td>
-                    {% if cell.pct is None %}
+                    {% if cell.student_assignment_id and cell.status == 'submitted' %}
+                        {# Clickable cell for submitted (needs grading) #}
+                        <a href="{% url 'teacher:grading_view' cell.student_assignment_id %}"
+                           class="gb-cell gb-cell--mid"
+                           style="text-decoration: none; cursor: pointer; display: inline-flex;"
+                           title="Click to grade">
+                            {{ cell.pct|default:"0" }}% <span style="font-size: 0.65rem; margin-left: 3px;">✎</span>
+                        </a>
+                    {% elif cell.student_assignment_id and cell.status == 'graded' %}
+                        {# Clickable cell for graded (can re-grade) #}
+                        <a href="{% url 'teacher:grading_view' cell.student_assignment_id %}"
+                           {% if cell.pct >= 70 %}
+                               class="gb-cell gb-cell--ok"
+                           {% elif cell.pct >= 40 %}
+                               class="gb-cell gb-cell--mid"
+                           {% else %}
+                               class="gb-cell gb-cell--low"
+                           {% endif %}
+                           style="text-decoration: none; cursor: pointer; display: inline-flex;"
+                           title="Click to view/edit grade">
+                            {{ cell.pct }}%
+                        </a>
+                    {% elif cell.pct is None %}
                         <span class="gb-cell gb-cell--empty">—</span>
-                    {% elif cell.pct >= 70 %}
-                        <span class="gb-cell gb-cell--ok">{{ cell.pct }}%</span>
-                    {% elif cell.pct >= 40 %}
-                        <span class="gb-cell gb-cell--mid">{{ cell.pct }}%</span>
                     {% else %}
-                        <span class="gb-cell gb-cell--low">{{ cell.pct }}%</span>
+                        {# Fallback - show percentage without link #}
+                        {% if cell.pct >= 70 %}
+                            <span class="gb-cell gb-cell--ok">{{ cell.pct }}%</span>
+                        {% elif cell.pct >= 40 %}
+                            <span class="gb-cell gb-cell--mid">{{ cell.pct }}%</span>
+                        {% else %}
+                            <span class="gb-cell gb-cell--low">{{ cell.pct }}%</span>
+                        {% endif %}
                     {% endif %}
                 </td>
                 {% endfor %}

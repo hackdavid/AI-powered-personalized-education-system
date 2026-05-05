@@ -1,0 +1,92 @@
+{% extends "school_admin/_shell.html" %}
+{% load static %}
+
+{% block title %}Enrollment Management · EduAI Admin{% endblock %}
+
+{% block breadcrumbs %}
+<a href="{% url 'school_admin:dashboard' %}">Dashboard</a>
+<span class="tx-breadcrumbs-sep">/</span>
+<span class="tx-breadcrumbs-current">Enrollment</span>
+{% endblock %}
+
+{% block admin_content %}
+<div style="max-width: 1600px; margin: 0 auto;">
+    <h1 style="font-size: 1.75rem; margin-bottom: 1.5rem;">Enrollment Management</h1>
+
+    <!-- Unenrolled Students -->
+    <div class="tx-card" style="margin-bottom: 2rem;">
+        <h2 style="font-size: 1.25rem; margin-bottom: 1rem;">Students Not Enrolled ({{ unenrolled_students.count }})</h2>
+        {% if unenrolled_students %}
+        <table class="tx-table">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Email</th>
+                    <th>Student ID</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in unenrolled_students %}
+                <tr>
+                    <td>{{ student.get_full_name }}</td>
+                    <td>{{ student.email }}</td>
+                    <td>{{ student.student_id|default:"—" }}</td>
+                    <td>
+                        <a href="{% url 'school_admin:student_edit' student.id %}" class="tx-btn tx-btn-sm tx-btn-secondary">
+                            Manage
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p style="text-align: center; color: var(--tx-text-muted); padding: 2rem;">
+            All students are enrolled. Great job! ✓
+        </p>
+        {% endif %}
+    </div>
+
+    <!-- Class Sizes -->
+    <div class="tx-card">
+        <h2 style="font-size: 1.25rem; margin-bottom: 1rem;">Class Enrollment Status</h2>
+        <table class="tx-table">
+            <thead>
+                <tr>
+                    <th>Class</th>
+                    <th>Teacher</th>
+                    <th>Size</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in class_sizes %}
+                <tr>
+                    <td>{{ item.class.name }}</td>
+                    <td>{{ item.class.class_teacher.get_full_name|default:"Unassigned" }}</td>
+                    <td>{{ item.size }} students</td>
+                    <td>
+                        {% if item.status == 'over' %}
+                        <span style="color: var(--tx-alert);">⚠ Over capacity</span>
+                        {% elif item.status == 'optimal' %}
+                        <span style="color: var(--tx-success);">✓ Optimal</span>
+                        {% else %}
+                        <span style="color: var(--tx-warn);">⚠ Under capacity</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'school_admin:class_detail' item.class.id %}" class="tx-btn tx-btn-sm tx-btn-secondary">
+                            View
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" style="text-align: center; color: var(--tx-text-muted);">No classes found</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

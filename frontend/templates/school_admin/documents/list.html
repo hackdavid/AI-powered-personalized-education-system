@@ -1,20 +1,24 @@
-{% extends 'base/dashboard_base.html' %}
+{% extends "school_admin/_shell.html" %}
 {% load static %}
 
-{% block dashboard_title %}Books{% endblock %}
-{% block page_title %}Manage Books & Documents{% endblock %}
-{% block page_subtitle %}<p class="text-gray-600 mt-1">Upload curriculum materials and textbooks</p>{% endblock %}
+{% block title %}Documents · EduAI Admin{% endblock %}
 
-{% block page_actions %}
-<button onclick="openPanel('upload-doc')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition flex items-center">
-    <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+{% block breadcrumbs %}
+<a href="{% url 'school_admin:dashboard' %}">Dashboard</a>
+<span class="tx-breadcrumbs-sep">/</span>
+<span class="tx-breadcrumbs-current">Documents</span>
+{% endblock %}
+
+{% block topbar_actions %}
+<button onclick="openPanel('upload-doc')" class="tx-btn tx-btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
+    <svg style="width: 1.25rem; height: 1.25rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
     Upload Book
 </button>
 {% endblock %}
 
-{% block sidebar_nav %}{% include 'school_admin/includes/sidebar_nav.html' %}{% endblock %}
-
-{% block dashboard_content %}
+{% block admin_content %}
+<div style="max-width: 1600px; margin: 0 auto;">
+    <h1 style="font-size: 1.75rem; margin-bottom: 1.5rem;">Manage Books & Documents</h1>
 <link rel="stylesheet" href="{% static 'css/school_admin.css' %}">
 
 {% if documents %}
@@ -77,11 +81,10 @@
         </div>
     </form>
 </div>
+</div>
 {% endblock %}
 
-{% block dashboard_modals %}
 <script>
 function openPanel(id){document.getElementById(id+'-panel').classList.add('open');document.getElementById(id+'-overlay').classList.add('open');document.body.style.overflow='hidden';}
 function closePanel(id){document.getElementById(id+'-panel').classList.remove('open');document.getElementById(id+'-overlay').classList.remove('open');document.body.style.overflow='';}
 </script>
-{% endblock %}

@@ -1,0 +1,282 @@
+{% extends "school_admin/_shell.html" %}
+{% load static %}
+
+{% block title %}Dashboard · EduAI Admin{% endblock %}
+
+{% block breadcrumbs %}
+<span class="tx-breadcrumbs-current">Dashboard</span>
+{% endblock %}
+
+{% block admin_content %}
+
+<style>
+.admin-dashboard {
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: var(--tx-surface);
+    border: 1px solid var(--tx-border);
+    border-radius: var(--tx-radius);
+    padding: 1.5rem;
+}
+
+.stat-card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--tx-radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+.stat-card-icon.blue { background: #3b82f6; color: white; }
+.stat-card-icon.green { background: #10b981; color: white; }
+.stat-card-icon.purple { background: #8b5cf6; color: white; }
+.stat-card-icon.orange { background: #f59e0b; color: white; }
+
+.stat-card-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--tx-text);
+    margin-bottom: 0.25rem;
+}
+
+.stat-card-label {
+    font-size: 0.9rem;
+    color: var(--tx-text-muted);
+    margin-bottom: 0.5rem;
+}
+
+.stat-card-change {
+    font-size: 0.8rem;
+    color: var(--tx-success);
+}
+
+.alert-box {
+    background: var(--tx-warn-soft);
+    border-left: 4px solid var(--tx-warn);
+    padding: 1rem;
+    border-radius: var(--tx-radius);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.alert-box.info {
+    background: var(--tx-info-soft);
+    border-left-color: var(--tx-info);
+}
+
+.alert-box.warning {
+    background: var(--tx-warn-soft);
+    border-left-color: var(--tx-warn);
+}
+
+.activity-feed {
+    background: var(--tx-surface);
+    border: 1px solid var(--tx-border);
+    border-radius: var(--tx-radius);
+    padding: 1.5rem;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--tx-border);
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--tx-surface-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.activity-time {
+    font-size: 0.8rem;
+    color: var(--tx-text-muted);
+    margin-left: auto;
+}
+</style>
+
+<div class="admin-dashboard">
+    <h1 style="font-size: 1.75rem; margin-bottom: 1.5rem;">School Dashboard</h1>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-card-icon blue">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+            </div>
+            <div class="stat-card-value">{{ stats.total_students }}</div>
+            <div class="stat-card-label">Total Students</div>
+            {% if stats.students_added_this_week > 0 %}
+            <div class="stat-card-change">+{{ stats.students_added_this_week }} this week</div>
+            {% endif %}
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-icon green">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                </svg>
+            </div>
+            <div class="stat-card-value">{{ stats.total_teachers }}</div>
+            <div class="stat-card-label">Total Teachers</div>
+            {% if stats.teachers_added_this_week > 0 %}
+            <div class="stat-card-change">+{{ stats.teachers_added_this_week }} this week</div>
+            {% endif %}
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-icon purple">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                </svg>
+            </div>
+            <div class="stat-card-value">{{ stats.total_classes }}</div>
+            <div class="stat-card-label">Total Classes</div>
+            {% if stats.classes_created_this_week > 0 %}
+            <div class="stat-card-change">+{{ stats.classes_created_this_week }} this week</div>
+            {% endif %}
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-card-icon orange">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="9" y1="13" x2="15" y2="13"/>
+                    <line x1="9" y1="17" x2="13" y2="17"/>
+                </svg>
+            </div>
+            <div class="stat-card-value">{{ stats.active_quests }}</div>
+            <div class="stat-card-label">Active Quests</div>
+            <div class="stat-card-change">{{ stats.submissions_this_week }} submissions this week</div>
+        </div>
+    </div>
+
+    <!-- Alerts -->
+    {% if alerts %}
+    <div style="margin-bottom: 2rem;">
+        <h2 style="font-size: 1.25rem; margin-bottom: 1rem;">Needs Your Attention</h2>
+        {% for alert in alerts %}
+        <div class="alert-box {{ alert.level }}">
+            <div style="flex: 1;">
+                <div style="font-weight: 500; margin-bottom: 0.25rem;">{{ alert.message }}</div>
+                <a href="{{ alert.action_url }}" style="font-size: 0.85rem; color: var(--tx-primary); text-decoration: underline;">
+                    {{ alert.action_text }} →
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Two-column layout -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+        <!-- Recent Activity -->
+        <div class="activity-feed">
+            <h2 style="font-size: 1.25rem; margin-bottom: 1rem;">Recent Activity</h2>
+            {% if recent_activity %}
+            {% for activity in recent_activity %}
+            <div class="activity-item">
+                <div class="activity-icon">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        {% if activity.type == 'student_added' %}
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="8.5" cy="7" r="4"/>
+                        <line x1="20" y1="8" x2="20" y2="14"/>
+                        <line x1="23" y1="11" x2="17" y2="11"/>
+                        {% elif activity.type == 'teacher_added' %}
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                        {% else %}
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                        {% endif %}
+                    </svg>
+                </div>
+                <div style="flex: 1;">
+                    <div style="font-size: 0.9rem;">{{ activity.text }}</div>
+                </div>
+                <div class="activity-time">{{ activity.timestamp|timesince }} ago</div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <p style="color: var(--tx-text-muted); text-align: center; padding: 2rem;">No recent activity</p>
+            {% endif %}
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="activity-feed">
+            <h2 style="font-size: 1.25rem; margin-bottom: 1rem;">Quick Actions</h2>
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <a href="{% url 'school_admin:class_create' %}" class="tx-btn tx-btn-primary" style="text-align: center;">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display: inline-block; vertical-align: middle; margin-right: 0.5rem;">
+                        <line x1="12" y1="5" x2="12" y2="19"/>
+                        <line x1="5" y1="12" x2="19" y2="12"/>
+                    </svg>
+                    Create New Class
+                </a>
+                <a href="{% url 'school_admin:teacher_invite' %}" class="tx-btn tx-btn-secondary" style="text-align: center;">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display: inline-block; vertical-align: middle; margin-right: 0.5rem;">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="8.5" cy="7" r="4"/>
+                        <line x1="20" y1="8" x2="20" y2="14"/>
+                        <line x1="23" y1="11" x2="17" y2="11"/>
+                    </svg>
+                    Invite Teacher
+                </a>
+                <a href="{% url 'school_admin:student_invite' %}" class="tx-btn tx-btn-secondary" style="text-align: center;">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display: inline-block; vertical-align: middle; margin-right: 0.5rem;">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="8.5" cy="7" r="4"/>
+                        <line x1="20" y1="8" x2="20" y2="14"/>
+                        <line x1="23" y1="11" x2="17" y2="11"/>
+                    </svg>
+                    Invite Student
+                </a>
+                <a href="{% url 'school_admin:analytics' %}" class="tx-btn tx-btn-secondary" style="text-align: center;">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display: inline-block; vertical-align: middle; margin-right: 0.5rem;">
+                        <line x1="18" y1="20" x2="18" y2="10"/>
+                        <line x1="12" y1="20" x2="12" y2="4"/>
+                        <line x1="6" y1="20" x2="6" y2="14"/>
+                    </svg>
+                    View Analytics
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

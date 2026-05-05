@@ -1,0 +1,526 @@
+{% extends "teacher/_shell.html" %}
+{% load static %}
+
+{% block title %}Insights · EduAI Teacher{% endblock %}
+
+{% block breadcrumbs %}
+<a href="{% url 'teacher:dashboard' %}">Dashboard</a>
+<span class="tx-breadcrumbs-sep">/</span>
+<span class="tx-breadcrumbs-current">Insights</span>
+{% endblock %}
+
+{% block teacher_content %}
+
+<style>
+/* Insights-specific styles */
+.insights-container {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.insights-header {
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.insights-tabs {
+    display: flex;
+    gap: 0.5rem;
+    border-bottom: 2px solid var(--tx-border);
+    margin-bottom: 2rem;
+}
+
+.insights-tab {
+    padding: 0.75rem 1.5rem;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--tx-text-muted);
+    transition: all 0.2s;
+}
+
+.insights-tab:hover {
+    color: var(--tx-text);
+    background: var(--tx-surface-2);
+}
+
+.insights-tab.active {
+    color: var(--tx-primary);
+    border-bottom-color: var(--tx-primary);
+}
+
+.insights-section {
+    display: none;
+}
+
+.insights-section.active {
+    display: block;
+}
+
+/* Struggling Students */
+.struggling-card {
+    background: var(--tx-surface);
+    border: 1px solid var(--tx-border);
+    border-radius: var(--tx-radius);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-left: 4px solid transparent;
+}
+
+.struggling-card.risk-critical {
+    border-left-color: var(--tx-alert);
+    background: var(--tx-alert-soft);
+}
+
+.struggling-card.risk-warning {
+    border-left-color: var(--tx-warn);
+    background: var(--tx-warn-soft);
+}
+
+.risk-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--tx-radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-right: 0.5rem;
+}
+
+.risk-badge.critical {
+    background: var(--tx-alert);
+    color: white;
+}
+
+.risk-badge.warning {
+    background: var(--tx-warn);
+    color: white;
+}
+
+.risk-factors {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.risk-factor {
+    background: var(--tx-surface-2);
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--tx-radius-sm);
+    font-size: 0.8rem;
+    color: var(--tx-text-soft);
+}
+
+/* Top Performers */
+.performer-card {
+    background: var(--tx-surface);
+    border: 1px solid var(--tx-border);
+    border-radius: var(--tx-radius);
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.performer-rank {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--tx-text-muted);
+    min-width: 3rem;
+    text-align: center;
+}
+
+.performer-rank.top-1 {
+    color: #FFD700;
+}
+
+.performer-rank.top-2 {
+    color: #C0C0C0;
+}
+
+.performer-rank.top-3 {
+    color: #CD7F32;
+}
+
+.performer-stats {
+    display: flex;
+    gap: 2rem;
+    margin-left: auto;
+    font-size: 0.9rem;
+}
+
+.performer-stat {
+    text-align: center;
+}
+
+.performer-stat-value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--tx-primary);
+}
+
+.performer-stat-label {
+    font-size: 0.75rem;
+    color: var(--tx-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Mastery Heatmap */
+.heatmap-wrapper {
+    overflow-x: auto;
+    border: 1px solid var(--tx-border);
+    border-radius: var(--tx-radius);
+    background: var(--tx-surface);
+}
+
+.heatmap-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.85rem;
+}
+
+.heatmap-table th {
+    background: var(--tx-surface-2);
+    padding: 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 1px solid var(--tx-border);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.heatmap-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--tx-border);
+    text-align: center;
+}
+
+.heatmap-table tbody tr:hover {
+    background: var(--tx-surface-2);
+}
+
+.heatmap-cell {
+    display: inline-block;
+    min-width: 50px;
+    padding: 0.4rem 0.6rem;
+    border-radius: var(--tx-radius-sm);
+    font-weight: 600;
+    font-family: ui-monospace, monospace;
+}
+
+.heatmap-cell.excellent {
+    background: #10b981;
+    color: white;
+}
+
+.heatmap-cell.good {
+    background: #84cc16;
+    color: white;
+}
+
+.heatmap-cell.fair {
+    background: #eab308;
+    color: white;
+}
+
+.heatmap-cell.poor {
+    background: #ef4444;
+    color: white;
+}
+
+.heatmap-cell.no-data {
+    background: var(--tx-surface-2);
+    color: var(--tx-text-muted);
+}
+
+.heatmap-average-row {
+    background: var(--tx-surface-3);
+    font-weight: 600;
+}
+</style>
+
+{% if no_classes %}
+<div class="tx-empty-state">
+    <p>No classes assigned. You need to be assigned to at least one class to view insights.</p>
+</div>
+{% else %}
+
+<div class="insights-container">
+    <!-- Header -->
+    <div class="insights-header">
+        <div>
+            <h1 style="margin: 0 0 0.5rem 0; font-size: 1.75rem;">Teacher Insights</h1>
+            <p style="color: var(--tx-text-muted); margin: 0;">Data-driven insights for {{ selected_class.name }}</p>
+        </div>
+
+        <!-- Class Selector -->
+        <div>
+            <label for="class-select" style="font-size: 0.85rem; color: var(--tx-text-muted); margin-right: 0.5rem;">Class:</label>
+            <select id="class-select" onchange="window.location.href='?class=' + this.value"
+                    style="padding: 0.5rem 1rem; border: 1px solid var(--tx-border); border-radius: var(--tx-radius); background: var(--tx-surface);">
+                {% for c in classes %}
+                <option value="{{ c.id }}" {% if c.id == selected_class.id %}selected{% endif %}>
+                    {{ c.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <!-- Stats Summary -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+        <div class="tx-card">
+            <div style="font-size: 0.8rem; color: var(--tx-text-muted); margin-bottom: 0.5rem;">Total Students</div>
+            <div style="font-size: 2rem; font-weight: 700; color: var(--tx-primary);">{{ total_students }}</div>
+        </div>
+        <div class="tx-card">
+            <div style="font-size: 0.8rem; color: var(--tx-text-muted); margin-bottom: 0.5rem;">Struggling Students</div>
+            <div style="font-size: 2rem; font-weight: 700; color: var(--tx-alert);">{{ struggling_count }}</div>
+        </div>
+        <div class="tx-card">
+            <div style="font-size: 0.8rem; color: var(--tx-text-muted); margin-bottom: 0.5rem;">Top Performers</div>
+            <div style="font-size: 2rem; font-weight: 700; color: var(--tx-success);">{{ top_performers|length }}</div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="insights-tabs">
+        <button class="insights-tab active" onclick="showTab('struggling')">
+            Struggling Students
+        </button>
+        <button class="insights-tab" onclick="showTab('performers')">
+            Top Performers
+        </button>
+        <button class="insights-tab" onclick="showTab('heatmap')">
+            Mastery Heatmap
+        </button>
+    </div>
+
+    <!-- Tab 1: Struggling Students -->
+    <div id="tab-struggling" class="insights-section active">
+        <h2 style="font-size: 1.25rem; margin-bottom: 1rem;">At-Risk Students</h2>
+
+        {% if struggling_students %}
+        <p style="color: var(--tx-text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">
+            {{ struggling_count }} student{{ struggling_count|pluralize }} flagged based on risk factors.
+            Click to view student profile.
+        </p>
+
+        {% for item in struggling_students %}
+        <div class="struggling-card {% if item.risk_score >= 5 %}risk-critical{% else %}risk-warning{% endif %}">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="flex: 1;">
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
+                        <span class="risk-badge {% if item.risk_score >= 5 %}critical{% else %}warning{% endif %}">
+                            Risk Score: {{ item.risk_score }}
+                        </span>
+                        <a href="{% url 'teacher:student_detail' item.student.id %}"
+                           style="font-size: 1.1rem; font-weight: 600; color: var(--tx-text); text-decoration: none;">
+                            {{ item.student.get_full_name }}
+                        </a>
+                    </div>
+
+                    <div class="risk-factors">
+                        {% for factor in item.risk_factors %}
+                        <span class="risk-factor">{{ factor }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div style="text-align: right; font-size: 0.85rem; color: var(--tx-text-muted);">
+                    <div>Level {{ item.profile.level }} · {{ item.total_xp }} XP</div>
+                    {% if item.avg_mastery %}
+                    <div>Avg Mastery: {{ item.avg_mastery }}%</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        {% else %}
+        <div class="tx-empty-state">
+            <p>No struggling students detected. Great job! 🎉</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Tab 2: Top Performers -->
+    <div id="tab-performers" class="insights-section">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h2 style="font-size: 1.25rem; margin: 0;">Top Performers</h2>
+
+            <!-- Metric Selector -->
+            <div>
+                <label style="font-size: 0.85rem; color: var(--tx-text-muted); margin-right: 0.5rem;">Rank by:</label>
+                <select id="metric-select" onchange="window.location.href='?class={{ selected_class.id }}&metric=' + this.value"
+                        style="padding: 0.5rem 1rem; border: 1px solid var(--tx-border); border-radius: var(--tx-radius); background: var(--tx-surface);">
+                    <option value="xp" {% if metric == 'xp' %}selected{% endif %}>Total XP</option>
+                    <option value="mastery" {% if metric == 'mastery' %}selected{% endif %}>Avg Mastery</option>
+                    <option value="streak" {% if metric == 'streak' %}selected{% endif %}>Streak Days</option>
+                    <option value="quest_score" {% if metric == 'quest_score' %}selected{% endif %}>Quest Score</option>
+                </select>
+            </div>
+        </div>
+
+        {% if top_performers %}
+        {% for item in top_performers %}
+        <div class="performer-card">
+            <div class="performer-rank {% if forloop.counter == 1 %}top-1{% elif forloop.counter == 2 %}top-2{% elif forloop.counter == 3 %}top-3{% endif %}">
+                #{{ forloop.counter }}
+            </div>
+
+            <div style="flex: 1;">
+                <a href="{% url 'teacher:student_detail' item.student.id %}"
+                   style="font-size: 1.1rem; font-weight: 600; color: var(--tx-text); text-decoration: none;">
+                    {{ item.student.get_full_name }}
+                </a>
+                <div style="font-size: 0.85rem; color: var(--tx-text-muted); margin-top: 0.25rem;">
+                    Level {{ item.level }} · Rank {{ item.rank }}
+                </div>
+            </div>
+
+            <div class="performer-stats">
+                <div class="performer-stat">
+                    <div class="performer-stat-value">{{ item.total_xp }}</div>
+                    <div class="performer-stat-label">XP</div>
+                </div>
+                {% if item.avg_mastery %}
+                <div class="performer-stat">
+                    <div class="performer-stat-value">{{ item.avg_mastery }}%</div>
+                    <div class="performer-stat-label">Mastery</div>
+                </div>
+                {% endif %}
+                <div class="performer-stat">
+                    <div class="performer-stat-value">{{ item.streak_days }}</div>
+                    <div class="performer-stat-label">Streak</div>
+                </div>
+                {% if item.avg_quest_score %}
+                <div class="performer-stat">
+                    <div class="performer-stat-value">{{ item.avg_quest_score }}%</div>
+                    <div class="performer-stat-label">Quests</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="tx-empty-state">
+            <p>No performance data available yet.</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Tab 3: Mastery Heatmap -->
+    <div id="tab-heatmap" class="insights-section">
+        <h2 style="font-size: 1.25rem; margin-bottom: 1rem;">Subject Mastery Heatmap</h2>
+
+        {% if heatmap_subjects %}
+        <p style="color: var(--tx-text-muted); margin-bottom: 1.5rem; font-size: 0.9rem;">
+            Visual overview of student mastery across subjects.
+            <span class="heatmap-cell excellent" style="margin-left: 1rem;">≥80%</span>
+            <span class="heatmap-cell good">60-79%</span>
+            <span class="heatmap-cell fair">40-59%</span>
+            <span class="heatmap-cell poor">&lt;40%</span>
+            <span class="heatmap-cell no-data">No data</span>
+        </p>
+
+        <div class="heatmap-wrapper">
+            <table class="heatmap-table">
+                <thead>
+                    <tr>
+                        <th style="min-width: 200px;">Student</th>
+                        {% for subject in heatmap_subjects %}
+                        <th>{{ subject.name }}</th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in heatmap_students %}
+                    <tr>
+                        <td style="text-align: left;">
+                            <a href="{% url 'teacher:student_detail' student.id %}"
+                               style="color: var(--tx-text); text-decoration: none; font-weight: 500;">
+                                {{ student.name }}
+                            </a>
+                        </td>
+                        {% for subject in heatmap_subjects %}
+                        <td>
+                            {% for k, v in heatmap_matrix.items %}
+                                {% if k.0 == student.id and k.1 == subject.id %}
+                                    {% if v >= 80 %}
+                                        <span class="heatmap-cell excellent">{{ v }}%</span>
+                                    {% elif v >= 60 %}
+                                        <span class="heatmap-cell good">{{ v }}%</span>
+                                    {% elif v >= 40 %}
+                                        <span class="heatmap-cell fair">{{ v }}%</span>
+                                    {% else %}
+                                        <span class="heatmap-cell poor">{{ v }}%</span>
+                                    {% endif %}
+                                {% endif %}
+                            {% empty %}
+                                <span class="heatmap-cell no-data">—</span>
+                            {% endfor %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+
+                    <!-- Average Row -->
+                    <tr class="heatmap-average-row">
+                        <td style="text-align: left;">Class Average</td>
+                        {% for subject in heatmap_subjects %}
+                        <td>
+                            {% for sid, avg in heatmap_averages.items %}
+                                {% if sid == subject.id and avg %}
+                                    {{ avg }}%
+                                {% endif %}
+                            {% empty %}
+                                —
+                            {% endfor %}
+                        </td>
+                        {% endfor %}
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="tx-empty-state">
+            <p>No mastery data available yet.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function showTab(tabName) {
+    // Hide all sections
+    document.querySelectorAll('.insights-section').forEach(section => {
+        section.classList.remove('active');
+    });
+
+    // Remove active from all tabs
+    document.querySelectorAll('.insights-tab').forEach(tab => {
+        tab.classList.remove('active');
+    });
+
+    // Show selected section
+    document.getElementById('tab-' + tabName).classList.add('active');
+
+    // Activate tab
+    event.target.classList.add('active');
+}
+</script>
+
+{% endif %}
+
+{% endblock %}

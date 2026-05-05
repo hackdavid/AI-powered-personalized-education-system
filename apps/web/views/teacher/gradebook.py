@@ -68,25 +68,25 @@ def _build_gradebook(class_obj, sort='name'):
     sa_qs = (
         StudentAssignment.objects
         .filter(student_id__in=student_ids, assignment_id__in=quest_ids)
-        .values('student_id', 'assignment_id', 'score', 'max_score', 'status')
     )
     # Pick the best (highest pct) attempt per (student, assignment).
     best = {}
-    for row in sa_qs:
-        max_score = row['max_score'] or 0
-        score = row['score'] or 0
+    for sa in sa_qs:
+        max_score = sa.max_score or 0
+        score = sa.score or 0
         pct = int(round(100 * score / max_score)) if max_score else None
-        key = (row['student_id'], row['assignment_id'])
+        key = (sa.student_id, sa.assignment_id)
         existing = best.get(key)
         if (
             existing is None
             or (pct is not None and (existing['pct'] is None or pct > existing['pct']))
         ):
             best[key] = {
+                'id': sa.id,  # Add StudentAssignment ID for grading link
                 'pct': pct,
                 'score': score,
                 'max_score': max_score,
-                'status': row['status'],
+                'status': sa.status,
             }
 
     rows = []
@@ -101,12 +101,14 @@ def _build_gradebook(class_obj, sort='name'):
             if cell is None:
                 cells.append({
                     'assignment_id': q.id,
+                    'student_assignment_id': None,
                     'pct': None, 'score': None, 'max_score': q.total_marks,
                     'status': None,
                 })
             else:
                 cells.append({
                     'assignment_id': q.id,
+                    'student_assignment_id': cell['id'],
                     'pct': cell['pct'],
                     'score': cell['score'],
                     'max_score': cell['max_score'],

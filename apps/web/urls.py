@@ -19,6 +19,7 @@ from apps.web.views.school_admin import (
     teacher_views,
     student_views,
     document_views,
+    dashboard_views,
 )
 from apps.web.views.student import chat as student_chat_views
 from apps.web.views.student import profile as profile_views
@@ -32,6 +33,8 @@ from apps.web.views.teacher import quests as teacher_quest_views
 from apps.web.views.teacher import classes as teacher_class_views
 from apps.web.views.teacher import students as teacher_student_views
 from apps.web.views.teacher import gradebook as teacher_gradebook_views
+from apps.web.views.teacher import grading as teacher_grading_views
+from apps.web.views.teacher import insights as teacher_insights_views
 
 
 # --- public + dashboard (namespace 'web') ---
@@ -52,6 +55,11 @@ auth_patterns = [
 
 # --- school admin (namespace 'school_admin') ---
 school_admin_patterns = [
+    # Dashboard & Analytics
+    path('', dashboard_views.admin_dashboard_view, name='dashboard'),
+    path('analytics/', dashboard_views.admin_analytics_view, name='analytics'),
+    path('enrollment/', dashboard_views.enrollment_management_view, name='enrollment'),
+
     # Classes
     path('classes/', class_views.class_list, name='class_list'),
     path('classes/create/', class_views.class_create, name='class_create'),
@@ -155,4 +163,10 @@ teacher_patterns = [
     # Gradebook (Phase E)
     path('gradebook/', teacher_gradebook_views.gradebook_view, name='gradebook'),
     path('gradebook/<int:pk>/export/', teacher_gradebook_views.gradebook_export_view, name='gradebook_export'),
+
+    # Grading (Phase F)
+    path('grading/<int:pk>/', teacher_grading_views.grading_view, name='grading_view'),
+
+    # Insights (Phase F)
+    path('insights/', teacher_insights_views.insights_view, name='insights'),
 ]

@@ -1,0 +1,101 @@
+{% extends "school_admin/_shell.html" %}
+{% load static %}
+
+{% block title %}Analytics · EduAI Admin{% endblock %}
+
+{% block breadcrumbs %}
+<a href="{% url 'school_admin:dashboard' %}">Dashboard</a>
+<span class="tx-breadcrumbs-sep">/</span>
+<span class="tx-breadcrumbs-current">Analytics</span>
+{% endblock %}
+
+{% block admin_content %}
+<div style="max-width: 1600px; margin: 0 auto;">
+    <h1 style="font-size: 1.75rem; margin-bottom: 1.5rem;">School-Wide Analytics</h1>
+
+    <!-- Teacher Utilization -->
+    <div class="tx-card" style="margin-bottom: 2rem;">
+        <h2 style="font-size: 1.25rem; margin-bottom: 1rem;">Teacher Workload</h2>
+        <table class="tx-table">
+            <thead>
+                <tr>
+                    <th>Teacher</th>
+                    <th>Classes</th>
+                    <th>Students</th>
+                    <th>Quests Published</th>
+                    <th>Last Login</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in teacher_utilization %}
+                <tr>
+                    <td>{{ item.teacher.get_full_name }}</td>
+                    <td>{{ item.classes }}</td>
+                    <td>{{ item.students }}</td>
+                    <td>{{ item.quests_published }}</td>
+                    <td>{{ item.last_login|date:"M d, Y"|default:"Never" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" style="text-align: center; color: var(--tx-text-muted);">No teachers found</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Class Performance -->
+    <div class="tx-card" style="margin-bottom: 2rem;">
+        <h2 style="font-size: 1.25rem; margin-bottom: 1rem;">Class Performance Comparison</h2>
+        <table class="tx-table">
+            <thead>
+                <tr>
+                    <th>Class</th>
+                    <th>Teacher</th>
+                    <th>Students</th>
+                    <th>Avg Mastery</th>
+                    <th>Avg Quest Score</th>
+                    <th>Submissions (7d)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in class_performance %}
+                <tr>
+                    <td>{{ item.class.name }}</td>
+                    <td>{{ item.teacher.get_full_name|default:"Unassigned" }}</td>
+                    <td>{{ item.student_count }}</td>
+                    <td>{% if item.avg_mastery %}{{ item.avg_mastery }}%{% else %}—{% endif %}</td>
+                    <td>{% if item.avg_quest_score %}{{ item.avg_quest_score }}%{% else %}—{% endif %}</td>
+                    <td>{{ item.submissions_this_week }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" style="text-align: center; color: var(--tx-text-muted);">No classes found</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Subject Distribution -->
+    <div class="tx-card">
+        <h2 style="font-size: 1.25rem; margin-bottom: 1rem;">Subject Distribution</h2>
+        <table class="tx-table">
+            <thead>
+                <tr>
+                    <th>Subject</th>
+                    <th>Classes Teaching</th>
+                    <th>Avg Mastery</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in subject_distribution %}
+                <tr>
+                    <td>{{ item.subject.name }}</td>
+                    <td>{{ item.class_count }}</td>
+                    <td>{% if item.avg_mastery %}{{ item.avg_mastery }}%{% else %}—{% endif %}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="3" style="text-align: center; color: var(--tx-text-muted);">No subjects found</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+%%{init: {'theme':'default','flowchart':{'curve':'basis','htmlLabels':true,'nodeSpacing':35,'rankSpacing':110}}}%%
+flowchart LR
+    subgraph Map["<b>Map</b> — risks identified"]
+        direction TB
+        M1["Hallucination<br/>on minors"]:::map
+        M2["Subgroup<br/>unfairness"]:::map
+        M3["GDPR exposure<br/>data residency"]:::map
+    end
+
+    subgraph Measure["<b>Measure</b> — metrics and checks"]
+        direction TB
+        E1["Retrieval<br/>P@5, MRR, nDCG"]:::measure
+        E2["Routing<br/>top-1 accuracy"]:::measure
+        E3["Tenant isolation<br/>property tests"]:::measure
+        E4["Latency<br/>p50, p95"]:::measure
+    end
+
+    subgraph Manage["<b>Manage</b> — concrete mitigations"]
+        direction TB
+        G1["AppSetting<br/>kill-switch<br/>LLM off in 30 s"]:::manage
+        G2["Audit trail<br/>retrieved_chunks +<br/>routing + model"]:::manage
+        G3["RBAC at 3 layers<br/>DB, middleware, view"]:::manage
+        G4["Stub fallback<br/>graceful degradation"]:::manage
+        G5["Data residency<br/>Supabase EU + region pin"]:::manage
+    end
+
+    M1 ==> E1
+    M1 ==> E2
+    M2 ==> E2
+    M3 ==> E3
+    M3 ==> E4
+
+    E1 ==> G2
+    E1 ==> G4
+    E2 ==> G1
+    E2 ==> G2
+    E3 ==> G3
+    E3 ==> G5
+    E4 ==> G1
+
+    classDef map fill:#fee2e2,stroke:#7f1d1d,stroke-width:2px,color:#0f172a
+    classDef measure fill:#fef3c7,stroke:#92400e,stroke-width:2px,color:#0f172a
+    classDef manage fill:#dcfce7,stroke:#14532d,stroke-width:2px,color:#0f172a
+    linkStyle default stroke:#0f172a,stroke-width:2px

@@ -1,21 +1,28 @@
-{% extends 'base/dashboard_base.html' %}
+{% extends "school_admin/_shell.html" %}
 {% load static %}
 
-{% block dashboard_title %}Subjects{% endblock %}
-{% block page_title %}Manage Subjects{% endblock %}
-{% block page_subtitle %}<p class="text-gray-600 mt-1">Create and manage academic subjects</p>{% endblock %}
+{% block title %}Subjects · EduAI Admin{% endblock %}
 
-{% block page_actions %}
-<button onclick="openPanel('add-subject')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition flex items-center">
-    <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+{% block breadcrumbs %}
+<a href="{% url 'school_admin:dashboard' %}">Dashboard</a>
+<span class="tx-breadcrumbs-sep">/</span>
+<span class="tx-breadcrumbs-current">Subjects</span>
+{% endblock %}
+
+{% block topbar_actions %}
+<button onclick="openPanel('add-subject')" class="tx-btn tx-btn-primary" style="display: flex; align-items: center; gap: 0.5rem;">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+    </svg>
     Add Subject
 </button>
 {% endblock %}
 
-{% block sidebar_nav %}{% include 'school_admin/includes/sidebar_nav.html' %}{% endblock %}
-
-{% block dashboard_content %}
+{% block admin_content %}
 <link rel="stylesheet" href="{% static 'css/school_admin.css' %}">
+
+<div style="max-width: 1600px; margin: 0 auto;">
+    <h1 style="font-size: 1.75rem; margin-bottom: 1.5rem;">Manage Subjects</h1>
 
 {% if subjects %}
 <div class="bg-white rounded-xl shadow-md overflow-hidden">
@@ -89,9 +96,9 @@
         </div>
     </form>
 </div>
+</div>
 {% endblock %}
 
-{% block dashboard_modals %}
 <script>
 function openPanel(id){document.getElementById(id+'-panel').classList.add('open');document.getElementById(id+'-overlay').classList.add('open');document.body.style.overflow='hidden';}
 function closePanel(id){document.getElementById(id+'-panel').classList.remove('open');document.getElementById(id+'-overlay').classList.remove('open');document.body.style.overflow='';}
@@ -104,4 +111,3 @@ function openEditSubject(pk,name,code,desc,color){
     openPanel('edit-subject');
 }
 </script>
-{% endblock %}
